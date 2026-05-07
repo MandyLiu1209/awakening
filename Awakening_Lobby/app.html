@@ -41,7 +41,7 @@
         .btn-action { background: var(--accent-orange); color: white; border: none; padding: 16px; font-size: 18px; border-radius: 50px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 #a04000; }
         
         #customAlert { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; }
-        .alert-box { background: white; padding: 30px; border-radius: 25px; text-align: center; width: 80%; border: 5px solid var(--accent-orange); color: #5d4037;}
+        .alert-box { background: white; padding: 25px 15px; border-radius: 20px; text-align: center; width: 65%; max-width: 280px; border: 4px solid var(--accent-orange); color: #5d4037; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         
         /* 能量傳輸轉圈圈動畫 */
         .spinner { border: 6px solid #fdf5e6; border-top: 6px solid #d35400; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
@@ -104,7 +104,6 @@
 <script>
     const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbypRFGCuunQof9jfhLoYUqgKeBSTTOvRlXiqLaL1hiea3sh-x4XIDlsy_CUtdbhYlV6/exec";
-
     
     const firebaseConfig = {
         apiKey: "AIzaSyBXHnWHRLUTvb08RdifKKigbNIyBH_34JU",
