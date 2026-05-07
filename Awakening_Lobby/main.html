@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>14日覺醒試煉 - 英雄殿堂</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <style>
+        :root { --main-brown: #8b4513; --accent-orange: #d35400; --bg-cream: #fffaf0; }
+        body { font-family: '微軟正黑體', sans-serif; background: #2c1e1a; color: #fff; margin: 0; padding: 10px; display: flex; justify-content: center; }
+        .container { background: url('https://www.transparenttextures.com/patterns/paper-fibers.png'), var(--bg-cream); border: 6px solid var(--main-brown); border-radius: 30px; padding: 4vw; max-width: 500px; width: 95%; box-sizing: border-box; margin: 2vh auto; text-align: center; color: #5d4037; position: relative; }
+        .header-banner { background: var(--main-brown); color: #fdf5e6; padding: 12px; border-radius: 50px; margin-bottom: 15px; font-weight: bold; font-size: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+        /* 角色呈現區 */
+        .hero-display { position: relative; width: 100%; max-height: 45vh; aspect-ratio: 3/4; margin-bottom: 15px; background: #e0e0e0; border-radius: 20px; overflow: hidden; border: 3px solid #d2b48c; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
+        .hero-img { width: 90%; height: 90%; object-fit: contain; position: absolute; top: 5%; left: 5%; z-index: 1; }
+        .btn-edit-float { position: absolute; top: 12px; right: 12px; font-size: 18px; background: rgba(255, 255, 255, 0.9); border: 2px solid #d2b48c; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border:none; cursor: pointer;}
+        .hero-info-badge { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(139, 69, 19, 0.85); color: white; padding: 8px 30px; border-radius: 20px; text-align: center; z-index: 5; backdrop-filter: blur(5px); white-space: nowrap; font-size: 16px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); }
+
+        /* ✨ 任務顯示區塊 ✨ */
+        .task-container { background: #fef9e7; border: 2px dashed #d35400; border-radius: 15px; padding: 12px; margin-bottom: 15px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .task-tag { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #d35400; color: white; font-size: 12px; padding: 2px 12px; border-radius: 10px; font-weight: bold; }
+        .task-title { font-size: 18px; font-weight: bold; color: #8b4513; margin-top: 5px; }
+        .task-desc { font-size: 14px; color: #a04000; margin: 4px 0; }
+
+        /* 輸入與選角 */
+        .hidden { display: none !important; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .input-sub { flex: 1; text-align: left; }
+        .input-sub label { font-size: 12px; font-weight: bold; color: var(--main-brown); }
+        .input-sub input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #d2b48c; box-sizing: border-box; margin-top: 5px; }
+        .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .role-card { background: transparent; border: 3px solid transparent; border-radius: 15px; overflow: hidden; cursor: pointer; }
+        .role-card img { width: 100%; height: auto; display: block; border-radius: 12px; }
+        .selected { border: 3px solid var(--accent-orange) !important; }
+
+        textarea { width: 100%; height: 80px; padding: 12px; border-radius: 15px; border: 2px solid #d2b48c; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; background: #fff; }
+        .btn-action { background: var(--accent-orange); color: white; border: none; padding: 16px; font-size: 18px; border-radius: 50px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 #a04000; }
+        
+        #customAlert { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; }
+        .alert-box { background: white; padding: 25px 15px; border-radius: 20px; text-align: center; width: 65%; max-width: 280px; border: 4px solid var(--accent-orange); color: #5d4037; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        
+        /* 能量傳輸轉圈圈動畫 */
+        .spinner { border: 6px solid #fdf5e6; border-top: 6px solid #d35400; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-banner">英雄試煉殿堂</div>
+
+    <div id="setupSection">
+        <div class="input-group">
+            <div class="input-sub"><label>LINE 姓名</label><input type="text" id="lineNameDisplay" readonly value="讀取中..."></div>
+            <div class="input-sub"><label>遊戲暱稱</label><input type="text" id="gameNickname" placeholder="輸入暱稱"></div>
+        </div>
+        <div class="role-grid">
+            <div class="role-card role-1 selected" onclick="selectRole('純水使者', this)"><img src="role1.jpg"></div>
+            <div class="role-card role-2" onclick="selectRole('植能園丁', this)"><img src="role2.jpg"></div>
+            <div class="role-card role-3" onclick="selectRole('意志衛士', this)"><img src="role3.jpg"></div>
+            <div class="role-card role-4" onclick="selectRole('活力採集者', this)"><img src="role4.jpg"></div>
+        </div>
+        <button class="btn-action" onclick="saveProfile()">確認角色，進入試煉</button>
+    </div>
+
+    <div id="checkinSection" class="hidden">
+        <div class="hero-display">
+            <img id="mainHeroImg" class="hero-img" src="role1_null.jpg">
+            <button class="btn-edit-float" onclick="editProfile()">✏️</button>
+            <div class="hero-info-badge">
+                <span id="displayNickname">LV1 : 載入中...</span>
+            </div>
+        </div>
+        
+        <div class="task-container">
+            <div class="task-tag" id="dayLabel">DAY 1</div>
+            <div class="task-title" id="taskTitle">載入任務中...</div>
+            <div class="task-desc" id="taskDesc">請先完成今日挑戰，再進行打卡。</div>
+        </div>
+
+        <textarea id="questLog" placeholder="今日試煉心得..."></textarea>
+        <div style="text-align: left; margin-bottom: 15px;">
+            <label style="font-weight: bold; font-size: 14px;">📸 成果照片：</label>
+            <input type="file" id="questImage" accept="image/*">
+        </div>
+        <button class="btn-action" onclick="submitQuest()">送出打卡，提升能量</button>
+    </div>
+</div>
+
+<div id="customAlert"><div class="alert-box"><h2>🎉 打卡成功！</h2><p>紀錄已載入石碑。</p><button onclick="liff.closeWindow()" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button></div></div>
+
+<div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; border: 4px solid #d35400;">
+        <div class="spinner"></div>
+        <h3 style="color: #8b4513; margin: 10px 0 0 0;">⚡ 能量傳輸中...</h3>
+        <p style="color: #d35400; font-size: 14px; margin: 5px 0 0 0;">請稍候，正在將紀錄刻入石碑</p>
+    </div>
+</div>
+
+<script>
+    const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbypRFGCuunQof9jfhLoYUqgKeBSTTOvRlXiqLaL1hiea3sh-x4XIDlsy_CUtdbhYlV6/exec";
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyBXHnWHRLUTvb08RdifKKigbNIyBH_34JU",
+        authDomain: "dawakening-trial.firebaseapp.com",
+        projectId: "dawakening-trial",
+        storageBucket: "dawakening-trial.firebasestorage.app",
+        messagingSenderId: "908397435942",
+        appId: "1:908397435942:web:4bd4ae6e8f89a6de7b5ae7"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    const taskMatrix = [
+        { title: "💧 純水初覺醒", desc: "每日飲水達成 2000cc" }, 
+        { title: "🌿 植能均衡術", desc: "攝取三份深綠色蔬菜" }, 
+        { title: "🛡️ 意志聖界", desc: "今日禁絕所有含糖飲料" }, 
+        { title: "🏃 活力採集", desc: "完成 15 分鐘核心拉伸" }, 
+        { title: "💤 靈魂修復", desc: "睡眠滿 7 小時提升精神" }, 
+        { title: "🔥 禁斷油脂", desc: "拒絕任何油炸類食物" }, 
+        { title: "🧘 終極冥想", desc: "沉思 5 分鐘並回顧成長" }  
+    ];
+
+    const roleImages = { 
+        '純水使者': 'role1_null.jpg', 
+        '植能園丁': 'role2_null.jpg', 
+        '意志衛士': 'role3_null.jpg', 
+        '活力採集者': 'role4_null.jpg' 
+    };
+
+    let selectedRole = "純水使者";
+
+    function updateTask() {
+        const startTimestamp = localStorage.getItem('startDate') || Date.now();
+        if (!localStorage.getItem('startDate')) localStorage.setItem('startDate', startTimestamp);
+        
+        const diffTime = Math.abs(Date.now() - startTimestamp);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; 
+        
+        let taskIndex = Math.floor((diffDays - 1) / 2);
+        if (taskIndex > 6) taskIndex = 6; 
+
+        document.getElementById('dayLabel').innerText = "DAY " + diffDays;
+        document.getElementById('taskTitle').innerText = taskMatrix[taskIndex].title;
+        document.getElementById('taskDesc').innerText = taskMatrix[taskIndex].desc;
+    }
+
+    function checkMemory() {
+        const savedNick = localStorage.getItem('gameNickname');
+        const savedRole = localStorage.getItem('selectedRole');
+        if (savedNick && savedRole) {
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('checkinSection').classList.remove('hidden');
+            document.getElementById('mainHeroImg').src = roleImages[savedRole];
+            selectedRole = savedRole;
+            updateTask();
+        }
+    }
+
+    function selectRole(name, el) {
+        selectedRole = name;
+        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    function saveProfile() {
+        const nickname = document.getElementById('gameNickname').value;
+        if (!nickname) { alert("請輸入英雄大名！"); return; }
+        localStorage.setItem('gameNickname', nickname);
+        localStorage.setItem('selectedRole', selectedRole);
+        if (!localStorage.getItem('startDate')) {
+            localStorage.setItem('startDate', Date.now()); 
+        }
+        checkMemory();
+    }
+
+    function editProfile() {
+        document.getElementById('setupSection').classList.remove('hidden');
+        document.getElementById('checkinSection').classList.add('hidden');
+    }
+
+    liff.init({ liffId: MY_LIFF_ID }).then(() => {
+        if (!liff.isLoggedIn()) { 
+            liff.login(); 
+        } else {
+            checkMemory();
+            liff.getProfile().then(p => {
+                document.getElementById('lineNameDisplay').value = p.displayName;
+                window.userProfile = p;
+                document.getElementById('displayNickname').innerText = "LV1 : " + p.displayName;
+            }).catch(err => {
+                document.getElementById('lineNameDisplay').value = "讀取失敗";
+                document.getElementById('displayNickname').innerText = "LV1 : 未知英雄";
+                console.error("Profile 讀取失敗", err);
+            });
+        }
+    }).catch(err => {
+        document.getElementById('lineNameDisplay').value = "連線失敗";
+        console.error("LIFF 初始化失敗", err);
+    });
+
+    async function submitQuest() {
+        const nickname = localStorage.getItem('gameNickname');
+        const log = document.getElementById('questLog').value;
+        const fileInput = document.getElementById('questImage');
+        if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
+        
+        document.getElementById('loadingModal').style.display = "flex";
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64 = e.target.result.split(',')[1];
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ nickname: nickname, fileName: nickname + "_" + Date.now() + ".jpg", mimeType: fileInput.files[0].type, base64Data: base64 })
+                });
+                const gasRes = await res.json();
+                if (gasRes.status === "success") {
+                    await db.collection("QuestLogs").add({
+                        lineName: window.userProfile ? window.userProfile.displayName : "未知",
+                        gameNickname: nickname,
+                        role: selectedRole,
+                        log: log,
+                        imageUrl: gasRes.fileUrl,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    document.getElementById('customAlert').style.display = 'flex';
+                }
+            } catch (err) { alert("傳輸失敗：" + err); }
+            document.getElementById('loadingModal').style.display = "none";
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    }
+</script>
+</body>
+</html>
