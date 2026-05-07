@@ -103,8 +103,7 @@
             <input type="file" id="questImage" accept="image/*">
         </div>
         <button class="btn-action" onclick="submitQuest()">送出打卡，提升能量</button>
-        <!-- <p id="loading" style="display:none; color: #d35400; font-weight:bold; margin-top:10px;">⚡ 能量注入中...</p>
-        -->
+      
     </div>
 </div>
 
@@ -113,14 +112,14 @@
 <div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;">
     <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; border: 4px solid #d35400;">
         <div class="spinner"></div>
-        <h3 style="color: #8b4513; margin: 10px 0 0 0;">⚡ 能量傳輸中11...</h3>
+        <h3 style="color: #8b4513; margin: 10px 0 0 0;">⚡ 能量傳輸中...</h3>
         <p style="color: #d35400; font-size: 14px; margin: 5px 0 0 0;">請稍候，正在將紀錄刻入石碑</p>
     </div>
 </div>
 
 <script>
     const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxVPfQ_0cRpHg5HuDan6XMv_4lEmWnRwAhzGiwpI8DJ3QfY4ML_xNlK8Jwt5jzFG2o/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwwje5fgW8dh6aW6MwlUHloLoC0FzR2th9hAvcBDwEsjBpcJqbkZ1J1XDeXQ1l3QqcG/exec";
     const firebaseConfig = {
         apiKey: "AIzaSyBXHnWHRLUTvb08RdifKKigbNIyBH_34JU",
         authDomain: "dawakening-trial.firebaseapp.com",
@@ -225,7 +224,6 @@
         const fileInput = document.getElementById('questImage');
         if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
         
-        //document.getElementById('loading').style.display = "block";
         document.getElementById('loadingModal').style.display = "flex";
 
         const reader = new FileReader();
@@ -249,7 +247,6 @@
                     document.getElementById('customAlert').style.display = 'flex';
                 }
             } catch (err) { alert("傳輸失敗：" + err); }
-            //document.getElementById('loading').style.display = "none";
             document.getElementById('loadingModal').style.display = "none";
         };
         reader.readAsDataURL(fileInput.files[0]);
