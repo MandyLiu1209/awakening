@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>14日覺醒試煉 - 英雄殿堂</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <style>
+        :root { --water: #3498db; --plant: #27ae60; --guard: #e67e22; --energy: #e74c3c; --bg: #fdf5e6; }
+        body { font-family: '微軟正黑體', sans-serif; background: #2c1e1a; color: #fff; margin: 0; padding: 10px; display: flex; justify-content: center; }
+        .container { background: url('https://www.transparenttextures.com/patterns/paper-fibers.png'), #fffaf0; border: 6px solid #8b4513; border-radius: 30px; padding: 4vw; max-width: 500px; width: 90%; box-sizing: border-box; margin: 2vh auto; text-align: center; color: #5d4037; position: relative; }
+        .header-banner { background: #8b4513; color: #fdf5e6; padding: 12px; border-radius: 50px; margin-bottom: 15px; font-weight: bold; font-size: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+        /* 角色呈現區 */
+        .hero-display { position: relative; width: 100%; max-height: 45vh; aspect-ratio: 3/4; margin: 0 auto 15px auto; background: #e0e0e0; border-radius: 20px; overflow: hidden; border: 3px solid #d2b48c; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
+        .hero-img { width: 90%; height: 90%; object-fit: contain; position: absolute; top: 5%; left: 5%; z-index: 1; }
+        
+        /* 鉛筆修改按鈕 */
+        .btn-edit-float { position: absolute; top: 12px; right: 12px; font-size: 18px; background: rgba(255, 255, 255, 0.9); border: 2px solid #d2b48c; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.2); padding: 0; }
+
+        /* 置中身份標籤 */
+        .hero-info-badge { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(139, 69, 19, 0.85); color: white; padding: 8px 30px; border-radius: 20px; text-align: center; z-index: 5; backdrop-filter: blur(5px); white-space: nowrap; font-size: 16px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); }
+
+        /* ✨ 任務顯示區塊 ✨ */
+        .task-container { background: #fef9e7; border: 2px dashed #d35400; border-radius: 15px; padding: 12px; margin-bottom: 15px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .task-tag { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #d35400; color: white; font-size: 12px; padding: 2px 12px; border-radius: 10px; font-weight: bold; }
+        .task-title { font-size: 18px; font-weight: bold; color: #8b4513; margin-top: 5px; }
+        .task-desc { font-size: 14px; color: #a04000; margin: 4px 0; }
+
+        /* 選角頁面 */
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .input-sub { flex: 1; text-align: left; }
+        .input-sub label { font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px; }
+        .input-sub input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #d2b48c; box-sizing: border-box; font-size: 16px; }
+        .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .role-card { background: white; border: 3px solid #e0e0e0; border-radius: 15px; cursor: pointer; overflow: hidden; display: flex; }
+        .role-card img { width: 100%; height: 100%; object-fit: cover; }
+        .selected { border: 4px solid #d35400 !important; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+
+        .hidden { display: none !important; }
+        textarea { width: 100%; height: 80px; padding: 12px; border-radius: 15px; border: 2px solid #d2b48c; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; background: #fff; }
+        .btn-action { background: #d35400; color: white; border: none; padding: 16px; font-size: 18px; border-radius: 50px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 #a04000; }
+        
+        #customAlert { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; }
+        .alert-box { background: white; padding: 30px; border-radius: 25px; text-align: center; width: 80%; max-width: 320px; border: 5px solid #d35400; color: #5d4037; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-banner">英雄試煉殿堂</div>
+
+    <div id="setupSection">
+        <div class="input-group">
+            <div class="input-sub">
+                <label>LINE 姓名</label>
+                <input type="text" id="lineNameDisplay" readonly value="讀取中...">
+            </div>
+            <div class="input-sub">
+                <label>遊戲暱稱</label>
+                <input type="text" id="gameNickname" placeholder="輸入暱稱">
+            </div>
+        </div>
+        <div class="role-grid">
+            <div class="role-card role-1 selected" onclick="selectRole('純水使者', this)"><img src="role1.jpg"></div>
+            <div class="role-card role-2" onclick="selectRole('植能園丁', this)"><img src="role2.jpg"></div>
+            <div class="role-card role-3" onclick="selectRole('意志衛士', this)"><img src="role3.jpg"></div>
+            <div class="role-card role-4" onclick="selectRole('活力採集者', this)"><img src="role4.jpg"></div>
+        </div>
+        <button class="btn-action" onclick="saveProfile()">確認角色，進入試煉</button>
+    </div>
+
+    <div id="checkinSection" class="hidden">
+        <div class="hero-display">
+            <img id="mainHeroImg" class="hero-img" src="role1.jpg">
+            <button class="btn-edit-float" onclick="editProfile()">✏️</button>
+            <div class="hero-info-badge">
+                <span id="displayNickname">LV1 : 載入中...</span>
+            </div>
+        </div>
+        <textarea id="questLog" placeholder="今日試煉心得..."></textarea>
+        <div style="text-align: left; margin-bottom: 15px;">
+            <label style="font-weight: bold; font-size: 14px;">📸 成果照片：</label>
+            <input type="file" id="questImage" accept="image/*">
+        </div>
+        <button class="btn-action" onclick="submitQuest()">送出打卡，提升能量</button>
+        <p id="loading" style="display:none; color: #d35400; font-weight:bold; margin-top:10px;">⚡ 能量注入中...</p>
+    </div>
+</div>
+
+<div id="customAlert"><div class="alert-box"><h2>🎉 打卡成功！</h2><p>紀錄已載入石碑。</p><button onclick="liff.closeWindow()" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button></div></div>
+
+<script>
+    const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwwje5fgW8dh6aW6MwlUHloLoC0FzR2th9hAvcBDwEsjBpcJqbkZ1J1XDeXQ1l3QqcG/exec";
+    const firebaseConfig = {
+        apiKey: "AIzaSyBXHnWHRLUTvb08RdifKKigbNIyBH_34JU",
+        authDomain: "dawakening-trial.firebaseapp.com",
+        projectId: "dawakening-trial",
+        storageBucket: "dawakening-trial.firebasestorage.app",
+        messagingSenderId: "908397435942",
+        appId: "1:908397435942:web:4bd4ae6e8f89a6de7b5ae7"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    // 🌟 14 日任務矩陣 (每兩天一換)
+    const taskMatrix = [
+        { title: "💧 純水初覺醒", desc: "每日飲水達成 2000cc" }, // Day 1-2
+        { title: "🌿 植能均衡術", desc: "攝取三份深綠色蔬菜" }, // Day 3-4
+        { title: "🛡️ 意志聖界", desc: "今日禁絕所有含糖飲料" }, // Day 5-6
+        { title: "🏃 活力採集", desc: "完成 15 分鐘核心拉伸" }, // Day 7-8
+        { title: "💤 靈魂修復", desc: "睡眠滿 7 小時提升精神" }, // Day 9-10
+        { title: "🔥 禁斷油脂", desc: "拒絕任何油炸類食物" }, // Day 11-12
+        { title: "🧘 終極冥想", desc: "沉思 5 分鐘並回顧成長" }  // Day 13-14
+    ];
+
+    const roleImages = { 
+        '純水使者': 'role1_null.jpg', 
+        '植能園丁': 'role2_null.jpg', 
+        '意志衛士': 'role3_null.jpg', 
+        '活力採集者': 'role4_null.jpg' 
+    };
+
+    let selectedRole = "純水使者"; 
+
+    function updateTask() {
+        const startTimestamp = localStorage.getItem('startDate') || Date.now();
+        if (!localStorage.getItem('startDate')) localStorage.setItem('startDate', startTimestamp);
+        
+        const diffTime = Math.abs(Date.now() - startTimestamp);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; // 確保至少是第 1 天
+        
+        // 14 天上限，每 2 天換一個任務 (索引 0~6)
+        let taskIndex = Math.floor((diffDays - 1) / 2);
+        if (taskIndex > 6) taskIndex = 6; 
+
+        document.getElementById('dayLabel').innerText = "DAY " + diffDays;
+        document.getElementById('taskTitle').innerText = taskMatrix[taskIndex].title;
+        document.getElementById('taskDesc').innerText = taskMatrix[taskIndex].desc;
+    }
+
+    function checkMemory() {
+        const savedNick = localStorage.getItem('gameNickname');
+        const savedRole = localStorage.getItem('selectedRole');
+        if (savedNick && savedRole) {
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('checkinSection').classList.remove('hidden');
+            document.getElementById('displayNickname').innerText = "LV1 : " + savedNick;
+            document.getElementById('mainHeroImg').src = roleImages[savedRole];
+            selectedRole = savedRole;
+        }
+    }
+
+    function selectRole(name, el) {
+        selectedRole = name;
+        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    function saveProfile() {
+        const nickname = document.getElementById('gameNickname').value;
+        if (!nickname || !selectedRole) { alert("請填寫暱稱並選擇角色！"); return; }
+        localStorage.setItem('gameNickname', nickname);
+        localStorage.setItem('selectedRole', selectedRole);
+        localStorage.setItem('startDate', Date.now()); // 記錄啟程日期
+        checkMemory();
+    }
+
+    function editProfile() {
+        document.getElementById('setupSection').classList.remove('hidden');
+        document.getElementById('checkinSection').classList.add('hidden');
+    }
+
+    liff.init({ liffId: MY_LIFF_ID }).then(() => {
+        if (!liff.isLoggedIn()) { liff.login(); }
+        else {
+            checkMemory();
+            liff.getProfile().then(p => {
+                document.getElementById('lineNameDisplay').value = p.displayName;
+                window.userProfile = p;
+                // 如果已經登入過，更新標籤為當前設定的暱稱
+                const savedNick = localStorage.getItem('gameNickname');
+                if(savedNick) document.getElementById('displayNickname').innerText = "LV1 : " + savedNick;
+            }).catch(err => {
+                document.getElementById('lineNameDisplay').value = "讀取失敗";
+            });
+        }
+    }).catch(err => {
+        document.getElementById('lineNameDisplay').value = "連線失敗";
+    });
+
+    async function submitQuest() {
+        const nickname = localStorage.getItem('gameNickname');
+        const log = document.getElementById('questLog').value;
+        const fileInput = document.getElementById('questImage');
+        if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
+        
+        document.getElementById('loading').style.display = "block";
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64 = e.target.result.split(',')[1];
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ nickname: nickname, fileName: nickname + "_" + Date.now() + ".jpg", mimeType: fileInput.files[0].type, base64Data: base64 })
+                });
+                const gasRes = await res.json();
+                if (gasRes.status === "success") {
+                    await db.collection("QuestLogs").add({
+                        lineName: window.userProfile ? window.userProfile.displayName : "未知",
+                        gameNickname: nickname,
+                        role: selectedRole,
+                        log: log,
+                        imageUrl: gasRes.fileUrl,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    document.getElementById('customAlert').style.display = 'flex';
+                }
+            } catch (err) { alert("傳輸失敗：" + err); }
+            document.getElementById('loading').style.display = "none";
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    }
+</script>
+</body>
+</html>
