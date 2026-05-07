@@ -45,6 +45,22 @@
         .btn-action { background: #d35400; color: white; border: none; padding: 16px; font-size: 18px; border-radius: 50px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 #a04000; }
         
         #customAlert { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; }
+
+        /* 能量傳輸轉圈圈動畫 */
+        .spinner {
+            border: 6px solid #fdf5e6; 
+            border-top: 6px solid #d35400; 
+            border-radius: 50%; 
+            width: 50px; 
+            height: 50px; 
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+
         .alert-box { background: white; padding: 30px; border-radius: 25px; text-align: center; width: 80%; max-width: 320px; border: 5px solid #d35400; color: #5d4037; }
     </style>
 </head>
@@ -87,15 +103,24 @@
             <input type="file" id="questImage" accept="image/*">
         </div>
         <button class="btn-action" onclick="submitQuest()">送出打卡，提升能量</button>
-        <p id="loading" style="display:none; color: #d35400; font-weight:bold; margin-top:10px;">⚡ 能量注入中...</p>
+        <!-- <p id="loading" style="display:none; color: #d35400; font-weight:bold; margin-top:10px;">⚡ 能量注入中...</p>
+        -->
     </div>
 </div>
 
 <div id="customAlert"><div class="alert-box"><h2>🎉 打卡成功！</h2><p>紀錄已載入石碑。</p><button onclick="liff.closeWindow()" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button></div></div>
 
+<div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; border: 4px solid #d35400;">
+        <div class="spinner"></div>
+        <h3 style="color: #8b4513; margin: 10px 0 0 0;">⚡ 能量傳輸中...</h3>
+        <p style="color: #d35400; font-size: 14px; margin: 5px 0 0 0;">請稍候，正在將紀錄刻入石碑</p>
+    </div>
+</div>
+
 <script>
     const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwwje5fgW8dh6aW6MwlUHloLoC0FzR2th9hAvcBDwEsjBpcJqbkZ1J1XDeXQ1l3QqcG/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxVPfQ_0cRpHg5HuDan6XMv_4lEmWnRwAhzGiwpI8DJ3QfY4ML_xNlK8Jwt5jzFG2o/exec";
     const firebaseConfig = {
         apiKey: "AIzaSyBXHnWHRLUTvb08RdifKKigbNIyBH_34JU",
         authDomain: "dawakening-trial.firebaseapp.com",
@@ -200,7 +225,9 @@
         const fileInput = document.getElementById('questImage');
         if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
         
-        document.getElementById('loading').style.display = "block";
+        //document.getElementById('loading').style.display = "block";
+        document.getElementById('loadingModal').style.display = "flex";
+
         const reader = new FileReader();
         reader.onload = async (e) => {
             const base64 = e.target.result.split(',')[1];
@@ -222,7 +249,8 @@
                     document.getElementById('customAlert').style.display = 'flex';
                 }
             } catch (err) { alert("傳輸失敗：" + err); }
-            document.getElementById('loading').style.display = "none";
+            //document.getElementById('loading').style.display = "none";
+            document.getElementById('loadingModal').style.display = "none";
         };
         reader.readAsDataURL(fileInput.files[0]);
     }
