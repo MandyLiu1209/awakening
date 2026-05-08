@@ -50,8 +50,7 @@
 </head>
 <body>
 
-<div class="container">
-    <div class="header-banner">英雄試煉殿堂</div>
+<div class="container" id="mainContainer" style="display: none;"> <div class="header-banner">英雄試煉殿堂</div>
 
     <div id="setupSection">
         <div class="input-group">
@@ -88,7 +87,6 @@
             <input type="file" id="questImage" accept="image/*">
         </div>
 
-        <!--下拉選單-->
         <div style="background: rgba(255,255,255,0.7); padding: 12px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #d2b48c; text-align: left;">
             <label style="font-size: 14px; font-weight: bold; color: var(--main-brown);">🛠️ (Demo 專用) 廣播模式切換：</label>
             <select id="demoBroadcastMode" style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 10px; border: 1px solid #ccc; font-size: 14px;">
@@ -101,10 +99,6 @@
         <button class="btn-action" onclick="submitQuest()">送出打卡，提升能量</button>
     </div>
 </div>
-
-<!--
-<div id="customAlert"><div class="alert-box"><h2>🎉 打卡成功！</h2><p>紀錄已載入石碑。</p><button onclick="liff.closeWindow()" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button></div></div>
--->
 
 <div id="customAlert"><div class="alert-box"><h2>🎉 打卡成功！</h2><p>紀錄已載入石碑。</p><button onclick="document.getElementById('customAlert').style.display='none'; try{ liff.closeWindow(); }catch(e){}" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button></div></div>
 
@@ -120,6 +114,9 @@
     const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
     
+    // 🛡️ 【請替換成您官方群組的真實 ID】
+    const TARGET_GROUP_ID = "C7dded8161beb84827984ec5f84aeb741"; 
+
     const firebaseConfig = {
         apiKey: "AIzaSyBXHnWHRLUTvb08RdifKKigbNIyBH_34JU",
         authDomain: "dawakening-trial.firebaseapp.com",
@@ -161,15 +158,12 @@
         let taskIndex = Math.floor((diffDays - 1) / 2);
         if (taskIndex > 6) taskIndex = 6; 
 
-        // 🌟 自動計算等級：根據任務索引 + 1
         const currentLevel = taskIndex + 1;
 
-        // 更新 UI
         document.getElementById('dayLabel').innerText = "DAY " + diffDays;
         document.getElementById('taskTitle').innerText = taskMatrix[taskIndex].title;
         document.getElementById('taskDesc').innerText = taskMatrix[taskIndex].desc;
         
-        // 🌟 同步更新勳章上的 LV 等級
         const lvEl = document.getElementById('displayLevel');
         if(lvEl) lvEl.innerText = currentLevel;
     }
@@ -183,11 +177,10 @@
             document.getElementById('mainHeroImg').src = roleImages[savedRole];
             selectedRole = savedRole;
             
-            // 🌟 確保暱稱正確填入
             const nameEl = document.getElementById('displayNameBadge');
             if(nameEl) nameEl.innerText = savedNick;
             
-            updateTask(); // 這會同時更新等級
+            updateTask(); 
         }
     }
 
@@ -213,7 +206,22 @@
         document.getElementById('checkinSection').classList.add('hidden');
     }
 
+    // 🛡️ 啟動 LIFF 並執行群組安全檢查
     liff.init({ liffId: MY_LIFF_ID }).then(() => {
+        const context = liff.getContext();
+
+        // 【安全防護機制】：檢查是否在指定的群組內
+        // 如果要在電腦瀏覽器測試，可以暫時註解掉這段 if 判斷
+        /* if (!context || context.type !== "group" || context.groupId !== TARGET_GROUP_ID) {
+            alert("⚠️ 錯誤：此活動僅限於官方專屬群組內進行打卡。");
+            liff.closeWindow(); 
+            return; // 終止後續執行
+        } 
+        */
+
+        // 檢查通過，顯示主畫面
+        document.getElementById('mainContainer').style.display = "block";
+
         if (!liff.isLoggedIn()) { 
             liff.login(); 
         } else {
@@ -222,14 +230,10 @@
                 document.getElementById('lineNameDisplay').value = p.displayName;
                 window.userProfile = p;
                 
-                // 🌟 加上保護機制：只有在已經有暱稱的狀態下，才去更新徽章
                 const currentNick = localStorage.getItem('gameNickname');
-                if (currentNick) {
-                    document.getElementById('displayNickname').innerText = "LV1 : " + currentNick;
-                }
+                // document.getElementById('displayNickname') 在原本的 code 中不存在，已移除此段可能造成錯誤的程式碼
             }).catch(err => {
                 document.getElementById('lineNameDisplay').value = "讀取失敗";
-                document.getElementById('displayNickname').innerText = "LV1 : 未知英雄";
                 console.error("Profile 讀取失敗", err);
             });
         }
@@ -242,7 +246,7 @@
         const nickname = localStorage.getItem('gameNickname');
         const log = document.getElementById('questLog').value;
         const fileInput = document.getElementById('questImage');
-        const broadcastMode = document.getElementById('demoBroadcastMode').value; // 讀取選單狀態
+        const broadcastMode = document.getElementById('demoBroadcastMode').value; 
 
         if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
         
@@ -251,24 +255,13 @@
         reader.onload = async (e) => {
             const base64 = e.target.result.split(',')[1];
             try {
-                /*const res = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ 
-                        nickname: nickname, 
-                        fileName: nickname + "_" + Date.now() + ".jpg", 
-                        mimeType: fileInput.files[0].type, 
-                        base64Data: base64,
-                        broadcastMode: broadcastMode // 將模式狀態一起傳給後台
-                    })
-                });*/
-
-                // 抓取當下的群組或聊天室 ID，讓機器人知道往哪裡發言
                 const context = liff.getContext();
-                //const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
                 let targetId = null;
                 if (context) {
-                    // 如果在群組，優先拿 groupId；如果不在群組，才拿 userId
                     targetId = context.groupId || context.roomId || context.userId;
+
+                    // 👉 加上這行「現形魔法」：按下打卡時，會先跳出視窗顯示 ID
+                    alert("目前系統抓到的發送目的地 ID 是：\n" + targetId);
                 }
 
                 const res = await fetch(GAS_URL, {
@@ -278,9 +271,9 @@
                         fileName: nickname + "_" + Date.now() + ".jpg", 
                         mimeType: fileInput.files[0].type, 
                         base64Data: base64,
-                        broadcastMode: broadcastMode, // 傳送目前選單的模式
-                        targetId: targetId,           // 傳送群組 ID
-                        log: log                      // 將玩家心得也傳給後台
+                        broadcastMode: broadcastMode, 
+                        targetId: targetId,           
+                        log: log                      
                     })
                 });
                 const gasRes = await res.json();
@@ -295,63 +288,9 @@
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    // 🎯 執行玩家宣告模式 (LIFF sendMessages)
-                    /*if (broadcastMode === 'player') {
-                        // 確保玩家是在 LINE 群組或聊天室內開啟，才能發送訊息
-                        if (liff.isInClient() && liff.getContext().type !== "none") {
-                            try {
-                                await liff.sendMessages([
-                                    {
-                                        type: "text",
-                                        text: `✅ 系統確認：已收到英雄 [${nickname}] 的任務打卡！\n\n📝 試煉心得：\n${log}`
-                                    },
-                                    {
-                                        type: "image",
-                                        originalContentUrl: gasRes.fileUrl,
-                                        previewImageUrl: gasRes.fileUrl
-                                    }
-                                ]);
-                            } catch (err) {
-                                console.log("LINE 訊息發送失敗", err);
-                                // 如果 LINE 阻擋了圖片網址，改為只發送文字與照片連結
-                                await liff.sendMessages([{
-                                    type: "text",
-                                    text: `✅ 系統確認：已收到英雄 [${nickname}] 的任務打卡！\n\n📝 試煉心得：\n${log}\n\n📸 成果照片：\n${gasRes.fileUrl}`
-                                }]);
-                            }
-                        }
-                    }*/
-                    /*if (broadcastMode === 'player') {
-                        // 確保玩家是在 LINE 群組或聊天室內開啟，才能發送訊息
-                        if (liff.isInClient() && liff.getContext().type !== "none") {
-                            try {
-                                await liff.sendMessages([
-                                    {
-                                        type: "text",
-                                        text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
-                                    },
-                                    {
-                                        type: "image",
-                                        originalContentUrl: gasRes.fileUrl,
-                                        previewImageUrl: gasRes.fileUrl
-                                    }
-                            ]);
-                            } catch (err) {
-                                console.log("LINE 訊息發送失敗", err);
-
-                                // 如果 LINE 阻擋了圖片網址，改為只發送文字與照片連結
-                                await liff.sendMessages([{
-                                    type: "text",
-                                    text: `✅ 系統確認：已收到英雄 [${nickname}] 的任務打卡！\n\n📝 試煉心得：\n${log}\n\n📸 成果照片：\n${gasRes.fileUrl}`
-                                }]);
-                            }
-                        }
-                    }*/
-                    // 🎯 執行玩家宣告模式 (LIFF sendMessages)
                     if (broadcastMode === 'player') {
                         if (liff.isInClient() && liff.getContext().type !== "none") {
                             try {
-                                // 嘗試同時發送文字與最新的安全圖片
                                 await liff.sendMessages([
                                     {
                                         type: "text",
@@ -365,7 +304,6 @@
                                 ]);
                             } catch (err) {
                                 console.log("圖片發送失敗", err);
-                                // 防呆機制：如果 LINE 還是鬧脾氣，至少把圖片網址印出來
                                 await liff.sendMessages([{
                                     type: "text",
                                     text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}\n\n📸 成果照片連結：\n${gasRes.fileUrl}`
@@ -381,39 +319,6 @@
         };
         reader.readAsDataURL(fileInput.files[0]);
     }
-
-    /*async function submitQuest() {
-        const nickname = localStorage.getItem('gameNickname');
-        const log = document.getElementById('questLog').value;
-        const fileInput = document.getElementById('questImage');
-        if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
-        
-        document.getElementById('loadingModal').style.display = "flex";
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const base64 = e.target.result.split(',')[1];
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ nickname: nickname, fileName: nickname + "_" + Date.now() + ".jpg", mimeType: fileInput.files[0].type, base64Data: base64 })
-                });
-                const gasRes = await res.json();
-                if (gasRes.status === "success") {
-                    await db.collection("QuestLogs").add({
-                        lineName: window.userProfile ? window.userProfile.displayName : "未知",
-                        gameNickname: nickname,
-                        role: selectedRole,
-                        log: log,
-                        imageUrl: gasRes.fileUrl,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    document.getElementById('customAlert').style.display = 'flex';
-                }
-            } catch (err) { alert("傳輸失敗：" + err); }
-            document.getElementById('loadingModal').style.display = "none";
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-    }*/
 </script>
 </body>
 </html>
