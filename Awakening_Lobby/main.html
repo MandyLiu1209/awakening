@@ -118,7 +118,7 @@
 
 <script>
     const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
-    const GAS_URL = "https://script.google.com/macros/s/AKfycby0oaQiIZp5C4lVubA6ZjSIH-diKF4UWhxjLcqWIUYPBbODe06O1fKYhnib72rB6SUJ/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
     
     const firebaseConfig = {
         apiKey: "AIzaSyBXHnWHRLUTvb08RdifKKigbNIyBH_34JU",
@@ -298,7 +298,7 @@
                             }
                         }
                     }*/
-                    if (broadcastMode === 'player') {
+                    /*if (broadcastMode === 'player') {
                         // 確保玩家是在 LINE 群組或聊天室內開啟，才能發送訊息
                         if (liff.isInClient() && liff.getContext().type !== "none") {
                             try {
@@ -320,6 +320,32 @@
                                 await liff.sendMessages([{
                                     type: "text",
                                     text: `✅ 系統確認：已收到英雄 [${nickname}] 的任務打卡！\n\n📝 試煉心得：\n${log}\n\n📸 成果照片：\n${gasRes.fileUrl}`
+                                }]);
+                            }
+                        }
+                    }*/
+                    // 🎯 執行玩家宣告模式 (LIFF sendMessages)
+                    if (broadcastMode === 'player') {
+                        if (liff.isInClient() && liff.getContext().type !== "none") {
+                            try {
+                                // 嘗試同時發送文字與最新的安全圖片
+                                await liff.sendMessages([
+                                    {
+                                        type: "text",
+                                        text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
+                                    },
+                                    {
+                                        type: "image",
+                                        originalContentUrl: gasRes.fileUrl,
+                                        previewImageUrl: gasRes.fileUrl
+                                    }
+                                ]);
+                            } catch (err) {
+                                console.log("圖片發送失敗", err);
+                                // 防呆機制：如果 LINE 還是鬧脾氣，至少把圖片網址印出來
+                                await liff.sendMessages([{
+                                    type: "text",
+                                    text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}\n\n📸 成果照片連結：\n${gasRes.fileUrl}`
                                 }]);
                             }
                         }
