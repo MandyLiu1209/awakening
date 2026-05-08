@@ -282,17 +282,26 @@
         reader.onload = async (e) => {
             const base64 = e.target.result.split(',')[1];
             try {
+                // 🔒 多群組安全鎖清單 (白名單)
+                const ALLOWED_IDS = [
+                    "C35f106120a1b854c3aaf528c3eeb7c67", //14日覺醒測試群
+                    "C1360f12564ae2242526bad6208d222b1"  //遊戲組
+                ];
+                
                 const context = liff.getContext();
-                let targetId = null;
-                if (context) {
-                    //targetId = context.groupId || context.roomId || context.userId;
+                // 抓取目前玩家所在的 ID (群組 > 聊天室 > 個人)
+                const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
 
-                    // 換成這行（引號內貼上機器人報給您的 C 開頭 ID）
-                    const targetId = "C1360f12564ae2242526bad6208d222b1";
-
-                    // 👉 加上這行「現形魔法」：按下打卡時，會先跳出視窗顯示 ID
-                    //alert("目前系統抓到的發送目的地 ID 是：\n" + targetId);
+                // 🛡️ 安全檢查：如果目前地點不在白名單內，就攔截
+                if (!ALLOWED_IDS.includes(currentId)) {
+                    alert("⚠️ 偵測到未授權的使用來源！\n本系統僅限指定試煉群組成員使用。");
+                    document.getElementById('loadingModal').style.display = "none";
+                    liff.closeWindow(); 
+                    return;
                 }
+                
+                // 通過檢查後，將目標地址設定為當前地點
+                const targetId = currentId;
 
                 const res = await fetch(GAS_URL, {
                     method: 'POST',
@@ -361,11 +370,29 @@
         
         document.getElementById('loadingModal').style.display = "flex";
         try {
-            const context = liff.getContext();
+            //const context = liff.getContext();
             //const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
 
             // 換成這行（引號內貼上機器人報給您的 C 開頭 ID）
-            const targetId = "C1360f12564ae2242526bad6208d222b1";
+            //const targetId = "C1360f12564ae2242526bad6208d222b1";
+
+            // 🔒 Debug 專用的多群組安全鎖清單
+            const ALLOWED_IDS = [
+                "C35f106120a1b854c3aaf528c3eeb7c67", //14日覺醒測試群
+                "C1360f12564ae2242526bad6208d222b1"  //遊戲組
+            ];
+
+            const context = liff.getContext();
+            const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
+
+            if (!ALLOWED_IDS.includes(currentId)) {
+                alert("⚠️ Debug 模式：偵測到未授權的使用來源！");
+                document.getElementById('loadingModal').style.display = "none";
+                return;
+            }
+            
+            // 讓 targetId 動態跟著目前的群組切換
+            const targetId = currentId;
 
             const res = await fetch(GAS_URL, {
                 method: 'POST',
@@ -433,7 +460,7 @@
         location.reload();
     }
     // ==========================================
-    
+
 </script>
 </body>
 </html>
