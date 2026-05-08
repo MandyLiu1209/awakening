@@ -142,7 +142,7 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
     
     // 🛡️ 【請替換成您官方群組的真實 ID】
-    const TARGET_GROUP_ID = "C3e98924400d56a4c245812f79150a9a7"; 
+    const TARGET_GROUP_ID = "C1360f12564ae2242526bad6208d222b1"; 
 
     const firebaseConfig = {
         apiKey: "AIzaSyBXHnWHRLUTvb08RdifKKigbNIyBH_34JU",
@@ -288,7 +288,7 @@
                     //targetId = context.groupId || context.roomId || context.userId;
 
                     // 換成這行（引號內貼上機器人報給您的 C 開頭 ID）
-                    const targetId = "C3e98924400d56a4c245812f79150a9a7";
+                    const targetId = "C1360f12564ae2242526bad6208d222b1";
 
                     // 👉 加上這行「現形魔法」：按下打卡時，會先跳出視窗顯示 ID
                     //alert("目前系統抓到的發送目的地 ID 是：\n" + targetId);
@@ -365,7 +365,7 @@
             //const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
 
             // 換成這行（引號內貼上機器人報給您的 C 開頭 ID）
-            const targetId = "C3e98924400d56a4c245812f79150a9a7";
+            const targetId = "C1360f12564ae2242526bad6208d222b1";
 
             const res = await fetch(GAS_URL, {
                 method: 'POST',
