@@ -111,15 +111,18 @@
             </button>
 
             <div style="margin-top: 15px; border-top: 1px solid #ffcccc; padding-top: 10px;">
-                <label style="font-size: 12px; color: #cc0000; font-weight: bold;">⏳ 時光機 (Demo 專用)：</label>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 5px;">
-                    <button type="button" onclick="timeTravel(1)" style="padding: 5px; font-size: 12px; background: #eee; border: 1px solid #ccc; border-radius: 5px;">第 1 天</button>
-                    <button type="button" onclick="timeTravel(3)" style="padding: 5px; font-size: 12px; background: #eee; border: 1px solid #ccc; border-radius: 5px;">第 3 天</button>
-                    <button type="button" onclick="timeTravel(13)" style="padding: 5px; font-size: 12px; background: #eee; border: 1px solid #ccc; border-radius: 5px;">第 13 天</button>
+                <label style="font-size: 12px; color: #cc0000; font-weight: bold;">⏳ 時光機 (自由切換 1~15 天)：</label>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                    <button type="button" onclick="changeDay(-1)" style="padding: 5px 12px; font-size: 14px; background: #eee; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; font-weight: bold;">➖</button>
+                    
+                    <input type="number" id="demoDayInput" value="1" min="1" max="15" style="width: 50px; text-align: center; font-size: 16px; padding: 4px; border: 2px solid #ccc; border-radius: 5px; font-weight: bold;">
+                    
+                    <button type="button" onclick="changeDay(1)" style="padding: 5px 12px; font-size: 14px; background: #eee; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; font-weight: bold;">➕</button>
+                    
+                    <button type="button" onclick="applyTimeTravel()" style="padding: 5px 15px; font-size: 14px; background: #cc0000; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-left: auto;">🚀 前往</button>
                 </div>
-                <p style="font-size: 11px; color: #666; margin-top: 5px;">* 點擊後會自動重新整理，模擬進入不同天數。</p>
+                <p style="font-size: 11px; color: #666; margin-top: 5px;">* 可直接輸入數字或點擊加減，確認後按下「前往」。</p>
             </div>
-            
         </div>
     </div>
 </div>
@@ -399,17 +402,38 @@
     }
 
     // ==========================================
-    // ⏳ 時光機函數：Demo 專用，模擬天數推進
+    // ⏳ 時光機進階版函數：支援加減與自訂輸入 (限制 1-15)
     // ==========================================
-    function timeTravel(day) {
-        // 原理：將開始時間設定為 (day-1) 天之前
-        // 例如要模擬第 3 天，就是把開始時間設為 2 天前
+    function changeDay(delta) {
+        const inputEl = document.getElementById('demoDayInput');
+        let currentVal = parseInt(inputEl.value) || 1;
+        let newVal = currentVal + delta;
+        
+        // 限制在 1 到 15 之間
+        if (newVal >= 1 && newVal <= 15) {
+            inputEl.value = newVal;
+        }
+    }
+
+    function applyTimeTravel() {
+        let day = parseInt(document.getElementById('demoDayInput').value);
+        
+        // 絕對防呆機制：如果亂輸入文字或超出範圍，強制修正
+        if (isNaN(day) || day < 1) day = 1;
+        if (day > 15) day = 15;
+        
+        // 將輸入框強制更新為正確數字（避免使用者看到錯誤的數字）
+        document.getElementById('demoDayInput').value = day;
+
+        // 推算並儲存開始日期
         const targetDate = Date.now() - ((day - 1) * 24 * 60 * 60 * 1000);
         localStorage.setItem('startDate', targetDate);
         
-        // 重新整理頁面，觸發 updateTask() 重新計算
+        // 重新整理頁面生效
         location.reload();
     }
+    // ==========================================
+    
 </script>
 </body>
 </html>
