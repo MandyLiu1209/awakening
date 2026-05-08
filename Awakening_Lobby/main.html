@@ -292,6 +292,11 @@
                 // 抓取目前玩家所在的 ID (群組 > 聊天室 > 個人)
                 const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
 
+                // 👇👇👇 插入這行「測謊機」代碼 👇👇👇
+                alert("【系統檢查報告】\n白名單：" + ALLOWED_IDS.join(", ") + "\n目前抓到的 ID：" + currentId);
+                // 👆👆👆 插入這行「測謊機」代碼 👆👆👆
+                
+
                 // 🛡️ 安全檢查：如果目前地點不在白名單內，就攔截
                 if (!ALLOWED_IDS.includes(currentId)) {
                     alert("⚠️ 偵測到未授權的使用來源！\n本系統僅限指定試煉群組成員使用。");
@@ -383,7 +388,7 @@
             ];
 
             const context = liff.getContext();
-            const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
+            const currentId = "C7dded8161beb84827984ec5f84aeb741"; //context ? (context.groupId || context.roomId || context.userId) : null;
 
             if (!ALLOWED_IDS.includes(currentId)) {
                 alert("⚠️ Debug 模式：偵測到未授權的使用來源！");
