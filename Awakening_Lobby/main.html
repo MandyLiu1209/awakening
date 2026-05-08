@@ -72,7 +72,7 @@
             <img id="mainHeroImg" class="hero-img" src="role1_null.jpg">
             <button class="btn-edit-float" onclick="editProfile()">✏️</button>
             <div class="hero-info-badge">
-                <span id="displayNickname">LV1 : 載入中...</span>
+                LV<span id="displayLevel">1</span> : <span id="displayNameBadge">載入中...</span>
             </div>
         </div>
         
@@ -161,9 +161,17 @@
         let taskIndex = Math.floor((diffDays - 1) / 2);
         if (taskIndex > 6) taskIndex = 6; 
 
+        // 🌟 自動計算等級：根據任務索引 + 1
+        const currentLevel = taskIndex + 1;
+
+        // 更新 UI
         document.getElementById('dayLabel').innerText = "DAY " + diffDays;
         document.getElementById('taskTitle').innerText = taskMatrix[taskIndex].title;
         document.getElementById('taskDesc').innerText = taskMatrix[taskIndex].desc;
+        
+        // 🌟 同步更新勳章上的 LV 等級
+        const lvEl = document.getElementById('displayLevel');
+        if(lvEl) lvEl.innerText = currentLevel;
     }
 
     function checkMemory() {
@@ -174,7 +182,12 @@
             document.getElementById('checkinSection').classList.remove('hidden');
             document.getElementById('mainHeroImg').src = roleImages[savedRole];
             selectedRole = savedRole;
-            updateTask();
+            
+            // 🌟 確保暱稱正確填入
+            const nameEl = document.getElementById('displayNameBadge');
+            if(nameEl) nameEl.innerText = savedNick;
+            
+            updateTask(); // 這會同時更新等級
         }
     }
 
@@ -208,7 +221,12 @@
             liff.getProfile().then(p => {
                 document.getElementById('lineNameDisplay').value = p.displayName;
                 window.userProfile = p;
-                document.getElementById('displayNickname').innerText = "LV1 : " + p.displayName;
+                
+                // 🌟 加上保護機制：只有在已經有暱稱的狀態下，才去更新徽章
+                const currentNick = localStorage.getItem('gameNickname');
+                if (currentNick) {
+                    document.getElementById('displayNickname').innerText = "LV1 : " + currentNick;
+                }
             }).catch(err => {
                 document.getElementById('lineNameDisplay').value = "讀取失敗";
                 document.getElementById('displayNickname').innerText = "LV1 : 未知英雄";
