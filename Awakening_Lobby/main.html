@@ -87,6 +87,17 @@
             <label style="font-weight: bold; font-size: 14px;">📸 成果照片：</label>
             <input type="file" id="questImage" accept="image/*">
         </div>
+
+        <!--下拉選單-->
+        <div style="background: rgba(255,255,255,0.7); padding: 12px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #d2b48c; text-align: left;">
+            <label style="font-size: 14px; font-weight: bold; color: var(--main-brown);">🛠️ (Demo 專用) 廣播模式切換：</label>
+            <select id="demoBroadcastMode" style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 10px; border: 1px solid #ccc; font-size: 14px;">
+                <option value="player">🗣️ 玩家親自宣告 (LIFF自動發文字)</option>
+                <option value="bot">🤖 官方系統廣播 (需後台串接 Token)</option>
+                <option value="none">🔇 不廣播 (僅背景存檔)</option>
+            </select>
+        </div>
+
         <button class="btn-action" onclick="submitQuest()">送出打卡，提升能量</button>
     </div>
 </div>
@@ -209,6 +220,64 @@
         const nickname = localStorage.getItem('gameNickname');
         const log = document.getElementById('questLog').value;
         const fileInput = document.getElementById('questImage');
+        const broadcastMode = document.getElementById('demoBroadcastMode').value; // 讀取選單狀態
+
+        if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
+        
+        document.getElementById('loadingModal').style.display = "flex";
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64 = e.target.result.split(',')[1];
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        nickname: nickname, 
+                        fileName: nickname + "_" + Date.now() + ".jpg", 
+                        mimeType: fileInput.files[0].type, 
+                        base64Data: base64,
+                        broadcastMode: broadcastMode // 將模式狀態一起傳給後台
+                    })
+                });
+                const gasRes = await res.json();
+                
+                if (gasRes.status === "success") {
+                    await db.collection("QuestLogs").add({
+                        lineName: window.userProfile ? window.userProfile.displayName : "未知",
+                        gameNickname: nickname,
+                        role: selectedRole,
+                        log: log,
+                        imageUrl: gasRes.fileUrl,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    // 🎯 執行玩家宣告模式 (LIFF sendMessages)
+                    if (broadcastMode === 'player') {
+                        // 確保玩家是在 LINE 群組或聊天室內開啟，才能發送訊息
+                        if (liff.isInClient() && liff.getContext().type !== "none") {
+                            try {
+                                await liff.sendMessages([{
+                                    type: "text",
+                                    text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
+                                }]);
+                            } catch (err) {
+                                console.log("LINE 訊息發送失敗", err);
+                            }
+                        }
+                    }
+
+                    document.getElementById('customAlert').style.display = 'flex';
+                }
+            } catch (err) { alert("傳輸失敗：" + err); }
+            document.getElementById('loadingModal').style.display = "none";
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    }
+
+    /*async function submitQuest() {
+        const nickname = localStorage.getItem('gameNickname');
+        const log = document.getElementById('questLog').value;
+        const fileInput = document.getElementById('questImage');
         if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
         
         document.getElementById('loadingModal').style.display = "flex";
@@ -236,7 +305,7 @@
             document.getElementById('loadingModal').style.display = "none";
         };
         reader.readAsDataURL(fileInput.files[0]);
-    }
+    }*/
 </script>
 </body>
 </html>
