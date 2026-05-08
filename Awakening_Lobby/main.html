@@ -243,7 +243,7 @@
                         broadcastMode: broadcastMode // 將模式狀態一起傳給後台
                     })
                 });*/
-                
+
                 // 抓取當下的群組或聊天室 ID，讓機器人知道往哪裡發言
                 const context = liff.getContext();
                 const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
@@ -273,7 +273,7 @@
                     });
 
                     // 🎯 執行玩家宣告模式 (LIFF sendMessages)
-                    if (broadcastMode === 'player') {
+                    /*if (broadcastMode === 'player') {
                         // 確保玩家是在 LINE 群組或聊天室內開啟，才能發送訊息
                         if (liff.isInClient() && liff.getContext().type !== "none") {
                             try {
@@ -297,20 +297,33 @@
                                 }]);
                             }
                         }
-                    }
-                    /*if (broadcastMode === 'player') {
+                    }*/
+                    if (broadcastMode === 'player') {
                         // 確保玩家是在 LINE 群組或聊天室內開啟，才能發送訊息
                         if (liff.isInClient() && liff.getContext().type !== "none") {
                             try {
-                                await liff.sendMessages([{
-                                    type: "text",
-                                    text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
-                                }]);
+                                await liff.sendMessages([
+                                    {
+                                        type: "text",
+                                        text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
+                                    },
+                                    {
+                                        type: "image",
+                                        originalContentUrl: gasRes.fileUrl,
+                                        previewImageUrl: gasRes.fileUrl
+                                    }
+                            ]);
                             } catch (err) {
                                 console.log("LINE 訊息發送失敗", err);
+
+                                // 如果 LINE 阻擋了圖片網址，改為只發送文字與照片連結
+                                await liff.sendMessages([{
+                                    type: "text",
+                                    text: `✅ 系統確認：已收到英雄 [${nickname}] 的任務打卡！\n\n📝 試煉心得：\n${log}\n\n📸 成果照片：\n${gasRes.fileUrl}`
+                                }]);
                             }
                         }
-                    }*/
+                    }
 
                     document.getElementById('customAlert').style.display = 'flex';
                 }
