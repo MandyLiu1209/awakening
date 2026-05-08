@@ -285,6 +285,7 @@
                 // 🔒 多群組安全鎖清單 (白名單)
                 const ALLOWED_IDS = [
                     "C7dded8161beb84827984ec5f84aeb741", //14日覺醒測試群
+                    "C35f106120a1b854c3aaf528c3eeb7c67", //Test遊戲覺醒
                     "C1360f12564ae2242526bad6208d222b1"  //遊戲組
                 ];
                 
@@ -295,7 +296,7 @@
                 // 👇👇👇 插入這行「測謊機」代碼 👇👇👇
                 alert("【系統檢查報告】\n白名單：" + ALLOWED_IDS.join(", ") + "\n目前抓到的 ID：" + currentId);
                 // 👆👆👆 插入這行「測謊機」代碼 👆👆👆
-                
+
 
                 // 🛡️ 安全檢查：如果目前地點不在白名單內，就攔截
                 if (!ALLOWED_IDS.includes(currentId)) {
@@ -384,6 +385,7 @@
             // 🔒 Debug 專用的多群組安全鎖清單
             const ALLOWED_IDS = [
                 "C7dded8161beb84827984ec5f84aeb741", //14日覺醒測試群
+                "C35f106120a1b854c3aaf528c3eeb7c67", //Test遊戲覺醒
                 "C1360f12564ae2242526bad6208d222b1"  //遊戲組
             ];
 
