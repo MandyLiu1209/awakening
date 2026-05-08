@@ -109,6 +109,17 @@
                     style="margin-top: 10px; width: 100%; padding: 8px; font-size: 14px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer;">
                 🔍 點我檢查目前 Group ID
             </button>
+
+            <div style="margin-top: 15px; border-top: 1px solid #ffcccc; padding-top: 10px;">
+                <label style="font-size: 12px; color: #cc0000; font-weight: bold;">⏳ 時光機 (Demo 專用)：</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 5px;">
+                    <button type="button" onclick="timeTravel(1)" style="padding: 5px; font-size: 12px; background: #eee; border: 1px solid #ccc; border-radius: 5px;">第 1 天</button>
+                    <button type="button" onclick="timeTravel(3)" style="padding: 5px; font-size: 12px; background: #eee; border: 1px solid #ccc; border-radius: 5px;">第 3 天</button>
+                    <button type="button" onclick="timeTravel(13)" style="padding: 5px; font-size: 12px; background: #eee; border: 1px solid #ccc; border-radius: 5px;">第 13 天</button>
+                </div>
+                <p style="font-size: 11px; color: #666; margin-top: 5px;">* 點擊後會自動重新整理，模擬進入不同天數。</p>
+            </div>
+            
         </div>
     </div>
 </div>
@@ -277,7 +288,7 @@
                     const targetId = "C35f106120a1b854c3aaf528c3eeb7c67";
 
                     // 👉 加上這行「現形魔法」：按下打卡時，會先跳出視窗顯示 ID
-                    alert("目前系統抓到的發送目的地 ID 是：\n" + targetId);
+                    //alert("目前系統抓到的發送目的地 ID 是：\n" + targetId);
                 }
 
                 const res = await fetch(GAS_URL, {
@@ -385,6 +396,19 @@
             }
         } catch (err) { alert("傳輸失敗：" + err); }
         document.getElementById('loadingModal').style.display = "none";
+    }
+
+    // ==========================================
+    // ⏳ 時光機函數：Demo 專用，模擬天數推進
+    // ==========================================
+    function timeTravel(day) {
+        // 原理：將開始時間設定為 (day-1) 天之前
+        // 例如要模擬第 3 天，就是把開始時間設為 2 天前
+        const targetDate = Date.now() - ((day - 1) * 24 * 60 * 60 * 1000);
+        localStorage.setItem('startDate', targetDate);
+        
+        // 重新整理頁面，觸發 updateTask() 重新計算
+        location.reload();
     }
 </script>
 </body>
