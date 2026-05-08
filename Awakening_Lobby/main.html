@@ -97,6 +97,19 @@
         </div>
 
         <button class="btn-action" onclick="submitQuest()">送出打卡，提升能量</button>
+
+        <div id="debugPanel" style="background: rgba(255,230,230,0.8); padding: 12px; border-radius: 15px; margin-top: 20px; margin-bottom: 15px; border: 2px dashed #cc0000; text-align: left;">
+            <label style="font-size: 14px; font-weight: bold; color: #cc0000;">🐞 開發者快速測試區 (不干擾主程式)：</label>
+            
+            <button type="button" onclick="debugSubmit()" style="margin-top: 10px; width: 100%; padding: 12px; font-size: 16px; background: #cc0000; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                🚀 一鍵極速打卡 (免傳圖/免打字)
+            </button>
+            
+            <button type="button" onclick="alert('目前系統抓到的發送地址 (ID) 是：\n' + (liff.getContext() ? (liff.getContext().groupId || liff.getContext().roomId || liff.getContext().userId) : '未抓到，請確認是否在群組內點開'))" 
+                    style="margin-top: 10px; width: 100%; padding: 8px; font-size: 14px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                🔍 點我檢查目前 Group ID
+            </button>
+        </div>
     </div>
 </div>
 
@@ -318,6 +331,53 @@
             document.getElementById('loadingModal').style.display = "none";
         };
         reader.readAsDataURL(fileInput.files[0]);
+    }
+
+    // ==========================================
+    // 🐞 獨立的 Debug 測試專用函數 (正式上線時整段刪除即可)
+    // ==========================================
+    async function debugSubmit() {
+        const nickname = localStorage.getItem('gameNickname') || "Debug英雄";
+        const log = "🛡️ 這是系統自動產生的 Debug 測試心得！";
+        const broadcastMode = document.getElementById('demoBroadcastMode').value;
+        const debugImageBase64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAFA3PEY8ED5GWEZGPDpCXC9WWkdXWnlrYWhkeW1qhX1lbX19fX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX3/2wBDAQBeXmBsYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmD/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElK1RVVldYWVpjZGVmZnaGlqc3R1dnd4eXqGhcXl5iZmqjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD/ADff/9k=";
+        
+        document.getElementById('loadingModal').style.display = "flex";
+        try {
+            const context = liff.getContext();
+            const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
+            const res = await fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    nickname: nickname, 
+                    fileName: nickname + "_debug_" + Date.now() + ".jpg", 
+                    mimeType: "image/jpeg", 
+                    base64Data: debugImageBase64,
+                    broadcastMode: broadcastMode,
+                    targetId: targetId,
+                    log: log                      
+                })
+            });
+            const gasRes = await res.json();
+            if (gasRes.status === "success") {
+                await db.collection("QuestLogs").add({
+                    lineName: window.userProfile ? window.userProfile.displayName : "未知",
+                    gameNickname: nickname,
+                    role: selectedRole,
+                    log: log,
+                    imageUrl: gasRes.fileUrl,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                if (broadcastMode === 'player' && liff.isInClient() && liff.getContext().type !== "none") {
+                    await liff.sendMessages([
+                        { type: "text", text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}` },
+                        { type: "image", originalContentUrl: gasRes.fileUrl, previewImageUrl: gasRes.fileUrl }
+                    ]);
+                }
+                document.getElementById('customAlert').style.display = 'flex';
+            }
+        } catch (err) { alert("傳輸失敗：" + err); }
+        document.getElementById('loadingModal').style.display = "none";
     }
 </script>
 </body>
