@@ -246,7 +246,12 @@
 
                 // 抓取當下的群組或聊天室 ID，讓機器人知道往哪裡發言
                 const context = liff.getContext();
-                const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
+                //const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
+                let targetId = null;
+                if (context) {
+                    // 如果在群組，優先拿 groupId；如果不在群組，才拿 userId
+                    targetId = context.groupId || context.roomId || context.userId;
+                }
 
                 const res = await fetch(GAS_URL, {
                     method: 'POST',
