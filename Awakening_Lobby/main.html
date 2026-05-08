@@ -118,7 +118,7 @@
 
 <script>
     const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbypRFGCuunQof9jfhLoYUqgKeBSTTOvRlXiqLaL1hiea3sh-x4XIDlsy_CUtdbhYlV6/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby0oaQiIZp5C4lVubA6ZjSIH-diKF4UWhxjLcqWIUYPBbODe06O1fKYhnib72rB6SUJ/exec";
     
     const firebaseConfig = {
         apiKey: "AIzaSyBXHnWHRLUTvb08RdifKKigbNIyBH_34JU",
@@ -233,7 +233,7 @@
         reader.onload = async (e) => {
             const base64 = e.target.result.split(',')[1];
             try {
-                const res = await fetch(GAS_URL, {
+                /*const res = await fetch(GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify({ 
                         nickname: nickname, 
@@ -241,6 +241,23 @@
                         mimeType: fileInput.files[0].type, 
                         base64Data: base64,
                         broadcastMode: broadcastMode // 將模式狀態一起傳給後台
+                    })
+                });*/
+                
+                // 抓取當下的群組或聊天室 ID，讓機器人知道往哪裡發言
+                const context = liff.getContext();
+                const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
+
+                const res = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        nickname: nickname, 
+                        fileName: nickname + "_" + Date.now() + ".jpg", 
+                        mimeType: fileInput.files[0].type, 
+                        base64Data: base64,
+                        broadcastMode: broadcastMode, // 傳送目前選單的模式
+                        targetId: targetId,           // 傳送群組 ID
+                        log: log                      // 將玩家心得也傳給後台
                     })
                 });
                 const gasRes = await res.json();
@@ -260,6 +277,31 @@
                         // 確保玩家是在 LINE 群組或聊天室內開啟，才能發送訊息
                         if (liff.isInClient() && liff.getContext().type !== "none") {
                             try {
+                                await liff.sendMessages([
+                                    {
+                                        type: "text",
+                                        text: `✅ 系統確認：已收到英雄 [${nickname}] 的任務打卡！\n\n📝 試煉心得：\n${log}`
+                                    },
+                                    {
+                                        type: "image",
+                                        originalContentUrl: gasRes.fileUrl,
+                                        previewImageUrl: gasRes.fileUrl
+                                    }
+                                ]);
+                            } catch (err) {
+                                console.log("LINE 訊息發送失敗", err);
+                                // 如果 LINE 阻擋了圖片網址，改為只發送文字與照片連結
+                                await liff.sendMessages([{
+                                    type: "text",
+                                    text: `✅ 系統確認：已收到英雄 [${nickname}] 的任務打卡！\n\n📝 試煉心得：\n${log}\n\n📸 成果照片：\n${gasRes.fileUrl}`
+                                }]);
+                            }
+                        }
+                    }
+                    /*if (broadcastMode === 'player') {
+                        // 確保玩家是在 LINE 群組或聊天室內開啟，才能發送訊息
+                        if (liff.isInClient() && liff.getContext().type !== "none") {
+                            try {
                                 await liff.sendMessages([{
                                     type: "text",
                                     text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
@@ -268,7 +310,7 @@
                                 console.log("LINE 訊息發送失敗", err);
                             }
                         }
-                    }
+                    }*/
 
                     document.getElementById('customAlert').style.display = 'flex';
                 }
