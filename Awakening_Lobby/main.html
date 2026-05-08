@@ -271,7 +271,10 @@
                 const context = liff.getContext();
                 let targetId = null;
                 if (context) {
-                    targetId = context.groupId || context.roomId || context.userId;
+                    //targetId = context.groupId || context.roomId || context.userId;
+
+                    // 換成這行（引號內貼上機器人報給您的 C 開頭 ID）
+                    const targetId = "C35f106120a1b854c3aaf528c3eeb7c67";
 
                     // 👉 加上這行「現形魔法」：按下打卡時，會先跳出視窗顯示 ID
                     alert("目前系統抓到的發送目的地 ID 是：\n" + targetId);
@@ -345,7 +348,11 @@
         document.getElementById('loadingModal').style.display = "flex";
         try {
             const context = liff.getContext();
-            const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
+            //const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
+
+            // 換成這行（引號內貼上機器人報給您的 C 開頭 ID）
+            const targetId = "C35f106120a1b854c3aaf528c3eeb7c67";
+
             const res = await fetch(GAS_URL, {
                 method: 'POST',
                 body: JSON.stringify({ 
