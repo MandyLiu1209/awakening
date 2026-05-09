@@ -390,8 +390,9 @@
             ];
 
             const context = liff.getContext();
-            const currentId = "C7dded8161beb84827984ec5f84aeb741"; //context ? (context.groupId || context.roomId || context.userId) : null;
+            const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
 
+            // 如果目前地點不在白名單內，就攔截
             if (!ALLOWED_IDS.includes(currentId)) {
                 alert("⚠️ Debug 模式：偵測到未授權的使用來源！");
                 document.getElementById('loadingModal').style.display = "none";
