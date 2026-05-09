@@ -283,13 +283,13 @@
             const base64 = e.target.result.split(',')[1];
             try {
                 // 🔒 多群組安全鎖清單 (白名單)
-                const ALLOWED_IDS = [
+                /*const ALLOWED_IDS = [
                     "C7dded8161beb84827984ec5f84aeb741", //14日覺醒測試群
                     "c6ca338d36204a659afa933966702a52",
                     "C35f106120a1b854c3aaf528c3eeb7c67", //Test遊戲覺醒
                     "C1360f12564ae2242526bad6208d222b1",  //遊戲組
                     "20640cd3-017c-4835-a6ac-492739c5b81d" //(如果您想讓這個社群也能打卡，就把它加進來)
-                ];
+                ];*/
 
                 // 🔒 多群組安全鎖與「翻譯蒟蒻」對照表
                 // 格式為 -> "網頁抓到的ID" : "機器人需要的C開頭ID"
@@ -298,24 +298,12 @@
                     "C35f106120a1b854c3aaf528c3eeb7c67": "C35f106120a1b854c3aaf528c3eeb7c67", // 原測試群 (正常對應)
                     "c6ca338d-3620-4a65-9afa-933966702a52": "C7dded8161beb84827984ec5f84aeb741"  // ⚠️ 雙面人測試群 (自動翻譯)
                 };*/
-                
+                /*
                 const context = liff.getContext();
                 // 抓取目前玩家所在的 ID (群組 > 聊天室 > 個人)
                 const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
 
 
-                // 👇👇👇 插入這行「測謊機」代碼 👇👇👇
-                alert("【系統檢查報告】\n白名單：" + ALLOWED_IDS.join(", ") + "\n目前抓到的 ID：" + currentId);
-                // 👆👆👆 插入這行「測謊機」代碼 👆👆👆
-
-
-                // 🛡️ 安全檢查：如果目前地點不在對照表內，就攔截
-                /*if (!GROUP_MAP[currentId]) {
-                    alert("⚠️ 偵測到未授權的使用來源！\n本系統僅限指定試煉群組成員使用。");
-                    document.getElementById('loadingModal').style.display = "none";
-                    liff.closeWindow(); 
-                    return;
-                }*/
                 // 🛡️ 安全檢查：如果目前地點不在白名單內，就攔截
                 if (!ALLOWED_IDS.includes(currentId)) {
                     alert("⚠️ 偵測到未授權的使用來源！\n本系統僅限指定試煉群組成員使用。");
@@ -328,6 +316,11 @@
                 // 通過檢查後，將目標地址設定為當前地點
                 // 🌟 神奇魔法：自動把網頁 ID 翻譯成機器人專用的 targetId！
                 const targetId = currentId;
+                */
+
+                // 🔓 解除安全鎖：自由抓取目前的發送地點
+                const context = liff.getContext();
+                const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
 
                 const res = await fetch(GAS_URL, {
                     method: 'POST',
@@ -396,20 +389,20 @@
         
         document.getElementById('loadingModal').style.display = "flex";
         try {
-            //const context = liff.getContext();
-            //const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
+            const context = liff.getContext();
+            const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
 
             // 換成這行（引號內貼上機器人報給您的 C 開頭 ID）
             //const targetId = "C1360f12564ae2242526bad6208d222b1";
 
             // 🔒 Debug 專用的多群組安全鎖清單
-            const ALLOWED_IDS = [
+            /*const ALLOWED_IDS = [
                 "C7dded8161beb84827984ec5f84aeb741", //14日覺醒測試群
                 "c6ca338d36204a659afa933966702a52",
                 "C35f106120a1b854c3aaf528c3eeb7c67", //Test遊戲覺醒
                 "C1360f12564ae2242526bad6208d222b1",  //遊戲組
                 "20640cd3-017c-4835-a6ac-492739c5b81d" //(如果您想讓這個社群也能打卡，就把它加進來)
-            ];
+            ];*/
             // 🔒 Debug專用：多群組安全鎖與「翻譯蒟蒻」對照表
             /*const GROUP_MAP = {
                 "C1360f12564ae2242526bad6208d222b1": "C1360f12564ae2242526bad6208d222b1",
@@ -417,23 +410,17 @@
                 "c6ca338d-3620-4a65-9afa-933966702a52": "C7dded8161beb84827984ec5f84aeb741"
             };*/
 
-            const context = liff.getContext();
-            const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
+            //const context = liff.getContext();
+            //const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
 
             // 如果目前地點不在白名單內，就攔截
-            if (!ALLOWED_IDS.includes(currentId)) {
-                alert("⚠️ Debug 模式：偵測到未授權的使用來源！");
-                document.getElementById('loadingModal').style.display = "none";
-                return;
-            }
-            /*if (!GROUP_MAP[currentId]) {
+            /*if (!ALLOWED_IDS.includes(currentId)) {
                 alert("⚠️ Debug 模式：偵測到未授權的使用來源！");
                 document.getElementById('loadingModal').style.display = "none";
                 return;
             }*/
-            
             // 讓 targetId 動態跟著目前的群組切換
-            const targetId = currentId;
+            //const targetId = currentId;
 
             const res = await fetch(GAS_URL, {
                 method: 'POST',
