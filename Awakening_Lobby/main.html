@@ -203,8 +203,8 @@
         const currentLevel = taskIndex + 1;
 
         document.getElementById('dayLabel').innerText = "DAY " + diffDays;
-        document.getElementById('taskTitle').innerText = taskMatrix[taskIndex].title;
-        document.getElementById('taskDesc').innerText = taskMatrix[taskIndex].desc;
+        document.getElementById('taskTitle').innerHTML = taskMatrix[taskIndex].title;
+        document.getElementById('taskDesc').innerHTML = taskMatrix[taskIndex].desc;
         
         const lvEl = document.getElementById('displayLevel');
         if(lvEl) lvEl.innerText = currentLevel;
