@@ -19,8 +19,6 @@
         .hero-img { width: 90%; height: 90%; object-fit: contain; position: absolute; top: 5%; left: 5%; z-index: 1; }
         .btn-edit-float { position: absolute; top: 12px; right: 12px; font-size: 18px; background: rgba(255, 255, 255, 0.9); border: 2px solid #d2b48c; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border:none; cursor: pointer;}
         .hero-info-badge { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(139, 69, 19, 0.85); color: white; padding: 8px 30px; border-radius: 20px; text-align: center; z-index: 5; backdrop-filter: blur(5px); white-space: nowrap; font-size: 16px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); }
-        /* ⚡ 左上角能量徽章 */
-        .hero-energy-badge { position: absolute; top: 12px; left: 12px; background: rgba(211, 84, 0, 0.9); color: white; padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; z-index: 10; border: 2px solid #fdf5e6; box-shadow: 0 2px 6px rgba(0,0,0,0.3); backdrop-filter: blur(2px); }
 
         /* ✨ 任務顯示區塊 ✨ */
         .task-container { background: #fef9e7; border: 2px dashed #d35400; border-radius: 15px; padding: 12px; margin-bottom: 15px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -71,7 +69,6 @@
     <div id="checkinSection" class="hidden">
         <div class="hero-display">
             <img id="mainHeroImg" class="hero-img" src="role1_null.jpg">
-            <div class="hero-energy-badge">⚡ 能量: <span id="displayEnergy">0</span></div>
             <button class="btn-edit-float" onclick="editProfile()">✏️</button>
             <div class="hero-info-badge">
                 LV<span id="displayLevel">1</span> : <span id="displayNameBadge">載入中...</span>
@@ -130,9 +127,7 @@
     </div>
 </div>
 
-
-<div id="customAlert"><div class="alert-box"><h2>🎉 打卡成功！</h2><p id="alertMessage">紀錄已載入石碑。</p><button onclick="document.getElementById('customAlert').style.display='none'; try{ liff.closeWindow(); }catch(e){}" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button></div></div>
-
+<div id="customAlert"><div class="alert-box"><h2>🎉 打卡成功！</h2><p>紀錄已載入石碑。</p><button onclick="document.getElementById('customAlert').style.display='none'; try{ liff.closeWindow(); }catch(e){}" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button></div></div>
 
 <div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;">
     <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; border: 4px solid #d35400;">
@@ -161,7 +156,7 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
 
-    /*const taskMatrix = [
+    const taskMatrix = [
         { title: "💧 純水初覺醒", desc: "每日飲水達成 2000cc" }, 
         { title: "🌿 植能均衡術", desc: "攝取三份深綠色蔬菜" }, 
         { title: "🛡️ 意志聖界", desc: "今日禁絕所有含糖飲料" }, 
@@ -169,16 +164,6 @@
         { title: "💤 靈魂修復", desc: "睡眠滿 7 小時提升精神" }, 
         { title: "🔥 禁斷油脂", desc: "拒絕任何油炸類食物" }, 
         { title: "🧘 終極冥想", desc: "沉思 5 分鐘並回顧成長" }  
-    ];*/
-
-    const taskMatrix = [
-        { title: "🔋 能量三神器的共鳴", desc: "拍下你的「神級裝備組合」(雪克、芒果茶、每日精選)" }, 
-        { title: "💧 水之精靈的祝福", desc: "拍下你特調的「魔法藥水」(蘆薈汁/纖維粉/消化酵素/鳳梨酵素)，或標記刻度的大水壺，留言喝的水量" }, 
-        { title: "🍲 翡翠與白玉的相遇", desc: "拍下今天的第一餐「植能大餐」（綠色蔬菜=翡翠，豆腐=白玉，山中珍寶=菇菇家族）" }, 
-        { title: "🧺 活力採集", desc: "找一個一起執行的勇士一起去找 符合甩油第二階段食物的 夥伴商店 拍合照" }, 
-        { title: "🥊 擊退嘴饞大魔王", desc: "運動拍照～" }, 
-        { title: "🪽 輕盈感知的覺醒", desc: "自拍~~~(不量體重，用心感受！)分享一個這 10 多天來的「體感變化」（例如：精神變好、褲頭變鬆、皮膚變亮）" }, 
-        { title: "🏰 榮耀戰神殿堂", desc: "上傳Before / After 對比照或一張自信滿滿美美的自拍照" }  
     ];
 
     const roleImages = { 
@@ -222,55 +207,8 @@
             const nameEl = document.getElementById('displayNameBadge');
             if(nameEl) nameEl.innerText = savedNick;
             
-            // 👇 進入畫面時，讀取並顯示總能量
-            const total = parseInt(localStorage.getItem('totalEnergy')) || 0;
-            document.getElementById('displayEnergy').innerText = total;
-
             updateTask(); 
         }
-    }
-
-    // ==========================================
-    // ⚡ 能量計算引擎：處理 +2分、任務七 +10分、以及每日上限 10分
-    // ==========================================
-    function calculateAndAddEnergy() {
-        const startTimestamp = localStorage.getItem('startDate') || Date.now();
-        const diffTime = Math.abs(Date.now() - startTimestamp);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; 
-        let taskIndex = Math.floor((diffDays - 1) / 2);
-        if (taskIndex > 6) taskIndex = 6; 
-        
-        // 判斷本次打卡可獲得的能量 (任務七為 index 6，給10分；其餘給2分)
-        let pointsToGive = (taskIndex === 6) ? 10 : 2;
-        
-        // 處理每日上限邏輯 (比對日期)
-        let today = new Date().toDateString();
-        let lastDate = localStorage.getItem('lastCheckinDate');
-        let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
-        
-        // 如果今天跟上次打卡的日期不同，代表是新的一天，把今日已獲能量歸零
-        if (lastDate !== today) {
-            todayEnergy = 0; 
-            localStorage.setItem('lastCheckinDate', today);
-        }
-        
-        let actualAdd = 0;
-        // 如果今日累積能量還沒達到上限 10 分
-        if (todayEnergy < 10) {
-            // 計算實際能加多少分 (不能超過剩餘額度)
-            actualAdd = Math.min(10 - todayEnergy, pointsToGive);
-            todayEnergy += actualAdd;
-            localStorage.setItem('todayEnergy', todayEnergy);
-            
-            // 寫入總能量
-            let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
-            total += actualAdd;
-            localStorage.setItem('totalEnergy', total);
-            
-            // 更新畫面
-            document.getElementById('displayEnergy').innerText = total;
-        }
-        return actualAdd;
     }
 
     function selectRole(name, el) {
@@ -408,11 +346,6 @@
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    // 👇 觸發能量結算，並動態更新提示視窗的文字
-                    const gained = calculateAndAddEnergy();
-                    const alertMsg = gained > 0 ? `紀錄已載入石碑！\n⚡ 獲得 ${gained} 點能量` : `紀錄已載入石碑！\n(今日能量已達上限 10/10)`;
-                    document.getElementById('alertMessage').innerText = alertMsg;
-
                     if (broadcastMode === 'player') {
                         if (liff.isInClient() && liff.getContext().type !== "none") {
                             try {
@@ -511,12 +444,6 @@
                     imageUrl: gasRes.fileUrl,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-
-                // 👇 觸發能量結算，並動態更新提示視窗的文字
-                const gained = calculateAndAddEnergy();
-                const alertMsg = gained > 0 ? `紀錄已載入石碑！\n⚡ 獲得 ${gained} 點能量` : `紀錄已載入石碑！\n(今日能量已達上限 10/10)`;
-                document.getElementById('alertMessage').innerText = alertMsg;
-                
                 if (broadcastMode === 'player' && liff.isInClient() && liff.getContext().type !== "none") {
                     await liff.sendMessages([
                         { type: "text", text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}` },
