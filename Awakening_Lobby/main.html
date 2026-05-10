@@ -135,7 +135,7 @@
 </div>
 
 
-<div id="customAlert"><div class="alert-box"><h2>🎉 打卡成功！</h2><p id="alertMessage">紀錄已載入石碑。</p><button onclick="document.getElementById('customAlert').style.display='none'; try{ liff.closeWindow(); }catch(e){}" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button></div></div>
+<div id="customAlert"><div class="alert-box"><h2>🎉 打卡成功！</h2><p id="alertMessage">紀錄已載入石碑。</p><button onclick="document.getElementById('customAlert').style.display='none'; style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button></div></div>
 
 
 <div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;">
@@ -253,15 +253,20 @@
         let pointsToGive = (taskIndex === 6) ? 10 : 2;
         let dailyLimit = (taskIndex === 6) ? 30 : 10;
         
-        // 🌅 處理「換日」重置邏輯
-        let today = new Date().toDateString(); // 取得今天的日期字串
+        // 🌅 處理「換日」重置邏輯 (雙引擎：支援時光機 + 現實半夜12點)
+        let today = new Date().toDateString(); // 現實日期
+        let currentDayKey = "Day_" + diffDays; // 遊戲天數
+        
         let lastDate = localStorage.getItem('lastCheckinDate');
+        let lastDayKey = localStorage.getItem('lastCheckinDayKey');
         let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
         
-        // 如果今天跟上次打卡的日期不同，代表是「新的一天」，將今日已獲能量歸零！
-        if (lastDate !== today) {
+        // 只要「現實換日了」或是「時光機推進天數了」，就重置今日能量！
+        if (lastDate !== today || lastDayKey !== currentDayKey) {
             todayEnergy = 0; 
             localStorage.setItem('lastCheckinDate', today);
+            localStorage.setItem('lastCheckinDayKey', currentDayKey);
+            localStorage.setItem('todayEnergy', 0); // 確保記憶體同步歸零
         }
         
         let actualAdd = 0;
