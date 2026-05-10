@@ -107,6 +107,10 @@
             <button type="button" onclick="debugSubmit()" style="margin-top: 10px; width: 100%; padding: 12px; font-size: 16px; background: #cc0000; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
                 🚀 一鍵極速打卡 (免傳圖/免打字)
             </button>
+
+            <button type="button" onclick="resetGame()" style="margin-top: 10px; width: 100%; padding: 10px; font-size: 14px; background: #555; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                🗑️ 清除記憶，砍掉重練 (重置全系統)
+            </button>
             
             <button type="button" onclick="alert('目前系統抓到的發送地址 (ID) 是：\n' + (liff.getContext() ? (liff.getContext().groupId || liff.getContext().roomId || liff.getContext().userId) : '未抓到，請確認是否在群組內點開'))" 
                     style="margin-top: 10px; width: 100%; padding: 8px; font-size: 14px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer;">
@@ -233,6 +237,9 @@
     // ==========================================
     // ⚡ 能量計算引擎：處理 +2分、任務七 +10分、以及每日上限 10分
     // ==========================================
+    // ==========================================
+    // ⚡ 能量計算引擎 (升級版)：動態配額與每日重置
+    // ==========================================
     function calculateAndAddEnergy() {
         const startTimestamp = localStorage.getItem('startDate') || Date.now();
         const diffTime = Math.abs(Date.now() - startTimestamp);
@@ -240,37 +247,48 @@
         let taskIndex = Math.floor((diffDays - 1) / 2);
         if (taskIndex > 6) taskIndex = 6; 
         
-        // 判斷本次打卡可獲得的能量 (任務七為 index 6，給10分；其餘給2分)
+        // 🎯 判斷本次打卡的分數與每日上限
+        // 任務七(index 6)：每次給 10 分，每日上限 30 分
+        // 其他任務(index 0~5)：每次給 2 分，每日上限 10 分
         let pointsToGive = (taskIndex === 6) ? 10 : 2;
+        let dailyLimit = (taskIndex === 6) ? 30 : 10;
         
-        // 處理每日上限邏輯 (比對日期)
-        let today = new Date().toDateString();
+        // 🌅 處理「換日」重置邏輯
+        let today = new Date().toDateString(); // 取得今天的日期字串
         let lastDate = localStorage.getItem('lastCheckinDate');
         let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
         
-        // 如果今天跟上次打卡的日期不同，代表是新的一天，把今日已獲能量歸零
+        // 如果今天跟上次打卡的日期不同，代表是「新的一天」，將今日已獲能量歸零！
         if (lastDate !== today) {
             todayEnergy = 0; 
             localStorage.setItem('lastCheckinDate', today);
         }
         
         let actualAdd = 0;
-        // 如果今日累積能量還沒達到上限 10 分
-        if (todayEnergy < 10) {
-            // 計算實際能加多少分 (不能超過剩餘額度)
-            actualAdd = Math.min(10 - todayEnergy, pointsToGive);
+        // ⚖️ 檢查今日累積能量是否已達上限
+        if (todayEnergy < dailyLimit) {
+            // 計算實際能加多少分 (確保加上去後不會超過上限)
+            actualAdd = Math.min(dailyLimit - todayEnergy, pointsToGive);
             todayEnergy += actualAdd;
-            localStorage.setItem('todayEnergy', todayEnergy);
+            localStorage.setItem('todayEnergy', todayEnergy); // 存入今日能量
             
             // 寫入總能量
             let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
             total += actualAdd;
             localStorage.setItem('totalEnergy', total);
             
-            // 更新畫面
-            document.getElementById('displayEnergy').innerText = total;
+            // 更新畫面左上角的徽章數字
+            if (document.getElementById('displayEnergy')) {
+                document.getElementById('displayEnergy').innerText = total;
+            }
         }
-        return actualAdd;
+        
+        // 把結算資料打包回傳，讓彈跳視窗可以顯示目前進度
+        return {
+            added: actualAdd,
+            current: todayEnergy,
+            limit: dailyLimit
+        };
     }
 
     function selectRole(name, el) {
@@ -409,8 +427,14 @@
                     });
 
                     // 👇 觸發能量結算，並動態更新提示視窗的文字
-                    const gained = calculateAndAddEnergy();
-                    const alertMsg = gained > 0 ? `紀錄已載入石碑！\n⚡ 獲得 ${gained} 點能量` : `紀錄已載入石碑！\n(今日能量已達上限 10/10)`;
+                    const energyData = calculateAndAddEnergy();
+                    //const alertMsg = gained > 0 ? `紀錄已載入石碑！\n⚡ 獲得 ${gained} 點能量` : `紀錄已載入石碑！\n(今日能量已達上限 10/10)`;
+                    let alertMsg = "";
+                    if (energyData.added > 0) {
+                        alertMsg = `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})`;
+                    } else {
+                        alertMsg = `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
+                    }
                     document.getElementById('alertMessage').innerText = alertMsg;
 
                     if (broadcastMode === 'player') {
@@ -513,8 +537,13 @@
                 });
 
                 // 👇 觸發能量結算，並動態更新提示視窗的文字
-                const gained = calculateAndAddEnergy();
-                const alertMsg = gained > 0 ? `紀錄已載入石碑！\n⚡ 獲得 ${gained} 點能量` : `紀錄已載入石碑！\n(今日能量已達上限 10/10)`;
+                const energyData = calculateAndAddEnergy();
+                let alertMsg = "";
+                if (energyData.added > 0) {
+                    alertMsg = `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})`;
+                } else {
+                    alertMsg = `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
+                }
                 document.getElementById('alertMessage').innerText = alertMsg;
 
                 if (broadcastMode === 'player' && liff.isInClient() && liff.getContext().type !== "none") {
@@ -559,6 +588,18 @@
         
         // 重新整理頁面生效
         location.reload();
+    }
+
+    // ==========================================
+    // 🗑️ 刪除本地記憶，重新開始測試
+    // ==========================================
+    function resetGame() {
+        if (confirm("⚠️ 警告：這將會清除您裝置上所有的測試記憶（包含天數、能量、角色暱稱），讓系統把您當成剛加入的新手。\n\n確定要砍掉重練嗎？")) {
+            // 清除所有的 localStorage 記憶
+            localStorage.clear();
+            // 重新整理網頁
+            location.reload();
+        }
     }
     // ==========================================
 
