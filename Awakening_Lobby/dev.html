@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>14日覺醒試煉 - 英雄殿堂</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <style>
+        :root { --main-brown: #8b4513; --accent-orange: #d35400; --bg-cream: #fffaf0; }
+        body { font-family: '微軟正黑體', sans-serif; background: #2c1e1a; color: #fff; margin: 0; padding: 10px; display: flex; justify-content: center; }
+        .container { background: url('https://www.transparenttextures.com/patterns/paper-fibers.png'), var(--bg-cream); border: 6px solid var(--main-brown); border-radius: 30px; padding: 4vw; max-width: 500px; width: 95%; box-sizing: border-box; margin: 2vh auto; text-align: center; color: #5d4037; position: relative; }
+        .header-banner { background: var(--main-brown); color: #fdf5e6; padding: 12px; border-radius: 50px; margin-bottom: 15px; font-weight: bold; font-size: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+        /* 角色呈現區 */
+        .hero-display { position: relative; width: 100%; max-height: 45vh; aspect-ratio: 3/4; margin-bottom: 15px; background: #e0e0e0; border-radius: 20px; overflow: hidden; border: 3px solid #d2b48c; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
+        .hero-img { width: 90%; height: 90%; object-fit: contain; position: absolute; top: 5%; left: 5%; z-index: 1; }
+        .btn-edit-float { position: absolute; top: 12px; right: 12px; font-size: 18px; background: rgba(255, 255, 255, 0.9); border: 2px solid #d2b48c; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border:none; cursor: pointer;}
+        .hero-info-badge { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(139, 69, 19, 0.85); color: white; padding: 8px 30px; border-radius: 20px; text-align: center; z-index: 5; backdrop-filter: blur(5px); white-space: nowrap; font-size: 16px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); }
+        /* ⚡ 左上角能量徽章 */
+        .hero-energy-badge { position: absolute; top: 12px; left: 12px; background: rgba(211, 84, 0, 0.9); color: white; padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; z-index: 10; border: 2px solid #fdf5e6; box-shadow: 0 2px 6px rgba(0,0,0,0.3); backdrop-filter: blur(2px); }
+
+        /* ✨ 任務顯示區塊 ✨ */
+        .task-container { background: #fef9e7; border: 2px dashed #d35400; border-radius: 15px; padding: 12px; margin-bottom: 15px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .task-tag { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #d35400; color: white; font-size: 12px; padding: 2px 12px; border-radius: 10px; font-weight: bold; }
+        .task-title { font-size: 18px; font-weight: bold; color: #8b4513; margin-top: 5px; }
+        .task-desc { font-size: 14px; color: #a04000; margin: 4px 0; }
+
+        /* 輸入與選角 */
+        .hidden { display: none !important; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .input-sub { flex: 1; text-align: left; }
+        .input-sub label { font-size: 12px; font-weight: bold; color: var(--main-brown); }
+        .input-sub input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #d2b48c; box-sizing: border-box; margin-top: 5px; }
+        .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .role-card { background: transparent; border: 3px solid transparent; border-radius: 15px; overflow: hidden; cursor: pointer; }
+        .role-card img { width: 100%; height: auto; display: block; border-radius: 12px; }
+        .selected { border: 3px solid var(--accent-orange) !important; }
+
+        textarea { width: 100%; height: 80px; padding: 12px; border-radius: 15px; border: 2px solid #d2b48c; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; background: #fff; }
+        .btn-action { background: var(--accent-orange); color: white; border: none; padding: 16px; font-size: 18px; border-radius: 50px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 #a04000; }
+        
+        #customAlert { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; }
+        .alert-box { background: white; padding: 25px 15px; border-radius: 20px; text-align: center; width: 65%; max-width: 280px; border: 4px solid var(--accent-orange); color: #5d4037; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        
+        /* 能量傳輸轉圈圈動畫 */
+        .spinner { border: 6px solid #fdf5e6; border-top: 6px solid #d35400; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container" id="mainContainer" style="display: none;"> <div class="header-banner">英雄試煉殿堂</div>
+
+    <div id="setupSection">
+        <div class="input-group">
+            <div class="input-sub"><label>LINE 姓名</label><input type="text" id="lineNameDisplay" readonly value="讀取中..."></div>
+            <div class="input-sub"><label>遊戲暱稱</label><input type="text" id="gameNickname" placeholder="輸入暱稱"></div>
+        </div>
+        <div class="role-grid">
+            <div class="role-card role-1 selected" onclick="selectRole('純水使者', this)"><img src="role1.jpg"></div>
+            <div class="role-card role-2" onclick="selectRole('植能園丁', this)"><img src="role2.jpg"></div>
+            <div class="role-card role-3" onclick="selectRole('意志衛士', this)"><img src="role3.jpg"></div>
+            <div class="role-card role-4" onclick="selectRole('活力採集者', this)"><img src="role4.jpg"></div>
+        </div>
+        <button class="btn-action" onclick="saveProfile()">確認角色，進入試煉</button>
+    </div>
+
+    <div id="checkinSection" class="hidden">
+        <div class="hero-display">
+            <img id="mainHeroImg" class="hero-img" src="role1_null.jpg">
+            <div class="hero-energy-badge">⚡: <span id="displayEnergy">0</span></div>
+            <button class="btn-edit-float" onclick="editProfile()">✏️</button>
+            <div class="hero-info-badge">
+                LV<span id="displayLevel">1</span> : <span id="displayNameBadge">載入中...</span>
+            </div>
+        </div>
+        
+        <div class="task-container">
+            <div class="task-tag" id="dayLabel">DAY 1</div>
+            <div class="task-title" id="taskTitle">載入任務中...</div>
+            <div class="task-desc" id="taskDesc">請先完成今日挑戰，再進行打卡。</div>
+        </div>
+
+        <textarea id="questLog" placeholder="今日試煉心得..."></textarea>
+        <div style="text-align: left; margin-bottom: 15px;">
+            <label style="font-weight: bold; font-size: 14px;">📸 成果照片：</label>
+            <input type="file" id="questImage" accept="image/*">
+        </div>
+
+        <div style="background: rgba(255,255,255,0.7); padding: 12px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #d2b48c; text-align: left;">
+            <label style="font-size: 14px; font-weight: bold; color: var(--main-brown);">🛠️ (Demo 專用) 廣播模式切換：</label>
+            <select id="demoBroadcastMode" style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 10px; border: 1px solid #ccc; font-size: 14px;">
+                <option value="player">🗣️ 玩家親自宣告 (LIFF自動發文字)</option>
+                <option value="bot">🤖 官方系統廣播 (需後台串接 Token)</option>
+                <option value="none">🔇 不廣播 (僅背景存檔)</option>
+            </select>
+        </div>
+
+        <button class="btn-action" onclick="submitQuest()">送出打卡，提升能量</button>
+
+        <div id="debugPanel" style="background: rgba(255,230,230,0.8); padding: 12px; border-radius: 15px; margin-top: 20px; margin-bottom: 15px; border: 2px dashed #cc0000; text-align: left;">
+            <label style="font-size: 14px; font-weight: bold; color: #cc0000;">🐞 開發者快速測試區 (不干擾主程式)：</label>
+            
+            <button type="button" onclick="debugSubmit()" style="margin-top: 10px; width: 100%; padding: 12px; font-size: 16px; background: #cc0000; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                🚀 一鍵極速打卡 (免傳圖/免打字)
+            </button>
+
+            <button type="button" onclick="resetGame()" style="margin-top: 10px; width: 100%; padding: 10px; font-size: 14px; background: #555; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                🗑️ 清除記憶，砍掉重練 (重置全系統)
+            </button>
+            
+            <button type="button" onclick="alert('目前系統抓到的發送地址 (ID) 是：\n' + (liff.getContext() ? (liff.getContext().groupId || liff.getContext().roomId || liff.getContext().userId) : '未抓到，請確認是否在群組內點開'))" 
+                    style="margin-top: 10px; width: 100%; padding: 8px; font-size: 14px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                🔍 點我檢查目前 Group ID
+            </button>
+
+            <div style="margin-top: 15px; border-top: 1px solid #ffcccc; padding-top: 10px;">
+                <label style="font-size: 12px; color: #cc0000; font-weight: bold;">⏳ 時光機 (自由切換 1~15 天)：</label>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                    <button type="button" onclick="changeDay(-1)" style="padding: 5px 12px; font-size: 14px; background: #eee; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; font-weight: bold;">➖</button>
+                    
+                    <input type="number" id="demoDayInput" value="1" min="1" max="15" style="width: 50px; text-align: center; font-size: 16px; padding: 4px; border: 2px solid #ccc; border-radius: 5px; font-weight: bold;">
+                    
+                    <button type="button" onclick="changeDay(1)" style="padding: 5px 12px; font-size: 14px; background: #eee; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; font-weight: bold;">➕</button>
+                    
+                    <button type="button" onclick="applyTimeTravel()" style="padding: 5px 15px; font-size: 14px; background: #cc0000; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-left: auto;">🚀 前往</button>
+                </div>
+                <p style="font-size: 11px; color: #666; margin-top: 5px;">* 可直接輸入數字或點擊加減，確認後按下「前往」。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="customAlert"><div class="alert-box"><h2>🎉 打卡成功！</h2><p id="alertMessage">紀錄已載入石碑。</p><button type="button" onclick="document.getElementById('customAlert').style.display='none';" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button></div></div>
+
+
+<div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; border: 4px solid #d35400;">
+        <div class="spinner"></div>
+        <h3 style="color: #8b4513; margin: 10px 0 0 0;">⚡ 能量傳輸中...</h3>
+        <p style="color: #d35400; font-size: 14px; margin: 5px 0 0 0;">請稍候，正在將紀錄刻入石碑</p>
+    </div>
+</div>
+
+<script>
+    const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
+    
+    // 🛡️ 【請替換成您官方群組的真實 ID】
+    const TARGET_GROUP_ID = "C7dded8161beb84827984ec5f84aeb741"; //測試群
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBXHnWHRLUTvb08RdifKKigbNIyBH_34JU",
+        authDomain: "dawakening-trial.firebaseapp.com",
+        projectId: "dawakening-trial",
+        storageBucket: "dawakening-trial.firebasestorage.app",
+        messagingSenderId: "908397435942",
+        appId: "1:908397435942:web:4bd4ae6e8f89a6de7b5ae7"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    /*const taskMatrix = [
+        { title: "💧 純水初覺醒", desc: "每日飲水達成 2000cc" }, 
+        { title: "🌿 植能均衡術", desc: "攝取三份深綠色蔬菜" }, 
+        { title: "🛡️ 意志聖界", desc: "今日禁絕所有含糖飲料" }, 
+        { title: "🏃 活力採集", desc: "完成 15 分鐘核心拉伸" }, 
+        { title: "💤 靈魂修復", desc: "睡眠滿 7 小時提升精神" }, 
+        { title: "🔥 禁斷油脂", desc: "拒絕任何油炸類食物" }, 
+        { title: "🧘 終極冥想", desc: "沉思 5 分鐘並回顧成長" }  
+    ];*/
+
+    const taskMatrix = [
+        { title: "🔋 能量三神器的共鳴", desc: "拍下你的「神級裝備組合」<br>(雪克、芒果茶、每日精選)" }, 
+        { title: "💧 水之精靈的祝福", desc: "拍下你特調的「魔法藥水」<br>(蘆薈汁/纖維粉/消化酵素/鳳梨酵素)，<br>或標記刻度的大水壺，留言喝的水量" }, 
+        { title: "🍲 翡翠與白玉的相遇", desc: "拍下今天的第一餐「植能大餐」<br>(綠色蔬菜=翡翠，豆腐=白玉，山中珍寶=菇菇家族)" }, 
+        { title: "🧺 活力採集", desc: "找一個一起執行的勇士一起去找<br>符合甩油第二階段食物的 夥伴商店 拍合照" }, 
+        { title: "🥊 擊退嘴饞大魔王", desc: "運動拍照～" }, 
+        { title: "🪽 輕盈感知的覺醒", desc: "自拍~~~(不量體重，用心感受！)<br>分享一個這 10 多天來的「體感變化」<br>(例如：精神變好、褲頭變鬆、皮膚變亮)" }, 
+        { title: "🏰 榮耀戰神殿堂", desc: "上傳Before / After 對比照<br>或一張自信滿滿美美的自拍照" }  
+    ];
+
+    const roleImages = { 
+        '純水使者': 'role1_null.jpg', 
+        '植能園丁': 'role2_null.jpg', 
+        '意志衛士': 'role3_null.jpg', 
+        '活力採集者': 'role4_null.jpg' 
+    };
+
+    let selectedRole = "純水使者";
+
+    function updateTask() {
+        const startTimestamp = localStorage.getItem('startDate') || Date.now();
+        if (!localStorage.getItem('startDate')) localStorage.setItem('startDate', startTimestamp);
+        
+        const diffTime = Math.abs(Date.now() - startTimestamp);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; 
+        
+        let taskIndex = Math.floor((diffDays - 1) / 2);
+        if (taskIndex > 6) taskIndex = 6; 
+
+        const currentLevel = taskIndex + 1;
+
+        document.getElementById('dayLabel').innerText = "DAY " + diffDays;
+        document.getElementById('taskTitle').innerHTML = taskMatrix[taskIndex].title;
+        document.getElementById('taskDesc').innerHTML = taskMatrix[taskIndex].desc;
+        
+        const lvEl = document.getElementById('displayLevel');
+        if(lvEl) lvEl.innerText = currentLevel;
+    }
+
+    function checkMemory() {
+        const savedNick = localStorage.getItem('gameNickname');
+        const savedRole = localStorage.getItem('selectedRole');
+        if (savedNick && savedRole) {
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('checkinSection').classList.remove('hidden');
+            document.getElementById('mainHeroImg').src = roleImages[savedRole];
+            selectedRole = savedRole;
+            
+            const nameEl = document.getElementById('displayNameBadge');
+            if(nameEl) nameEl.innerText = savedNick;
+            
+            // 👇 進入畫面時，讀取並顯示總能量
+            const total = parseInt(localStorage.getItem('totalEnergy')) || 0;
+            document.getElementById('displayEnergy').innerText = total;
+
+            updateTask(); 
+        }
+    }
+
+    // ==========================================
+    // ⚡ 能量計算引擎：處理 +2分、任務七 +10分、以及每日上限 10分
+    // ==========================================
+    // ==========================================
+    // ⚡ 能量計算引擎 (升級版)：動態配額與每日重置
+    // ==========================================
+    function calculateAndAddEnergy() {
+        const startTimestamp = localStorage.getItem('startDate') || Date.now();
+        const diffTime = Math.abs(Date.now() - startTimestamp);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; 
+        let taskIndex = Math.floor((diffDays - 1) / 2);
+        if (taskIndex > 6) taskIndex = 6; 
+        
+        // 🎯 判斷本次打卡的分數與每日上限
+        // 任務七(index 6)：每次給 10 分，每日上限 30 分
+        // 其他任務(index 0~5)：每次給 2 分，每日上限 10 分
+        let pointsToGive = (taskIndex === 6) ? 10 : 2;
+        let dailyLimit = (taskIndex === 6) ? 30 : 10;
+        
+        // 🌅 處理「換日」重置邏輯 (雙引擎：支援時光機 + 現實半夜12點)
+        let today = new Date().toDateString(); // 現實日期
+        let currentDayKey = "Day_" + diffDays; // 遊戲天數
+        
+        let lastDate = localStorage.getItem('lastCheckinDate');
+        let lastDayKey = localStorage.getItem('lastCheckinDayKey');
+        let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
+        
+        // 只要「現實換日了」或是「時光機推進天數了」，就重置今日能量！
+        if (lastDate !== today || lastDayKey !== currentDayKey) {
+            todayEnergy = 0; 
+            localStorage.setItem('lastCheckinDate', today);
+            localStorage.setItem('lastCheckinDayKey', currentDayKey);
+            localStorage.setItem('todayEnergy', 0); // 確保記憶體同步歸零
+        }
+        
+        let actualAdd = 0;
+        // ⚖️ 檢查今日累積能量是否已達上限
+        if (todayEnergy < dailyLimit) {
+            // 計算實際能加多少分 (確保加上去後不會超過上限)
+            actualAdd = Math.min(dailyLimit - todayEnergy, pointsToGive);
+            todayEnergy += actualAdd;
+            localStorage.setItem('todayEnergy', todayEnergy); // 存入今日能量
+            
+            // 寫入總能量
+            let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
+            total += actualAdd;
+            localStorage.setItem('totalEnergy', total);
+            
+            // 更新畫面左上角的徽章數字
+            if (document.getElementById('displayEnergy')) {
+                document.getElementById('displayEnergy').innerText = total;
+            }
+        }
+        
+        // 把結算資料打包回傳，讓彈跳視窗可以顯示目前進度
+        return {
+            added: actualAdd,
+            current: todayEnergy,
+            limit: dailyLimit
+        };
+    }
+
+    function selectRole(name, el) {
+        selectedRole = name;
+        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    function saveProfile() {
+        const nickname = document.getElementById('gameNickname').value;
+        if (!nickname) { alert("請輸入英雄大名！"); return; }
+        localStorage.setItem('gameNickname', nickname);
+        localStorage.setItem('selectedRole', selectedRole);
+        if (!localStorage.getItem('startDate')) {
+            localStorage.setItem('startDate', Date.now()); 
+        }
+        checkMemory();
+    }
+
+    function editProfile() {
+        document.getElementById('setupSection').classList.remove('hidden');
+        document.getElementById('checkinSection').classList.add('hidden');
+    }
+
+    // 🛡️ 啟動 LIFF 並執行群組安全檢查
+    liff.init({ liffId: MY_LIFF_ID }).then(() => {
+        const context = liff.getContext();
+
+        // 【安全防護機制】：檢查是否在指定的群組內
+        // 如果要在電腦瀏覽器測試，可以暫時註解掉這段 if 判斷
+        /* if (!context || context.type !== "group" || context.groupId !== TARGET_GROUP_ID) {
+            alert("⚠️ 錯誤：此活動僅限於官方專屬群組內進行打卡。");
+            liff.closeWindow(); 
+            return; // 終止後續執行
+        } 
+        */
+
+        // 檢查通過，顯示主畫面
+        document.getElementById('mainContainer').style.display = "block";
+
+        if (!liff.isLoggedIn()) { 
+            liff.login(); 
+        } else {
+            checkMemory();
+            liff.getProfile().then(p => {
+                document.getElementById('lineNameDisplay').value = p.displayName;
+                window.userProfile = p;
+                
+                const currentNick = localStorage.getItem('gameNickname');
+                // document.getElementById('displayNickname') 在原本的 code 中不存在，已移除此段可能造成錯誤的程式碼
+            }).catch(err => {
+                document.getElementById('lineNameDisplay').value = "讀取失敗";
+                console.error("Profile 讀取失敗", err);
+            });
+        }
+    }).catch(err => {
+        document.getElementById('lineNameDisplay').value = "連線失敗";
+        console.error("LIFF 初始化失敗", err);
+    });
+
+    async function submitQuest() {
+        const nickname = localStorage.getItem('gameNickname');
+        const log = document.getElementById('questLog').value;
+        const fileInput = document.getElementById('questImage');
+        const broadcastMode = document.getElementById('demoBroadcastMode').value; 
+
+        if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
+        
+        document.getElementById('loadingModal').style.display = "flex";
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64 = e.target.result.split(',')[1];
+            try {
+                // 🔒 多群組安全鎖清單 (白名單)
+                /*const ALLOWED_IDS = [
+                    "C7dded8161beb84827984ec5f84aeb741", //14日覺醒測試群
+                    "c6ca338d36204a659afa933966702a52",
+                    "C35f106120a1b854c3aaf528c3eeb7c67", //Test遊戲覺醒
+                    "C1360f12564ae2242526bad6208d222b1",  //遊戲組
+                    "20640cd3-017c-4835-a6ac-492739c5b81d" //(如果您想讓這個社群也能打卡，就把它加進來)
+                ];*/
+
+                // 🔒 多群組安全鎖與「翻譯蒟蒻」對照表
+                // 格式為 -> "網頁抓到的ID" : "機器人需要的C開頭ID"
+                /*const GROUP_MAP = {
+                    "C1360f12564ae2242526bad6208d222b1": "C1360f12564ae2242526bad6208d222b1", // 遊戲組 (正常對應)
+                    "C35f106120a1b854c3aaf528c3eeb7c67": "C35f106120a1b854c3aaf528c3eeb7c67", // 原測試群 (正常對應)
+                    "c6ca338d-3620-4a65-9afa-933966702a52": "C7dded8161beb84827984ec5f84aeb741"  // ⚠️ 雙面人測試群 (自動翻譯)
+                };*/
+                /*
+                const context = liff.getContext();
+                // 抓取目前玩家所在的 ID (群組 > 聊天室 > 個人)
+                const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
+
+
+                // 🛡️ 安全檢查：如果目前地點不在白名單內，就攔截
+                if (!ALLOWED_IDS.includes(currentId)) {
+                    alert("⚠️ 偵測到未授權的使用來源！\n本系統僅限指定試煉群組成員使用。");
+                    document.getElementById('loadingModal').style.display = "none";
+                    liff.closeWindow(); 
+                    return;
+                }
+                
+
+                // 通過檢查後，將目標地址設定為當前地點
+                // 🌟 神奇魔法：自動把網頁 ID 翻譯成機器人專用的 targetId！
+                const targetId = currentId;
+                */
+
+                // 🔓 解除安全鎖：自由抓取目前的發送地點
+                const context = liff.getContext();
+                const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
+
+                const res = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        nickname: nickname, 
+                        fileName: nickname + "_" + Date.now() + ".jpg", 
+                        mimeType: fileInput.files[0].type, 
+                        base64Data: base64,
+                        broadcastMode: broadcastMode, 
+                        targetId: targetId,           
+                        log: log                      
+                    })
+                });
+                const gasRes = await res.json();
+                
+                if (gasRes.status === "success") {
+                    await db.collection("QuestLogs").add({
+                        lineName: window.userProfile ? window.userProfile.displayName : "未知",
+                        gameNickname: nickname,
+                        role: selectedRole,
+                        log: log,
+                        imageUrl: gasRes.fileUrl,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    // 👇 觸發能量結算，並動態更新提示視窗的文字
+                    const energyData = calculateAndAddEnergy();
+                    //const alertMsg = gained > 0 ? `紀錄已載入石碑！\n⚡ 獲得 ${gained} 點能量` : `紀錄已載入石碑！\n(今日能量已達上限 10/10)`;
+                    let alertMsg = "";
+                    if (energyData.added > 0) {
+                        alertMsg = `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})`;
+                    } else {
+                        alertMsg = `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
+                    }
+                    document.getElementById('alertMessage').innerText = alertMsg;
+
+                    if (broadcastMode === 'player') {
+                        if (liff.isInClient() && liff.getContext().type !== "none") {
+                            try {
+                                await liff.sendMessages([
+                                    {
+                                        type: "text",
+                                        text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
+                                    },
+                                    {
+                                        type: "image",
+                                        originalContentUrl: gasRes.fileUrl,
+                                        previewImageUrl: gasRes.fileUrl
+                                    }
+                                ]);
+                            } catch (err) {
+                                console.log("圖片發送失敗", err);
+                                await liff.sendMessages([{
+                                    type: "text",
+                                    text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}\n\n📸 成果照片連結：\n${gasRes.fileUrl}`
+                                }]);
+                            }
+                        }
+                    }
+
+                    document.getElementById('customAlert').style.display = 'flex';
+                }
+            } catch (err) { alert("傳輸失敗：" + err); }
+            document.getElementById('loadingModal').style.display = "none";
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    }
+
+    // ==========================================
+    // 🐞 獨立的 Debug 測試專用函數 (正式上線時整段刪除即可)
+    // ==========================================
+    async function debugSubmit() {
+        const nickname = localStorage.getItem('gameNickname') || "Debug英雄";
+        const log = "🛡️ 這是系統自動產生的 Debug 測試心得！";
+        const broadcastMode = document.getElementById('demoBroadcastMode').value;
+        const debugImageBase64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAFA3PEY8ED5GWEZGPDpCXC9WWkdXWnlrYWhkeW1qhX1lbX19fX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX3/2wBDAQBeXmBsYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmD/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElK1RVVldYWVpjZGVmZnaGlqc3R1dnd4eXqGhcXl5iZmqjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD/ADff/9k=";
+        
+        document.getElementById('loadingModal').style.display = "flex";
+        try {
+            const context = liff.getContext();
+            const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
+
+            // 換成這行（引號內貼上機器人報給您的 C 開頭 ID）
+            //const targetId = "C1360f12564ae2242526bad6208d222b1";
+
+            // 🔒 Debug 專用的多群組安全鎖清單
+            /*const ALLOWED_IDS = [
+                "C7dded8161beb84827984ec5f84aeb741", //14日覺醒測試群
+                "c6ca338d36204a659afa933966702a52",
+                "C35f106120a1b854c3aaf528c3eeb7c67", //Test遊戲覺醒
+                "C1360f12564ae2242526bad6208d222b1",  //遊戲組
+                "20640cd3-017c-4835-a6ac-492739c5b81d" //(如果您想讓這個社群也能打卡，就把它加進來)
+            ];*/
+            // 🔒 Debug專用：多群組安全鎖與「翻譯蒟蒻」對照表
+            /*const GROUP_MAP = {
+                "C1360f12564ae2242526bad6208d222b1": "C1360f12564ae2242526bad6208d222b1",
+                "C35f106120a1b854c3aaf528c3eeb7c67": "C35f106120a1b854c3aaf528c3eeb7c67",
+                "c6ca338d-3620-4a65-9afa-933966702a52": "C7dded8161beb84827984ec5f84aeb741"
+            };*/
+
+            //const context = liff.getContext();
+            //const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
+
+            // 如果目前地點不在白名單內，就攔截
+            /*if (!ALLOWED_IDS.includes(currentId)) {
+                alert("⚠️ Debug 模式：偵測到未授權的使用來源！");
+                document.getElementById('loadingModal').style.display = "none";
+                return;
+            }*/
+            // 讓 targetId 動態跟著目前的群組切換
+            //const targetId = currentId;
+
+            const res = await fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    nickname: nickname, 
+                    fileName: nickname + "_debug_" + Date.now() + ".jpg", 
+                    mimeType: "image/jpeg", 
+                    base64Data: debugImageBase64,
+                    broadcastMode: broadcastMode,
+                    targetId: targetId,
+                    log: log                      
+                })
+            });
+            const gasRes = await res.json();
+            if (gasRes.status === "success") {
+                await db.collection("QuestLogs").add({
+                    lineName: window.userProfile ? window.userProfile.displayName : "未知",
+                    gameNickname: nickname,
+                    role: selectedRole,
+                    log: log,
+                    imageUrl: gasRes.fileUrl,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 👇 觸發能量結算，並動態更新提示視窗的文字
+                const energyData = calculateAndAddEnergy();
+                let alertMsg = "";
+                if (energyData.added > 0) {
+                    alertMsg = `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})`;
+                } else {
+                    alertMsg = `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
+                }
+                document.getElementById('alertMessage').innerText = alertMsg;
+
+                if (broadcastMode === 'player' && liff.isInClient() && liff.getContext().type !== "none") {
+                    await liff.sendMessages([
+                        { type: "text", text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}` },
+                        { type: "image", originalContentUrl: gasRes.fileUrl, previewImageUrl: gasRes.fileUrl }
+                    ]);
+                }
+                document.getElementById('customAlert').style.display = 'flex';
+            }
+        } catch (err) { alert("傳輸失敗：" + err); }
+        document.getElementById('loadingModal').style.display = "none";
+    }
+
+    // ==========================================
+    // ⏳ 時光機進階版函數：支援加減與自訂輸入 (限制 1-15)
+    // ==========================================
+    function changeDay(delta) {
+        const inputEl = document.getElementById('demoDayInput');
+        let currentVal = parseInt(inputEl.value) || 1;
+        let newVal = currentVal + delta;
+        
+        // 限制在 1 到 15 之間
+        if (newVal >= 1 && newVal <= 15) {
+            inputEl.value = newVal;
+        }
+    }
+
+    function applyTimeTravel() {
+        let day = parseInt(document.getElementById('demoDayInput').value);
+        
+        // 絕對防呆機制：如果亂輸入文字或超出範圍，強制修正
+        if (isNaN(day) || day < 1) day = 1;
+        if (day > 15) day = 15;
+        
+        // 將輸入框強制更新為正確數字（避免使用者看到錯誤的數字）
+        document.getElementById('demoDayInput').value = day;
+
+        // 推算並儲存開始日期
+        const targetDate = Date.now() - ((day - 1) * 24 * 60 * 60 * 1000);
+        localStorage.setItem('startDate', targetDate);
+        
+        // 重新整理頁面生效
+        location.reload();
+    }
+
+    // ==========================================
+    // 🗑️ 刪除本地記憶，重新開始測試
+    // ==========================================
+    function resetGame() {
+        if (confirm("⚠️ 警告：這將會清除您裝置上所有的測試記憶（包含天數、能量、角色暱稱），讓系統把您當成剛加入的新手。\n\n確定要砍掉重練嗎？")) {
+            // 清除所有的 localStorage 記憶
+            localStorage.clear();
+            // 重新整理網頁
+            location.reload();
+        }
+    }
+    // ==========================================
+
+</script>
+</body>
+</html>
