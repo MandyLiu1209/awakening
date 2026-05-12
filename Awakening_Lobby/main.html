@@ -149,6 +149,9 @@
 <script>
     const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
+
+    // [全域開關] false = 正式玩家模式；true = 開發者調試模式
+    const debug_mode = false;
     
     // 🛡️ 【請替換成您官方群組的真實 ID】
     const TARGET_GROUP_ID = "C7dded8161beb84827984ec5f84aeb741"; //測試群
@@ -320,6 +323,12 @@
 
     // 🛡️ 啟動 LIFF 並執行群組安全檢查
     liff.init({ liffId: MY_LIFF_ID }).then(() => {
+        // 根據開關決定是否顯示測試面板 [cite: 40, 43]
+        const debugPanel = document.getElementById('debugPanel');
+        if (debugPanel) {
+            debugPanel.style.display = debug_mode ? 'block' : 'none';
+        }
+
         const context = liff.getContext();
 
         // 【安全防護機制】：檢查是否在指定的群組內
@@ -358,7 +367,16 @@
         const nickname = localStorage.getItem('gameNickname');
         const log = document.getElementById('questLog').value;
         const fileInput = document.getElementById('questImage');
-        const broadcastMode = document.getElementById('demoBroadcastMode').value; 
+        
+        // 修改前
+        //const broadcastMode = document.getElementById('demoBroadcastMode').value; 
+        
+        // 修改後：雙重保障邏輯 
+        let broadcastMode = 'player'; // 預設為玩家宣告
+        if (debug_mode) {
+            // 只有在 debug 模式下，才去讀取選單的值
+            broadcastMode = document.getElementById('broadcastMode').value;
+        }
 
         if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
         
