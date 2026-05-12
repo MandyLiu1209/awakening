@@ -147,7 +147,7 @@
 </div>
 
 <script>
-    const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
+    const MY_LIFF_ID = "2009976493-XRnQgXcq"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
     
     // 🛡️ 【請替換成您官方群組的真實 ID】
@@ -422,7 +422,7 @@
                 const gasRes = await res.json();
                 
                 if (gasRes.status === "success") {
-                    await db.collection("QuestLogs").add({
+                    await db.collection("QuestLogs_Dev").add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
                         gameNickname: nickname,
                         role: selectedRole,
