@@ -142,7 +142,7 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
     
     // [全域開關] false = 正式玩家模式；true = 開發者調試模式
-    const debug_mode = false;
+    const debug_mode = true;
 
     // 🛡️ 【請替換成您官方群組的真實 ID】
     const TARGET_GROUP_ID = "C7dded8161beb84827984ec5f84aeb741"; //測試群
@@ -364,7 +364,7 @@
 
         // 修改後：雙重保障邏輯 
         let broadcastMode = 'player'; // 預設為玩家宣告
-        
+
         if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
         
         document.getElementById('loadingModal').style.display = "flex";
