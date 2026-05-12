@@ -90,15 +90,6 @@
             <input type="file" id="questImage" accept="image/*">
         </div>
 
-        <div style="background: rgba(255,255,255,0.7); padding: 12px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #d2b48c; text-align: left;">
-            <label style="font-size: 14px; font-weight: bold; color: var(--main-brown);">🛠️ (Demo 專用) 廣播模式切換：</label>
-            <select id="demoBroadcastMode" style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 10px; border: 1px solid #ccc; font-size: 14px;">
-                <option value="player">🗣️ 玩家親自宣告 (LIFF自動發文字)</option>
-                <option value="bot">🤖 官方系統廣播 (需後台串接 Token)</option>
-                <option value="none">🔇 不廣播 (僅背景存檔)</option>
-            </select>
-        </div>
-
         <button class="btn-action" onclick="submitQuest()">送出打卡，提升能量</button>
 
         <div id="debugPanel" style="background: rgba(255,230,230,0.8); padding: 12px; border-radius: 15px; margin-top: 20px; margin-bottom: 15px; border: 2px dashed #cc0000; text-align: left;">
@@ -370,13 +361,9 @@
         
         // 修改前
         //const broadcastMode = document.getElementById('demoBroadcastMode').value; 
-        
+
         // 修改後：雙重保障邏輯 
         let broadcastMode = 'player'; // 預設為玩家宣告
-        if (debug_mode) {
-            // 只有在 debug 模式下，才去讀取選單的值
-            broadcastMode = document.getElementById('broadcastMode').value;
-        }
 
         if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
         
@@ -498,7 +485,9 @@
     async function debugSubmit() {
         const nickname = localStorage.getItem('gameNickname') || "Debug英雄";
         const log = "🛡️ 這是系統自動產生的 Debug 測試心得！";
-        const broadcastMode = document.getElementById('demoBroadcastMode').value;
+        //const broadcastMode = document.getElementById('demoBroadcastMode').value;
+        const broadcastMode = 'player';
+
         const debugImageBase64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAFA3PEY8ED5GWEZGPDpCXC9WWkdXWnlrYWhkeW1qhX1lbX19fX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX3/2wBDAQBeXmBsYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmD/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElK1RVVldYWVpjZGVmZnaGlqc3R1dnd4eXqGhcXl5iZmqjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD/ADff/9k=";
         
         document.getElementById('loadingModal').style.display = "flex";
