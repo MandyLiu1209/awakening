@@ -144,6 +144,17 @@
     // [全域開關] false = 正式玩家模式；true = 開發者調試模式
     const debug_mode = true;
 
+    // [正式版發布洗牌機制] 
+    // 只要更改這個版本號 (例如改成 "v1.1")，所有玩家的手機記憶就會被強制清空！
+    const GAME_VERSION = "v0.2.0_20260516"; 
+
+    // 偵測版本是否符合，不符合就大掃除
+    if (localStorage.getItem('gameVersion') !== GAME_VERSION) {
+        localStorage.clear(); // 清空所有舊的能量、天數與角色記憶
+        localStorage.setItem('gameVersion', GAME_VERSION); // 寫入新版本號
+        console.log("系統已自動重置為正式開服狀態！");
+    }
+
     // 🛡️ 【請替換成您官方群組的真實 ID】
     const TARGET_GROUP_ID = "C7dded8161beb84827984ec5f84aeb741"; //測試群
 
