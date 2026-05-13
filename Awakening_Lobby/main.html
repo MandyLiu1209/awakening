@@ -367,8 +367,8 @@
 
     async function submitQuest() {
         const nickname = localStorage.getItem('gameNickname');
-        const log = document.getElementById('questLog').value;
-        const fileInput = document.getElementById('questImage');
+        //const log = document.getElementById('questLog').value;
+        //const fileInput = document.getElementById('questImage');
         
         // 修改前
         //const broadcastMode = document.getElementById('demoBroadcastMode').value; 
@@ -376,7 +376,16 @@
         // 修改後：雙重保障邏輯 
         let broadcastMode = 'player'; // 預設為玩家宣告
 
-        if (!log || fileInput.files.length === 0) { alert("請填寫心得並上傳照片！"); return; }
+        const fileInput = document.getElementById('questImage');
+        const logInput = document.getElementById('questLog');
+
+        // 🕵️‍♂️ 檢查是否有填寫與上傳
+        if (!fileInput.files[0] || !logInput.value.trim()) {
+            // 👇 棄用 alert()，改用我們精美的 customAlert
+            document.getElementById('alertMessage').innerText = "【 系統通知 】\n\n請填寫心得並上傳照片！";
+            document.getElementById('customAlert').style.display = 'flex';
+            return; 
+        }
         
         document.getElementById('loadingModal').style.display = "flex";
         const reader = new FileReader();
