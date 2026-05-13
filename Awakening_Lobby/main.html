@@ -391,7 +391,7 @@
         // 🕵️‍♂️ 檢查是否有填寫與上傳
         if (!fileInput.files[0] || !logInput.value.trim()) {
             // 👇 加上這行：設定大聲公圖示與標題
-            document.getElementById('customAlertTitle').innerHTML = '<span>📢</span>系統通知';
+            document.getElementById('customAlertTitle').innerHTML = '<span>📢 系統通知';
             
             document.getElementById('alertMessage').innerText = "請填寫心得並上傳照片！";
             document.getElementById('customAlert').style.display = 'flex';
