@@ -128,12 +128,14 @@
 <div id="customAlert" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
     <div class="alert-box" style="background:#fffaf0; border:4px solid #8b4513; border-radius:20px; padding:20px; text-align:center; max-width:80%; box-shadow:0 0 15px rgba(0,0,0,0.5);">
         
+        <!--
         <h2 id="customAlertTitle" style="display: flex; align-items: center; justify-content: center; margin: 0 0 15px 0; color: #8b4513; font-size: 1.6rem; gap: 8px;">
             </h2>
         
         <p id="alertMessage" style="color:#333; font-size:1.1rem; line-height:1.5; margin-bottom:20px; white-space: pre-wrap; font-weight:bold;"></p>
         
         <button type="button" onclick="document.getElementById('customAlert').style.display='none';" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; font-size:1.1rem; cursor:pointer;">確定</button>
+        -->
     </div>
 </div>
 
@@ -145,6 +147,27 @@
         <p style="color: #d35400; font-size: 14px; margin: 5px 0 0 0;">請稍候，正在將紀錄刻入石碑</p>
     </div>
 </div>
+
+// 🌟 絕對防禦：憑空生成彈窗，保證不報錯！
+function showCustomAlert(icon, title, message) {
+    let oldAlert = document.getElementById('customAlert');
+    if (oldAlert) oldAlert.remove(); // 拔掉舊的
+
+    let alertModal = document.createElement('div');
+    alertModal.id = 'customAlert';
+    alertModal.innerHTML = `
+        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center;">
+            <div class="alert-box" style="background:#fffaf0; border:4px solid #8b4513; border-radius:20px; padding:20px; text-align:center; max-width:80%; box-shadow:0 0 15px rgba(0,0,0,0.5);">
+                <h2 style="display: flex; align-items: center; justify-content: center; margin: 0 0 15px 0; color: #8b4513; font-size: 1.6rem; gap: 8px;">
+                    <span style="font-size: 2.2rem;">${icon}</span><span>${title}</span>
+                </h2>
+                <p style="color:#333; font-size:1.1rem; line-height:1.5; margin-bottom:20px; font-weight:bold; white-space: pre-wrap;">${message}</p>
+                <button type="button" onclick="document.getElementById('customAlert').remove();" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; font-size:1.1rem; cursor:pointer;">確定</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(alertModal);
+}
 
 <script>
     const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
@@ -491,20 +514,17 @@
                     }
 
                     // 3. 發送 LINE 訊息 (完全保留您的完美代碼)
-                    if (broadcastMode === 'player') {
-                        if (liff.isInClient() && liff.getContext().type !== "none") {
-                            try {
-                                await liff.sendMessages([
-                                    {
-                                        type: "text",
-                                        text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
-                                    },
-                                    {
-                                        type: "image",
-                                        originalContentUrl: gasRes.fileUrl,
-                                        previewImageUrl: gasRes.fileUrl
-                                    }
-                                ]);
+                    if (liff.isInClient() && liff.getContext().type !== "none") {
+                        try {
+                            await liff.sendMessages([{
+                                type: "text",
+                                text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`},
+                                {
+                                    type: "image",
+                                    originalContentUrl: gasRes.fileUrl,
+                                    previewImageUrl: gasRes.fileUrl
+                                }
+                            ]);
                             } catch (err) {
                                 console.log("圖片發送失敗", err);
                                 await liff.sendMessages([{
@@ -513,7 +533,6 @@
                                 }]);
                             }
                         }
-                    }
 
                     // 4. 清空輸入框與上傳的照片 (完全保留您的完美代碼)
                     document.getElementById('questLog').value = "";
@@ -536,7 +555,7 @@
                     }
                 }
             } catch (err) { 
-                //alert("傳輸失敗：" + err); 
+                alert("傳輸失敗：" + err); 
             }
             document.getElementById('loadingModal').style.display = "none";
         };
