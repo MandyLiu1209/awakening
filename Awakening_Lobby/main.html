@@ -459,11 +459,20 @@
                 const gasRes = await res.json();
                 
                 if (gasRes.status === "success") {
-                    await db.collection("QuestLogs").add({
+                    /*await db.collection("QuestLogs").add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
                         gameNickname: nickname,
                         role: selectedRole,
                         log: log,
+                        imageUrl: gasRes.fileUrl,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });*/
+
+                    await db.collection("QuestLogs").add({
+                        lineName: window.userProfile ? window.userProfile.displayName : "未知",
+                        gameNickname: nickname, // 注意：如果這裡也報錯找不到 nickname，請參考方法 B
+                        role: selectedRole,
+                        log: document.getElementById('questLog').value, // 👈 關鍵修改：直接去抓輸入框裡的文字
                         imageUrl: gasRes.fileUrl,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
