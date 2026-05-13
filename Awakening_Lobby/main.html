@@ -125,8 +125,17 @@
     </div>
 </div>
 
-
+<!--
 <div id="customAlert"><div class="alert-box"><h2>🎉 打卡成功！</h2><p id="alertMessage">紀錄已載入石碑。</p><button type="button" onclick="document.getElementById('customAlert').style.display='none';" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button></div></div>
+-->
+
+<div id="customAlert" class="modal" style="display:none;">
+    <div class="alert-box">
+        <h2 id="customAlertTitle" style="display: flex; flex-direction: column; align-items: center; gap: 5px;"></h2>
+        <p id="alertMessage">紀錄已載入石碑。</p>
+        <button type="button" onclick="document.getElementById('customAlert').style.display='none';" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button>
+    </div>
+</div>
 
 
 <div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;">
@@ -381,10 +390,12 @@
 
         // 🕵️‍♂️ 檢查是否有填寫與上傳
         if (!fileInput.files[0] || !logInput.value.trim()) {
-            // 👇 棄用 alert()，改用我們精美的 customAlert
-            document.getElementById('alertMessage').innerText = "【 系統通知 】\n\n請填寫心得並上傳照片！";
+            // 👇 加上這行：設定大聲公圖示與標題
+            document.getElementById('customAlertTitle').innerHTML = '<span>📢</span>系統通知';
+            
+            document.getElementById('alertMessage').innerText = "請填寫心得並上傳照片！";
             document.getElementById('customAlert').style.display = 'flex';
-            return; 
+            return;
         }
         
         document.getElementById('loadingModal').style.display = "flex";
@@ -455,6 +466,9 @@
                         imageUrl: gasRes.fileUrl,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
+
+                    // 👇 請直接把這行「新增」在這裡！(存檔成功後，換上慶祝標題)
+                    document.getElementById('customAlertTitle').innerHTML = '<span>🎉</span>打卡成功！';
 
                     // 👇 觸發能量結算，並動態更新提示視窗的文字
                     const energyData = calculateAndAddEnergy();
