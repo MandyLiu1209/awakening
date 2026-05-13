@@ -498,7 +498,7 @@
         const log = "🛡️ 這是系統自動產生的 Debug 測試心得！";
         //const broadcastMode = document.getElementById('demoBroadcastMode').value;
         const broadcastMode = 'player';
-        
+
         const debugImageBase64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAFA3PEY8ED5GWEZGPDpCXC9WWkdXWnlrYWhkeW1qhX1lbX19fX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX3/2wBDAQBeXmBsYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmD/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElK1RVVldYWVpjZGVmZnaGlqc3R1dnd4eXqGhcXl5iZmqjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD/ADff/9k=";
         
         document.getElementById('loadingModal').style.display = "flex";
@@ -575,6 +575,12 @@
                         { type: "image", originalContentUrl: gasRes.fileUrl, previewImageUrl: gasRes.fileUrl }
                     ]);
                 }
+
+                // 👇 新增這兩行：清空輸入框與上傳的照片
+                document.getElementById('questLog').value = "";
+                document.getElementById('questImage').value = "";
+
+                // 顯示成功的彈跳視窗
                 document.getElementById('customAlert').style.display = 'flex';
             }
         } catch (err) { alert("傳輸失敗：" + err); }

@@ -482,6 +482,11 @@
                         }
                     }
 
+                    // 👇 新增這兩行：清空輸入框與上傳的照片
+                    document.getElementById('questLog').value = "";
+                    document.getElementById('questImage').value = "";
+
+                    // 顯示成功的彈跳視窗
                     document.getElementById('customAlert').style.display = 'flex';
                 }
             } catch (err) { alert("傳輸失敗：" + err); }
