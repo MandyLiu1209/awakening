@@ -389,11 +389,25 @@
         const logInput = document.getElementById('questLog');
 
         // 🕵️‍♂️ 檢查是否有填寫與上傳
+        // 🕵️‍♂️ 情境 A：攔截漏填 (顯示系統通知)
         if (!fileInput.files[0] || !logInput.value.trim()) {
-            // 顯示大聲公
-            document.getElementById('customAlertTitle').innerHTML = '<span style="font-size: 2rem;">📢</span><span>系統通知</span>';
-            document.getElementById('alertMessage').innerText = "請填寫心得並上傳照片！";
-            document.getElementById('customAlert').style.display = 'flex';
+            const alertModal = document.getElementById('customAlert');
+            if (alertModal) {
+                // 直接暴力重寫 HTML，保證圖示與文字完美並排！
+                alertModal.innerHTML = `
+                <div class="alert-box" style="background:#fffaf0; border:4px solid #8b4513; border-radius:20px; padding:20px; text-align:center; max-width:80%; margin:auto; box-shadow:0 0 15px rgba(0,0,0,0.5);">
+                    <h2 style="display: flex; align-items: center; justify-content: center; margin: 0 0 15px 0; color: #8b4513; font-size: 1.6rem; gap: 8px;">
+                        <span style="font-size: 2rem;">📢</span><span>系統通知</span>
+                    </h2>
+                    <p style="color:#333; font-size:1.1rem; line-height:1.5; margin-bottom:20px; font-weight:bold;">請填寫心得並上傳照片！</p>
+                    <button type="button" onclick="document.getElementById('customAlert').style.display='none';" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; font-size:1.1rem; cursor:pointer;">確定</button>
+                </div>`;
+                alertModal.style.display = 'flex';
+                alertModal.style.alignItems = 'center';
+                alertModal.style.justifyContent = 'center';
+            } else {
+                alert("📢 系統通知\n請填寫心得並上傳照片！"); // 終極防呆
+            }
             return; 
         }
         
@@ -457,38 +471,26 @@
                 const gasRes = await res.json();
                 
                 if (gasRes.status === "success") {
-                    /*await db.collection("QuestLogs").add({
-                        lineName: window.userProfile ? window.userProfile.displayName : "未知",
-                        gameNickname: nickname,
-                        role: selectedRole,
-                        log: log,
-                        imageUrl: gasRes.fileUrl,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });*/
-
+                    // 1. 存檔到 Firebase (完全保留您的完美代碼)
                     await db.collection("QuestLogs").add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
-                        gameNickname: nickname, // 注意：如果這裡也報錯找不到 nickname，請參考方法 B
+                        gameNickname: nickname, 
                         role: selectedRole,
-                        log: document.getElementById('questLog').value, // 👈 關鍵修改：直接去抓輸入框裡的文字
+                        log: document.getElementById('questLog').value, 
                         imageUrl: gasRes.fileUrl,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    // 👇 請直接把這行「新增」在這裡！(存檔成功後，換上慶祝標題)
-                    document.getElementById('customAlertTitle').innerHTML = '<span style="font-size: 2rem;">🎉</span><span>打卡成功！</span>';
-
-                    // 👇 觸發能量結算，並動態更新提示視窗的文字
+                    // 2. 觸發能量結算 (完全保留您的完美代碼)
                     const energyData = calculateAndAddEnergy();
-                    //const alertMsg = gained > 0 ? `紀錄已載入石碑！\n⚡ 獲得 ${gained} 點能量` : `紀錄已載入石碑！\n(今日能量已達上限 10/10)`;
                     let alertMsg = "";
                     if (energyData.added > 0) {
                         alertMsg = `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})`;
                     } else {
                         alertMsg = `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
                     }
-                    document.getElementById('alertMessage').innerText = alertMsg;
 
+                    // 3. 發送 LINE 訊息 (完全保留您的完美代碼)
                     if (broadcastMode === 'player') {
                         if (liff.isInClient() && liff.getContext().type !== "none") {
                             try {
@@ -513,12 +515,25 @@
                         }
                     }
 
-                    // 👇 新增這兩行：清空輸入框與上傳的照片
+                    // 4. 清空輸入框與上傳的照片 (完全保留您的完美代碼)
                     document.getElementById('questLog').value = "";
                     document.getElementById('questImage').value = "";
 
-                    // 顯示成功的彈跳視窗
-                    document.getElementById('customAlert').style.display = 'flex';
+                    // 5. 🚀 終極修復：暴力重畫彈跳視窗 (替換掉原本會當機的寫法)
+                    const alertModal = document.getElementById('customAlert');
+                    if (alertModal) {
+                        alertModal.innerHTML = `
+                        <div class="alert-box" style="background:#fffaf0; border:4px solid #8b4513; border-radius:20px; padding:20px; text-align:center; max-width:80%; margin:auto; box-shadow:0 0 15px rgba(0,0,0,0.5);">
+                            <h2 style="display: flex; align-items: center; justify-content: center; margin: 0 0 15px 0; color: #8b4513; font-size: 1.6rem; gap: 8px;">
+                                <span style="font-size: 2rem;">🎉</span><span>打卡成功！</span>
+                            </h2>
+                            <p style="color:#333; font-size:1.1rem; line-height:1.5; margin-bottom:20px; font-weight:bold; white-space: pre-wrap;">${alertMsg}</p>
+                            <button type="button" onclick="document.getElementById('customAlert').style.display='none';" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; font-size:1.1rem; cursor:pointer;">確定</button>
+                        </div>`;
+                        alertModal.style.display = 'flex';
+                        alertModal.style.alignItems = 'center';
+                        alertModal.style.justifyContent = 'center';
+                    }
                 }
             } catch (err) { alert("傳輸失敗：" + err); }
             document.getElementById('loadingModal').style.display = "none";
