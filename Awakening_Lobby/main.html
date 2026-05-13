@@ -535,7 +535,9 @@
                         alertModal.style.justifyContent = 'center';
                     }
                 }
-            } catch (err) { alert("傳輸失敗：" + err); }
+            } catch (err) { 
+                //alert("傳輸失敗：" + err); 
+            }
             document.getElementById('loadingModal').style.display = "none";
         };
         reader.readAsDataURL(fileInput.files[0]);
