@@ -131,7 +131,8 @@
 
 <div id="customAlert" class="modal" style="display:none;">
     <div class="alert-box">
-        <h2 id="customAlertTitle" style="display: flex; flex-direction: column; align-items: center; gap: 5px;"></h2>
+        <h2 id="customAlertTitle" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;"></h2>
+        
         <p id="alertMessage">紀錄已載入石碑。</p>
         <button type="button" onclick="document.getElementById('customAlert').style.display='none';" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; cursor:pointer;">確定</button>
     </div>
@@ -391,7 +392,7 @@
         // 🕵️‍♂️ 檢查是否有填寫與上傳
         if (!fileInput.files[0] || !logInput.value.trim()) {
             // 👇 加上這行：設定大聲公圖示與標題
-            document.getElementById('customAlertTitle').innerHTML = '<span>📢 系統通知';
+            document.getElementById('customAlertTitle').innerHTML = '<span style="font-size: 2rem;">📢</span><span>系統通知</span>';
             
             document.getElementById('alertMessage').innerText = "請填寫心得並上傳照片！";
             document.getElementById('customAlert').style.display = 'flex';
@@ -468,7 +469,7 @@
                     });
 
                     // 👇 請直接把這行「新增」在這裡！(存檔成功後，換上慶祝標題)
-                    document.getElementById('customAlertTitle').innerHTML = '<span>🎉</span>打卡成功！';
+                    document.getElementById('customAlertTitle').innerHTML = '<span style="font-size: 2rem;">🎉</span><span>打卡成功！</span>';
 
                     // 👇 觸發能量結算，並動態更新提示視窗的文字
                     const energyData = calculateAndAddEnergy();
