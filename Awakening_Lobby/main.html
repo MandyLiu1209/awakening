@@ -125,21 +125,6 @@
     </div>
 </div>
 
-<div id="customAlert" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-    <div class="alert-box" style="background:#fffaf0; border:4px solid #8b4513; border-radius:20px; padding:20px; text-align:center; max-width:80%; box-shadow:0 0 15px rgba(0,0,0,0.5);">
-        
-        <!--
-        <h2 id="customAlertTitle" style="display: flex; align-items: center; justify-content: center; margin: 0 0 15px 0; color: #8b4513; font-size: 1.6rem; gap: 8px;">
-            </h2>
-        
-        <p id="alertMessage" style="color:#333; font-size:1.1rem; line-height:1.5; margin-bottom:20px; white-space: pre-wrap; font-weight:bold;"></p>
-        
-        <button type="button" onclick="document.getElementById('customAlert').style.display='none';" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; font-size:1.1rem; cursor:pointer;">確定</button>
-        -->
-    </div>
-</div>
-
-
 <div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;">
     <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; border: 4px solid #d35400;">
         <div class="spinner"></div>
@@ -148,13 +133,15 @@
     </div>
 </div>
 
-// 🌟 絕對防禦：憑空生成彈窗，保證不報錯！
+// ==========================================
+// 🌟 絕對防禦：憑空生成彈窗，100% 不報錯
+// ==========================================
 function showCustomAlert(icon, title, message) {
-    let oldAlert = document.getElementById('customAlert');
+    let oldAlert = document.getElementById('dynamicAlert');
     if (oldAlert) oldAlert.remove(); // 拔掉舊的
 
     let alertModal = document.createElement('div');
-    alertModal.id = 'customAlert';
+    alertModal.id = 'dynamicAlert';
     alertModal.innerHTML = `
         <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center;">
             <div class="alert-box" style="background:#fffaf0; border:4px solid #8b4513; border-radius:20px; padding:20px; text-align:center; max-width:80%; box-shadow:0 0 15px rgba(0,0,0,0.5);">
@@ -397,169 +384,77 @@ function showCustomAlert(icon, title, message) {
         console.error("LIFF 初始化失敗", err);
     });
 
+    // ==========================================
+    // 🚀 核心打卡功能 (適用正式與開發模式)
+    // ==========================================
     async function submitQuest() {
-        const nickname = localStorage.getItem('gameNickname');
-        //const log = document.getElementById('questLog').value;
-        //const fileInput = document.getElementById('questImage');
-        
-        // 修改前
-        //const broadcastMode = document.getElementById('demoBroadcastMode').value; 
-
-        // 修改後：雙重保障邏輯 
-        let broadcastMode = 'player'; // 預設為玩家宣告
-
         const fileInput = document.getElementById('questImage');
         const logInput = document.getElementById('questLog');
 
-        // 🕵️‍♂️ 檢查是否有填寫與上傳
-        // 🕵️‍♂️ 情境 A：攔截漏填 (顯示系統通知)
         if (!fileInput.files[0] || !logInput.value.trim()) {
-            const alertModal = document.getElementById('customAlert');
-            if (alertModal) {
-                // 直接暴力重寫 HTML，保證圖示與文字完美並排！
-                alertModal.innerHTML = `
-                <div class="alert-box" style="background:#fffaf0; border:4px solid #8b4513; border-radius:20px; padding:20px; text-align:center; max-width:80%; margin:auto; box-shadow:0 0 15px rgba(0,0,0,0.5);">
-                    <h2 style="display: flex; align-items: center; justify-content: center; margin: 0 0 15px 0; color: #8b4513; font-size: 1.6rem; gap: 8px;">
-                        <span style="font-size: 2rem;">📢</span><span>系統通知</span>
-                    </h2>
-                    <p style="color:#333; font-size:1.1rem; line-height:1.5; margin-bottom:20px; font-weight:bold;">請填寫心得並上傳照片！</p>
-                    <button type="button" onclick="document.getElementById('customAlert').style.display='none';" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; font-size:1.1rem; cursor:pointer;">確定</button>
-                </div>`;
-                alertModal.style.display = 'flex';
-                alertModal.style.alignItems = 'center';
-                alertModal.style.justifyContent = 'center';
-            } else {
-                alert("📢 系統通知\n請填寫心得並上傳照片！"); // 終極防呆
-            }
+            showCustomAlert('📢', '系統通知', '請填寫心得並上傳照片！');
             return; 
         }
-        
+
         document.getElementById('loadingModal').style.display = "flex";
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const base64 = e.target.result.split(',')[1];
-            try {
-                // 🔒 多群組安全鎖清單 (白名單)
-                /*const ALLOWED_IDS = [
-                    "C7dded8161beb84827984ec5f84aeb741", //14日覺醒測試群
-                    "c6ca338d36204a659afa933966702a52",
-                    "C35f106120a1b854c3aaf528c3eeb7c67", //Test遊戲覺醒
-                    "C1360f12564ae2242526bad6208d222b1",  //遊戲組
-                    "20640cd3-017c-4835-a6ac-492739c5b81d" //(如果您想讓這個社群也能打卡，就把它加進來)
-                ];*/
 
-                // 🔒 多群組安全鎖與「翻譯蒟蒻」對照表
-                // 格式為 -> "網頁抓到的ID" : "機器人需要的C開頭ID"
-                /*const GROUP_MAP = {
-                    "C1360f12564ae2242526bad6208d222b1": "C1360f12564ae2242526bad6208d222b1", // 遊戲組 (正常對應)
-                    "C35f106120a1b854c3aaf528c3eeb7c67": "C35f106120a1b854c3aaf528c3eeb7c67", // 原測試群 (正常對應)
-                    "c6ca338d-3620-4a65-9afa-933966702a52": "C7dded8161beb84827984ec5f84aeb741"  // ⚠️ 雙面人測試群 (自動翻譯)
-                };*/
-                /*
-                const context = liff.getContext();
-                // 抓取目前玩家所在的 ID (群組 > 聊天室 > 個人)
-                const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
+        try {
+            const nickname = localStorage.getItem('gameNickname') || "冒險者";
+            const selectedRole = localStorage.getItem('gameRole') || "英雄";
+            const log = logInput.value.trim();
+            const context = liff.getContext();
+            const targetId = context ? (context.groupId || context.roomId || context.userId) : TARGET_GROUP_ID;
 
-
-                // 🛡️ 安全檢查：如果目前地點不在白名單內，就攔截
-                if (!ALLOWED_IDS.includes(currentId)) {
-                    alert("⚠️ 偵測到未授權的使用來源！\n本系統僅限指定試煉群組成員使用。");
-                    document.getElementById('loadingModal').style.display = "none";
-                    liff.closeWindow(); 
-                    return;
-                }
-                
-
-                // 通過檢查後，將目標地址設定為當前地點
-                // 🌟 神奇魔法：自動把網頁 ID 翻譯成機器人專用的 targetId！
-                const targetId = currentId;
-                */
-
-                // 🔓 解除安全鎖：自由抓取目前的發送地點
-                const context = liff.getContext();
-                const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
-
-                const res = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ 
-                        nickname: nickname, 
-                        fileName: nickname + "_" + Date.now() + ".jpg", 
-                        mimeType: fileInput.files[0].type, 
-                        base64Data: base64,
-                        broadcastMode: broadcastMode, 
-                        targetId: targetId,           
-                        log: log                      
-                    })
-                });
-                const gasRes = await res.json();
-                
-                if (gasRes.status === "success") {
-                    // 1. 存檔到 Firebase (完全保留您的完美代碼)
-                    await db.collection("QuestLogs").add({
-                        lineName: window.userProfile ? window.userProfile.displayName : "未知",
-                        gameNickname: nickname, 
-                        role: selectedRole,
-                        log: document.getElementById('questLog').value, 
-                        imageUrl: gasRes.fileUrl,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64Data = e.target.result.split(',')[1];
+                try {
+                    const res = await fetch(GAS_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ 
+                            nickname: nickname, 
+                            fileName: nickname + "_" + Date.now() + ".jpg", 
+                            mimeType: fileInput.files[0].type, 
+                            base64Data: base64Data,
+                            broadcastMode: 'player', 
+                            targetId: targetId,
+                            log: log                      
+                        })
                     });
+                    const gasRes = await res.json();
 
-                    // 2. 觸發能量結算 (完全保留您的完美代碼)
-                    const energyData = calculateAndAddEnergy();
-                    let alertMsg = "";
-                    if (energyData.added > 0) {
-                        alertMsg = `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})`;
-                    } else {
-                        alertMsg = `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
-                    }
+                    if (gasRes.status === "success") {
+                        await db.collection("QuestLogs").add({
+                            lineName: window.userProfile ? window.userProfile.displayName : "未知",
+                            gameNickname: nickname, role: selectedRole, log: log,
+                            imageUrl: gasRes.fileUrl, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        });
 
-                    // 3. 發送 LINE 訊息 (完全保留您的完美代碼)
-                    if (liff.isInClient() && liff.getContext().type !== "none") {
-                        try {
-                            await liff.sendMessages([{
-                                type: "text",
-                                text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`},
-                                {
-                                    type: "image",
-                                    originalContentUrl: gasRes.fileUrl,
-                                    previewImageUrl: gasRes.fileUrl
-                                }
+                        const energyData = calculateAndAddEnergy();
+                        const alertMsg = energyData.added > 0 
+                            ? `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})` 
+                            : `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
+
+                        showCustomAlert('🎉', '打卡成功！', alertMsg);
+                        logInput.value = ""; fileInput.value = ""; // 清空欄位
+
+                        if (liff.isInClient() && liff.getContext().type !== "none") {
+                            await liff.sendMessages([
+                                { type: "text", text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}` },
+                                { type: "image", originalContentUrl: gasRes.fileUrl, previewImageUrl: gasRes.fileUrl }
                             ]);
-                            } catch (err) {
-                                console.log("圖片發送失敗", err);
-                                await liff.sendMessages([{
-                                    type: "text",
-                                    text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}\n\n📸 成果照片連結：\n${gasRes.fileUrl}`
-                                }]);
-                            }
                         }
-
-                    // 4. 清空輸入框與上傳的照片 (完全保留您的完美代碼)
-                    document.getElementById('questLog').value = "";
-                    document.getElementById('questImage').value = "";
-
-                    // 5. 🚀 終極修復：暴力重畫彈跳視窗 (替換掉原本會當機的寫法)
-                    const alertModal = document.getElementById('customAlert');
-                    if (alertModal) {
-                        alertModal.innerHTML = `
-                        <div class="alert-box" style="background:#fffaf0; border:4px solid #8b4513; border-radius:20px; padding:20px; text-align:center; max-width:80%; margin:auto; box-shadow:0 0 15px rgba(0,0,0,0.5);">
-                            <h2 style="display: flex; align-items: center; justify-content: center; margin: 0 0 15px 0; color: #8b4513; font-size: 1.6rem; gap: 8px;">
-                                <span style="font-size: 2rem;">🎉</span><span>打卡成功！</span>
-                            </h2>
-                            <p style="color:#333; font-size:1.1rem; line-height:1.5; margin-bottom:20px; font-weight:bold; white-space: pre-wrap;">${alertMsg}</p>
-                            <button type="button" onclick="document.getElementById('customAlert').style.display='none';" style="background:#d35400; color:white; border:none; padding:10px 30px; border-radius:50px; font-size:1.1rem; cursor:pointer;">確定</button>
-                        </div>`;
-                        alertModal.style.display = 'flex';
-                        alertModal.style.alignItems = 'center';
-                        alertModal.style.justifyContent = 'center';
+                    } else {
+                        showCustomAlert('⚠️', '傳送失敗', "系統暫時忙碌中。");
                     }
-                }
-            } catch (err) { 
-                alert("傳輸失敗：" + err); 
-            }
+                } catch (err) { showCustomAlert('❌', '錯誤', "連線失敗：" + err); }
+                document.getElementById('loadingModal').style.display = "none";
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        } catch (err) {
+            showCustomAlert('❌', '核心錯誤', err);
             document.getElementById('loadingModal').style.display = "none";
-        };
-        reader.readAsDataURL(fileInput.files[0]);
+        }
     }
 
     // ==========================================
@@ -567,89 +462,34 @@ function showCustomAlert(icon, title, message) {
     // ==========================================
     async function debugSubmit() {
         const nickname = localStorage.getItem('gameNickname') || "Debug英雄";
-        const log = "🛡️ 這是系統自動產生的 Debug 測試心得！";
-        //const broadcastMode = document.getElementById('demoBroadcastMode').value;
-        const broadcastMode = 'player';
+        const log = "🛡️ 這是系統自動產生的測試心得！";
+        const debugImageBase64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAFA3PEY8ED5GWEZGPDpCXC9WWkdXWnlrYWhkeW1qhX1lbX19fX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX3/2wBDAQBeXmBsYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmD/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElK1RVVldYWVpjZGVmZnaGlqc3R1dnd4eXqGhcXl5iZmqjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElK1RVVldYWVpjZGVmZnaGlqc3R1dnd4eXqGhcXl5iZmqjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD/ADff/9k=";
 
-        const debugImageBase64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAFA3PEY8ED5GWEZGPDpCXC9WWkdXWnlrYWhkeW1qhX1lbX19fX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX1lbX3/2wBDAQBeXmBsYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmBvYmD/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElK1RVVldYWVpjZGVmZnaGlqc3R1dnd4eXqGhcXl5iZmqjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD/ADff/9k=";
-        
         document.getElementById('loadingModal').style.display = "flex";
         try {
             const context = liff.getContext();
-            const targetId = context ? (context.groupId || context.roomId || context.userId) : null;
-
-            // 換成這行（引號內貼上機器人報給您的 C 開頭 ID）
-            //const targetId = "C1360f12564ae2242526bad6208d222b1";
-
-            // 🔒 Debug 專用的多群組安全鎖清單
-            /*const ALLOWED_IDS = [
-                "C7dded8161beb84827984ec5f84aeb741", //14日覺醒測試群
-                "c6ca338d36204a659afa933966702a52",
-                "C35f106120a1b854c3aaf528c3eeb7c67", //Test遊戲覺醒
-                "C1360f12564ae2242526bad6208d222b1",  //遊戲組
-                "20640cd3-017c-4835-a6ac-492739c5b81d" //(如果您想讓這個社群也能打卡，就把它加進來)
-            ];*/
-            // 🔒 Debug專用：多群組安全鎖與「翻譯蒟蒻」對照表
-            /*const GROUP_MAP = {
-                "C1360f12564ae2242526bad6208d222b1": "C1360f12564ae2242526bad6208d222b1",
-                "C35f106120a1b854c3aaf528c3eeb7c67": "C35f106120a1b854c3aaf528c3eeb7c67",
-                "c6ca338d-3620-4a65-9afa-933966702a52": "C7dded8161beb84827984ec5f84aeb741"
-            };*/
-
-            //const context = liff.getContext();
-            //const currentId = context ? (context.groupId || context.roomId || context.userId) : null;
-
-            // 如果目前地點不在白名單內，就攔截
-            /*if (!ALLOWED_IDS.includes(currentId)) {
-                alert("⚠️ Debug 模式：偵測到未授權的使用來源！");
-                document.getElementById('loadingModal').style.display = "none";
-                return;
-            }*/
-            // 讓 targetId 動態跟著目前的群組切換
-            //const targetId = currentId;
+            const targetId = context ? (context.groupId || context.roomId || context.userId) : TARGET_GROUP_ID;
 
             const res = await fetch(GAS_URL, {
                 method: 'POST',
                 body: JSON.stringify({ 
-                    nickname: nickname, 
-                    fileName: nickname + "_debug_" + Date.now() + ".jpg", 
-                    mimeType: "image/jpeg", 
-                    base64Data: debugImageBase64,
-                    broadcastMode: broadcastMode,
-                    targetId: targetId,
-                    log: log                      
+                    nickname: nickname, fileName: nickname + "_debug.jpg", mimeType: "image/jpeg", 
+                    base64Data: debugImageBase64, broadcastMode: 'player', targetId, log                      
                 })
             });
             const gasRes = await res.json();
+
             if (gasRes.status === "success") {
-                await db.collection("QuestLogs").add({
-                    lineName: window.userProfile ? window.userProfile.displayName : "未知",
-                    gameNickname: nickname,
-                    role: selectedRole,
-                    log: log,
-                    imageUrl: gasRes.fileUrl,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // 👇 觸發能量結算，並動態更新提示視窗的文字
                 const energyData = calculateAndAddEnergy();
-                let alertMsg = "";
-                if (energyData.added > 0) {
-                    alertMsg = `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})`;
-                } else {
-                    alertMsg = `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
-                }
-                document.getElementById('alertMessage').innerText = alertMsg;
+                const alertMsg = energyData.added > 0 
+                    ? `測試成功！\n⚡ 獲得 ${energyData.added} 點能量` 
+                    : `測試成功！\n(能量已達上限 ${energyData.limit}/${energyData.limit})`;
 
-                if (broadcastMode === 'player' && liff.isInClient() && liff.getContext().type !== "none") {
-                    await liff.sendMessages([
-                        { type: "text", text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}` },
-                        { type: "image", originalContentUrl: gasRes.fileUrl, previewImageUrl: gasRes.fileUrl }
-                    ]);
-                }
-                document.getElementById('customAlert').style.display = 'flex';
+                showCustomAlert('🚀', '極速打卡成功！', alertMsg);
+            } else {
+                showCustomAlert('⚠️', '測試失敗', "GAS 回傳異常");
             }
-        } catch (err) { alert("傳輸失敗：" + err); }
+        } catch (err) { showCustomAlert('❌', '傳輸失敗', err); }
         document.getElementById('loadingModal').style.display = "none";
     }
 
