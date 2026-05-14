@@ -70,6 +70,13 @@
                 LV<span id="displayLevel">1</span> : <span id="displayNameBadge">載入中...</span>
             </div>
         </div>
+
+        <div id="equipmentRack" style="background: rgba(139, 69, 19, 0.1); border: 2px solid #d2b48c; border-radius: 15px; margin: 10px 0; padding: 10px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 5px;">
+            <p style="color: #8b4513; font-size: 12px; width: 100%; margin: 0;">🛡️ 已解鎖裝備：</p>
+            <div id="equipIcons" style="display: flex; gap: 8px; justify-content: center; width: 100%; min-height: 40px; align-items: center;">
+                <span style="color: #999; font-size: 12px;">尚無裝備，繼續試煉！</span>
+            </div>
+        </div>
         
         <div class="task-container">
             <div class="task-tag" id="dayLabel">DAY 1</div>
@@ -178,14 +185,52 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
 
+    // ==========================================
+    // 🗺️ 14日覺醒試煉：任務與裝備設定表
+    // ==========================================
     const taskMatrix = [
-        { title: "🔋 能量三神器的共鳴", desc: "拍下你的「神級裝備組合」<br>(雪克、芒果茶、每日精選)" }, 
-        { title: "💧 水之精靈的祝福", desc: "拍下你特調的「魔法藥水」<br>(蘆薈汁/纖維粉/消化酵素/鳳梨酵素)，<br>或標記刻度的大水壺，留言喝的水量" }, 
-        { title: "🍲 翡翠與白玉的相遇", desc: "拍下今天的第一餐「植能大餐」<br>(綠色蔬菜=翡翠，豆腐=白玉，山中珍寶=菇菇家族)" }, 
-        { title: "🧺 活力採集", desc: "找一個一起執行的勇士一起去找<br>符合甩油第二階段食物的 夥伴商店 拍合照" }, 
-        { title: "🥊 擊退嘴饞大魔王", desc: "運動拍照～" }, 
-        { title: "🪽 輕盈感知的覺醒", desc: "自拍~~~(不量體重，用心感受！)<br>分享一個這 10 多天來的「體感變化」<br>(例如：精神變好、褲頭變鬆、皮膚變亮)" }, 
-        { title: "🏰 榮耀戰神殿堂", desc: "上傳Before / After 對比照<br>或一張自信滿滿美美的自拍照" }  
+        { 
+            title: "🔋 能量三神器的共鳴", 
+            desc: "拍下你的「神級裝備組合」<br>(雪克、芒果茶、每日精選)",
+            equipName: "勇氣徽章",       // 🎁 任務 1 裝備
+            reqPoints: 10               // ⚡ 解鎖條件：該任務期間累計 10 分
+        }, 
+        { 
+            title: "💧 水之精靈的祝福", 
+            desc: "拍下你特調的「魔法藥水」<br>(蘆薈汁/纖維粉/消化酵素/鳳梨酵素)，<br>或標記刻度的大水壺，留言喝的水量",
+            equipName: "淨化護盾",       // 🎁 任務 2 裝備
+            reqPoints: 12               // ⚡ 解鎖條件：該任務期間累計 12 分
+        }, 
+        { 
+            title: "🍲 翡翠與白玉的相遇", 
+            desc: "拍下今天的第一餐「植能大餐」<br>(綠色蔬菜=翡翠，豆腐=白玉，山中珍寶=菇菇家族)",
+            equipName: "鋼鐵背包",       // 🎁 任務 3 裝備
+            reqPoints: 15               // ⚡ 解鎖條件：該任務期間累計 15 分
+        }, 
+        { 
+            title: "🧺 活力採集", 
+            desc: "找一個一起執行的勇士一起去找<br>符合甩油第二階段食物的 夥伴商店 拍合照",
+            equipName: "尋寶地圖",       // 🎁 任務 4 裝備
+            reqPoints: 15               // ⚡ 解鎖條件：該任務期間累計 15 分
+        }, 
+        { 
+            title: "🥊 擊退嘴饞大魔王", 
+            desc: "運動拍照～",
+            equipName: "創意法杖",       // 🎁 任務 5 裝備
+            reqPoints: 17               // ⚡ 解鎖條件：該任務期間累計 17 分
+        }, 
+        { 
+            title: "🪽 輕盈感知的覺醒", 
+            desc: "自拍~~~(不量體重，用心感受！)<br>分享一個這 10 多天來的「體感變化」<br>(例如：精神變好、褲頭變鬆、皮膚變亮)",
+            equipName: "精靈之眼",       // 🎁 任務 6 裝備
+            reqPoints: 17               // ⚡ 解鎖條件：該任務期間累計 17 分
+        }, 
+        { 
+            title: "🏰 榮耀戰神殿堂", 
+            desc: "上傳Before / After 對比照<br>或一張自信滿滿美美的自拍照",
+            equipName: "終極寶箱",       // 🎁 任務 7 裝備
+            reqPoints: 20               // ⚡ 解鎖條件：該任務期間累計 20 分 (需兩天全滿)
+        }  
     ];
 
     const roleImages = { 
@@ -233,6 +278,8 @@
             document.getElementById('displayEnergy').innerText = total;
 
             updateTask(); 
+            // 👇 新增這行：讓玩家一打開畫面就能看到自己的裝備
+            renderEquipment();
         }
     }
 
@@ -243,8 +290,9 @@
         let taskIndex = Math.floor((diffDays - 1) / 2);
         if (taskIndex > 6) taskIndex = 6; 
         
-        let pointsToGive = (taskIndex === 6) ? 10 : 2;
-        let dailyLimit = (taskIndex === 6) ? 30 : 10;
+        // 最後一關給10分，其餘2分
+        let pointsToGive = (taskIndex === 6) ? 10 : 2; 
+        let dailyLimit = (taskIndex === 6) ? 20 : 10;
         
         let today = new Date().toDateString(); 
         let currentDayKey = "Day_" + diffDays; 
@@ -253,6 +301,7 @@
         let lastDayKey = localStorage.getItem('lastCheckinDayKey');
         let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
         
+        // 原本完美的重置邏輯，完全保留！
         if (lastDate !== today || lastDayKey !== currentDayKey) {
             todayEnergy = 0; 
             localStorage.setItem('lastCheckinDate', today);
@@ -273,9 +322,56 @@
             if (document.getElementById('displayEnergy')) {
                 document.getElementById('displayEnergy').innerText = total;
             }
+
+            // 記錄當前任務的累計分數，並檢查是否解鎖裝備
+            let taskScoreKey = "taskScore_" + taskIndex;
+            let currentTaskScore = parseInt(localStorage.getItem(taskScoreKey)) || 0;
+            currentTaskScore += actualAdd;
+            localStorage.setItem(taskScoreKey, currentTaskScore);
+
+            checkEquipmentUnlocked(taskIndex, currentTaskScore);
         }
         
         return { added: actualAdd, current: todayEnergy, limit: dailyLimit };
+    }
+
+    // ==========================================
+    // 🎁 新增：裝備解鎖判定與顯示渲染函數
+    // ==========================================
+    function checkEquipmentUnlocked(taskIndex, currentScore) {
+        const task = taskMatrix[taskIndex];
+        let unlocked = JSON.parse(localStorage.getItem('unlockedEquips')) || [];
+
+        // 檢查分數是否達標 且 還沒拿過這個裝備
+        if (currentScore >= task.reqPoints && !unlocked.includes(task.equipName)) {
+            unlocked.push(task.equipName);
+            localStorage.setItem('unlockedEquips', JSON.stringify(unlocked));
+            
+            // 延遲 1.5 秒彈出獲得裝備的視窗，避免跟打卡成功的視窗撞在一起
+            setTimeout(() => {
+                showCustomAlert('🎊', '獲得傳說裝備！', `恭喜！你的試煉得分已達 ${currentScore} 分\n成功獲得：【${task.equipName}】！`);
+            }, 1500);
+        }
+        renderEquipment();
+    }
+
+    function renderEquipment() {
+        const unlocked = JSON.parse(localStorage.getItem('unlockedEquips')) || [];
+        const iconArea = document.getElementById('equipIcons');
+        if (!iconArea) return;
+
+        if (unlocked.length === 0) {
+            iconArea.innerHTML = '<span style="color: #999; font-size: 12px;">尚無裝備，繼續試煉！</span>';
+            return;
+        }
+
+        // 將解鎖的裝備渲染出來
+        iconArea.innerHTML = unlocked.map(name => `
+            <div style="display:flex; flex-direction:column; align-items:center; background:#fff; border:1px solid #d2b48c; border-radius:8px; padding:5px; min-width:60px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <span style="font-size: 20px;">🛡️</span>
+                <span style="font-size: 10px; color:#8b4513; font-weight:bold;">${name}</span>
+            </div>
+        `).join('');
     }
 
     function selectRole(name, el) {
