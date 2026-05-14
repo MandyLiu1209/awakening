@@ -91,13 +91,24 @@
 
         /* ⭐ 7個裝備在星座圖上的精準定位 (以100%容器為基準) */
         /* 分佈在英雄圖周圍的環形位置 */
-        .orb-pos-0 { top: 12%; left: 50%; transform: translate(-50%, 0); }     /* 正上 (徽章) */
-        .orb-pos-1 { top: 22%; left: 75%; }                                   /* 右上 (護盾) */
-        .orb-pos-2 { top: 48%; left: 82%; }                                   /* 右中 (背包) */
-        .orb-pos-3 { top: 72%; left: 68%; }                                   /* 右下 (地圖) */
-        .orb-pos-4 { top: 72%; left: 32%; }                                   /* 左下 (法杖) */
-        .orb-pos-5 { top: 48%; left: 18%; }                                   /* 左中 (靈眼) */
-        .orb-pos-6 { top: 22%; left: 25%; }                                   /* 左上 (寶箱) */
+        /* 我們將 top 的百分比變小 (往上移)，將 left/right 的百分比更向兩側調整 (往外移) */
+        
+        .orb-pos-0 { top: 2%; left: 50%; transform: translate(-50%, 0); }     
+        /* 正上 (徽章) - 大幅移高 */
+        .orb-pos-1 { top: 10%; left: 80%; }                                   
+        /* 右上 (護盾) - 移高、移寬 */
+        .orb-pos-6 { top: 10%; left: 20%; }                                   
+        /* 左上 (寶箱) - 移高、移寬 */
+        
+        .orb-pos-2 { top: 48%; left: 86%; }                                   
+        /* 右中 (背包) - 移寬 */
+        .orb-pos-5 { top: 48%; left: 14%; }                                   
+        /* 左中 (靈眼) - 移寬 */
+        
+        .orb-pos-3 { top: 76%; left: 72%; }                                   
+        /* 右下 (地圖) - 稍微移低、移寬 */
+        .orb-pos-4 { top: 76%; left: 28%; }                                   
+        /* 左下 (法杖) - 稍微移低、移寬 */
     </style>
 </head>
 <body>
