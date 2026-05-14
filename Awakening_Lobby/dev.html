@@ -57,13 +57,15 @@
         /* 魔法球基礎樣式 (未解鎖：灰暗、半透明、無光暈) */
         .magic-orb {
             position: absolute;
-            width: 48px; height: 48px;
+            width: 65px; height: 65px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid rgba(253, 245, 230, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             opacity: 0.35; /* 關鍵：半透明可見 */
             transition: all 1.2s ease;
             pointer-events: auto; /* 讓球可以被點擊(如有需要) */
+            /* 🌟 核心：確保球體以中心點對準座標，放大後也不會擋臉 */
+            transform: translate(-50%, -50%);
         }
 
         /* 解鎖啟動狀態 */
@@ -83,31 +85,32 @@
         }
 
         /* 輕微漂浮動畫 Keyframes */
-        @keyframes floatOrb {
+        /*@keyframes floatOrb {
             0%   { transform: translate(0, 0); }
-            50%  { transform: translate(0, -5px); } /* 向上漂移5px */
+            50%  { transform: translate(0, -5px); } 向上漂移5px 
             100% { transform: translate(0, 0); }
-        }
+        }*/
+        @keyframes floatOrb { 0%, 100% { transform: translate(-50%, -50%); } 50% { transform: translate(-50%, -60%); } }
 
         /* ⭐ 7個裝備在星座圖上的精準定位 (以100%容器為基準) */
         /* 分佈在英雄圖周圍的環形位置 */
         /* 我們將 top 的百分比變小 (往上移)，將 left/right 的百分比更向兩側調整 (往外移) */
         
-        .orb-pos-0 { top: 20%; left: 50%; transform: translate(-50%, 0); }     
+        .orb-pos-0 { top: 8%; left: 50%; }     
         /* 正上 (徽章) - 大幅移高 */
-        .orb-pos-1 { top: 15%; left: 80%; }                                   
+        .orb-pos-1 { top: 18%; left: 82%; }                                   
         /* 右上 (護盾) - 移高、移寬 */
-        .orb-pos-6 { top: 17%; left: 18%; }                                   
+        .orb-pos-6 { top: 18%; left: 18%; }                                   
         /* 左上 (寶箱) - 移高、移寬 */
         
-        .orb-pos-2 { top: 48%; left: 82%; }                                   
+        .orb-pos-2 { top: 48%; left: 88%; }                                   
         /* 右中 (背包) - 移寬 */
-        .orb-pos-5 { top: 48%; left: 14%; }                                   
+        .orb-pos-5 { top: 48%; left: 12%; }                                   
         /* 左中 (靈眼) - 移寬 */
         
-        .orb-pos-3 { top: 76%; left: 72%; }                                   
+        .orb-pos-3 { top: 78%; left: 75%; }                                   
         /* 右下 (地圖) - 稍微移低、移寬 */
-        .orb-pos-4 { top: 80%; left: 25%; }                                   
+        .orb-pos-4 { top: 78%; left: 25%; }                                   
         /* 左下 (法杖) - 稍微移低、移寬 */
     </style>
 </head>
