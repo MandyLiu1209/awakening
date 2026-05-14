@@ -14,6 +14,7 @@
         .container { background: url('https://www.transparenttextures.com/patterns/paper-fibers.png'), var(--bg-cream); border: 6px solid var(--main-brown); border-radius: 30px; padding: 4vw; max-width: 500px; width: 95%; box-sizing: border-box; margin: 2vh auto; text-align: center; color: #5d4037; position: relative; }
         .header-banner { background: var(--main-brown); color: #fdf5e6; padding: 12px; border-radius: 50px; margin-bottom: 15px; font-weight: bold; font-size: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 
+        /* 角色呈現區 */
         .hero-display { position: relative; width: 100%; max-height: 45vh; aspect-ratio: 3/4; margin-bottom: 15px; background: #e0e0e0; border-radius: 20px; overflow: hidden; border: 3px solid #d2b48c; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
         .hero-img { width: 90%; height: 90%; object-fit: contain; position: absolute; top: 5%; left: 5%; z-index: 1; }
         .btn-edit-float { position: absolute; top: 12px; right: 12px; font-size: 18px; background: rgba(255, 255, 255, 0.9); border: 2px solid #d2b48c; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border:none; cursor: pointer;}
@@ -53,23 +54,32 @@
             pointer-events: none; /* 不擋住鉛筆按鈕 */
         }
 
-        /* 魔法球基礎樣式 */
+        /* 魔法球基礎樣式 (未解鎖：灰暗、半透明、無光暈) */
         .magic-orb {
             position: absolute;
-            width: 50px; height: 50px;
+            width: 48px; height: 48px;
             border-radius: 50%;
             object-fit: cover;
-            box-shadow: 0 0 15px rgba(211, 84, 0, 0.7); /* 預設橘色魔光 */
             border: 2px solid rgba(253, 245, 230, 0.9);
-            opacity: 0;
-            transition: all 1s ease-out; /* 解鎖時淡入 */
+            opacity: 0.35; /* 關鍵：半透明可見 */
+            transition: all 1.2s ease;
             pointer-events: auto; /* 讓球可以被點擊(如有需要) */
         }
 
         /* 解鎖啟動狀態 */
+        /*
         .magic-orb.active {
             opacity: 1;
-            animation: floatOrb 3s ease-in-out infinite; /* gentle漂浮 animation */
+            animation: floatOrb 3s ease-in-out infinite; // gentle漂浮 animation
+        }*/
+
+        /* 解鎖啟動狀態 (已解鎖：恢復彩色、發光、漂浮) */
+        .magic-orb.active {
+            filter: grayscale(0%) brightness(100%);
+            opacity: 1;
+            box-shadow: 0 0 15px rgba(211, 84, 0, 0.8);
+            border: 2px solid #fff;
+            animation: floatOrb 3s ease-in-out infinite; 
         }
 
         /* 輕微漂浮動畫 Keyframes */
@@ -125,7 +135,7 @@
         <div id="equipmentRack" style="background: rgba(139, 69, 19, 0.1); border: 2px solid #d2b48c; border-radius: 15px; margin: 10px 0; padding: 10px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 5px;">
             <p style="color: #8b4513; font-size: 12px; width: 100%; margin: 0;">🛡️ 已解鎖裝備：</p>
             <div id="equipIcons" style="display: flex; gap: 8px; justify-content: center; width: 100%; min-height: 40px; align-items: center;">
-                <span style="color: #999; font-size: 12px;">尚無裝備，繼續試煉！</span>
+>
             </div>
         </div>
         
@@ -472,18 +482,29 @@
         const iconArea = document.getElementById('equipIcons');
         if (!iconArea) return;
 
-        if (unlocked.length === 0) {
+        /*if (unlocked.length === 0) {
             iconArea.innerHTML = '<span style="color: #999; font-size: 12px;">尚無裝備，繼續試煉！</span>';
             return;
-        }
+        }*/
 
-        // 將解鎖的裝備渲染出來
-        iconArea.innerHTML = unlocked.map(name => `
-            <div style="display:flex; flex-direction:column; align-items:center; background:#fff; border:1px solid #d2b48c; border-radius:8px; padding:5px; min-width:60px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                <span style="font-size: 20px;">🛡️</span>
-                <span style="font-size: 10px; color:#8b4513; font-weight:bold;">${name}</span>
+        // 掃描全裝備清單 (equipRegistry)
+        iconArea.innerHTML = equipRegistry.map(eq => {
+            const isUnlocked = unlocked.includes(eq.name);
+            
+            // 🌟 核心魔法：未解鎖(false)給予灰暗濾鏡，已解鎖(true)取消濾鏡
+            const filterStyle = isUnlocked ? "" : "filter: grayscale(100%) brightness(30%); opacity: 0.5;";
+            // 未解鎖是灰框，已解鎖會變成橘框且發光
+            const borderStyle = isUnlocked ? "border: 2px solid #d35400; box-shadow: 0 0 10px rgba(211,84,0,0.8);" : "border: 2px solid #888;";
+            // 未解鎖是灰字，已解鎖是深咖啡色
+            const textStyle = isUnlocked ? "color:#8b4513; font-weight:bold;" : "color:#888;";
+
+            return `
+            <div style="display:flex; flex-direction:column; align-items:center; margin: 2px; width: 22%;">
+                <img src="${eq.img}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; ${filterStyle} ${borderStyle} transition: all 0.5s ease;" alt="${eq.name}">
+                <span style="font-size: 11px; margin-top: 5px; text-align: center; line-height: 1.2; ${textStyle}">${eq.name}</span>
             </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     // ==========================================
