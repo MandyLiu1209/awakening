@@ -98,19 +98,19 @@
         
         .orb-pos-0 { top: 8%; left: 50%; }     
         /* 正上 (徽章) - 大幅移高 */
-        .orb-pos-1 { top: 18%; left: 82%; }                                   
+        .orb-pos-1 { top: 22%; left: 82%; }                                   
         /* 右上 (護盾) - 移高、移寬 */
-        .orb-pos-6 { top: 18%; left: 18%; }                                   
+        .orb-pos-6 { top: 22%; left: 18%; }                                   
         /* 左上 (寶箱) - 移高、移寬 */
         
-        .orb-pos-2 { top: 48%; left: 88%; }                                   
+        .orb-pos-2 { top: 50%; left: 88%; }                                   
         /* 右中 (背包) - 移寬 */
-        .orb-pos-5 { top: 48%; left: 12%; }                                   
+        .orb-pos-5 { top: 52%; left: 15%; }                                   
         /* 左中 (靈眼) - 移寬 */
         
-        .orb-pos-3 { top: 78%; left: 75%; }                                   
+        .orb-pos-3 { top: 78%; left: 77%; }                                   
         /* 右下 (地圖) - 稍微移低、移寬 */
-        .orb-pos-4 { top: 78%; left: 25%; }                                   
+        .orb-pos-4 { top: 80%; left: 22%; }                                   
         /* 左下 (法杖) - 稍微移低、移寬 */
     </style>
 </head>
@@ -502,7 +502,9 @@
         }*/
 
         // 掃描全裝備清單 (equipRegistry)
-        iconArea.innerHTML = equipRegistry.map(eq => {
+        iconArea.innerHTML = ""; // 清空內容，改為動態生成
+
+        equipRegistry.map(eq => {
             const isUnlocked = unlocked.includes(eq.name);
             
             // 🌟 核心魔法：未解鎖(false)給予灰暗濾鏡，已解鎖(true)取消濾鏡
@@ -512,13 +514,36 @@
             // 未解鎖是灰字，已解鎖是深咖啡色
             const textStyle = isUnlocked ? "color:#8b4513; font-weight:bold;" : "color:#888;";
 
-            return `
+            // 建立裝備容器
+            let eqDiv = document.createElement('div');
+            eqDiv.style.cssText = "display:flex; flex-direction:column; align-items:center; margin: 2px; width: 22%; cursor: pointer;";
+            eqDiv.innerHTML = `
+                <img src="${eq.img}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; ${filterStyle} ${borderStyle} transition: all 0.5s ease;" alt="${eq.name}">
+                <span style="font-size: 11px; margin-top: 5px; text-align: center; line-height: 1.2; ${textStyle}">${eq.name}</span>
+            `;
+
+            //return `
+            /*
             <div style="display:flex; flex-direction:column; align-items:center; margin: 2px; width: 22%;">
                 <img src="${eq.img}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; ${filterStyle} ${borderStyle} transition: all 0.5s ease;" alt="${eq.name}">
                 <span style="font-size: 11px; margin-top: 5px; text-align: center; line-height: 1.2; ${textStyle}">${eq.name}</span>
             </div>
             `;
-        }).join('');
+        }).join('');*/
+            // 🌟 綁定點擊事件：彈出巨大圖示與介紹
+            eqDiv.onclick = () => {
+                if (isUnlocked) {
+                    const bigImgMsg = `<img src="${eq.img}" style="width: 140px; height: 140px; border-radius: 50%; border: 4px solid #d35400; box-shadow: 0 0 20px rgba(211,84,0,0.8); display: block; margin: 5px auto 15px auto;">✨ 你已成功喚醒這件聖物！\n它將持續為你的試煉提供強大守護能量。`;
+                    showCustomAlert('🛡️', eq.name, bigImgMsg);
+                } else {
+                    const lockMsg = `<img src="${eq.img}" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #888; filter: grayscale(100%) brightness(30%); display: block; margin: 5px auto 15px auto;">這件神裝仍在沉睡中...\n繼續完成每日試煉來喚醒它吧！`;
+                    showCustomAlert('🔒', '未知的聖物', lockMsg);
+                }
+            };
+            
+            iconArea.appendChild(eqDiv);
+        });
+
     }
 
     // ==========================================
@@ -542,10 +567,23 @@
             // 🌟 核心：賦予 .magic-orb 樣式 與 預設的星座定位樣式 (.orb-pos-0 ~ .orb-pos-6)
             orbEl.className = `magic-orb orb-pos-${index}`;
             orbEl.title = eq.name; // 點擊或懸停可顯示名稱
+            orbEl.style.cursor = "pointer"; // 加入手指點擊圖示
 
             // 如果解鎖，加上激活狀態 (.active)
             if (isUnlocked) {
                 orbEl.classList.add('active');
+
+                // 🌟 點擊解鎖魔法球：彈出超大圖示
+                orbEl.onclick = () => {
+                    const bigImgMsg = `<img src="${eq.img}" style="width: 140px; height: 140px; border-radius: 50%; border: 4px solid #d35400; box-shadow: 0 0 20px rgba(211,84,0,0.8); display: block; margin: 5px auto 15px auto;">✨ 你已成功喚醒這件聖物！\n它將持續為你的試煉提供強大守護能量。`;
+                    showCustomAlert('🛡️', eq.name, bigImgMsg);
+                };
+            }else {
+                // 🌟 點擊未解鎖魔法球：彈出灰色剪影
+                orbEl.onclick = () => {
+                    const lockMsg = `<img src="${eq.img}" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #888; filter: grayscale(100%) brightness(30%); display: block; margin: 5px auto 15px auto;">這件神裝仍在沉睡中...\n繼續完成每日試煉來喚醒它吧！`;
+                    showCustomAlert('🔒', '未知的聖物', lockMsg);
+                };
             }
 
             // 貼到星環區
