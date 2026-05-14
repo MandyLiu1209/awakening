@@ -170,11 +170,17 @@
             <button type="button" onclick="resetGame()" style="margin-top: 10px; width: 100%; padding: 10px; font-size: 14px; background: #555; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
                 🗑️ 清除記憶，砍掉重練 (重置全系統)
             </button>
+
+            <button type="button" onclick="debugUnlockAll()" style="margin-top: 10px; width: 100%; padding: 10px; font-size: 14px; background: #8e44ad; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                🔮 一鍵解鎖全裝備 (查看最終型態)
+            </button>
             
+            <!--
             <button type="button" onclick="alert('目前系統抓到的發送地址 (ID) 是：\n' + (liff.getContext() ? (liff.getContext().groupId || liff.getContext().roomId || liff.getContext().userId) : '未抓到，請確認是否在群組內點開'))" 
                     style="margin-top: 10px; width: 100%; padding: 8px; font-size: 14px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer;">
                 🔍 點我檢查目前 Group ID
             </button>
+            -->
 
             <div style="margin-top: 15px; border-top: 1px solid #ffcccc; padding-top: 10px;">
                 <label style="font-size: 12px; color: #cc0000; font-weight: bold;">⏳ 時光機 (自由切換 1~15 天)：</label>
@@ -794,6 +800,24 @@
             location.reload();
         }
     }
+
+    // ==========================================
+    // 🔮 開發者專用：一鍵解鎖所有裝備
+    // ==========================================
+    function debugUnlockAll() {
+        // 抓出所有裝備的名稱
+        const allEquips = equipRegistry.map(eq => eq.name);
+        
+        // 直接將 7 件裝備強制寫入玩家的記憶體中
+        localStorage.setItem('unlockedEquips', JSON.stringify(allEquips));
+        
+        // 重新渲染畫面上的魔法球 (不須重整網頁即刻生效)
+        renderFloatingOrbs();
+        
+        // 跳出成功提示
+        showCustomAlert('🔮', '系統作弊碼生效', '已強制喚醒所有沉睡的聖物！\n現在可以查看星環的最終型態了。');
+    }
+    
 </script>
 </body>
 </html>
