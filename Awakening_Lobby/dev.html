@@ -40,6 +40,54 @@
         
         .spinner { border: 6px solid #fdf5e6; border-top: 6px solid #d35400; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ========================================== */
+        /* 🧙‍♂️ CSS 魔法球與星座環繞系統 */
+        /* ========================================== */
+
+        /* 守護星環的容器 (固定在英雄圖區中間) */
+        #floatingConstellation {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 8; /* 介於英雄圖(1)和資訊徽章(5)之間 */
+            pointer-events: none; /* 不擋住鉛筆按鈕 */
+        }
+
+        /* 魔法球基礎樣式 */
+        .magic-orb {
+            position: absolute;
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 0 15px rgba(211, 84, 0, 0.7); /* 預設橘色魔光 */
+            border: 2px solid rgba(253, 245, 230, 0.9);
+            opacity: 0;
+            transition: all 1s ease-out; /* 解鎖時淡入 */
+            pointer-events: auto; /* 讓球可以被點擊(如有需要) */
+        }
+
+        /* 解鎖啟動狀態 */
+        .magic-orb.active {
+            opacity: 1;
+            animation: floatOrb 3s ease-in-out infinite; /* gentle漂浮 animation */
+        }
+
+        /* 輕微漂浮動畫 Keyframes */
+        @keyframes floatOrb {
+            0%   { transform: translate(0, 0); }
+            50%  { transform: translate(0, -5px); } /* 向上漂移5px */
+            100% { transform: translate(0, 0); }
+        }
+
+        /* ⭐ 7個裝備在星座圖上的精準定位 (以100%容器為基準) */
+        /* 分佈在英雄圖周圍的環形位置 */
+        .orb-pos-0 { top: 12%; left: 50%; transform: translate(-50%, 0); }     /* 正上 (徽章) */
+        .orb-pos-1 { top: 22%; left: 75%; }                                   /* 右上 (護盾) */
+        .orb-pos-2 { top: 48%; left: 82%; }                                   /* 右中 (背包) */
+        .orb-pos-3 { top: 72%; left: 68%; }                                   /* 右下 (地圖) */
+        .orb-pos-4 { top: 72%; left: 32%; }                                   /* 左下 (法杖) */
+        .orb-pos-5 { top: 48%; left: 18%; }                                   /* 左中 (靈眼) */
+        .orb-pos-6 { top: 22%; left: 25%; }                                   /* 左上 (寶箱) */
     </style>
 </head>
 <body>
@@ -63,7 +111,10 @@
 
     <div id="checkinSection" class="hidden">
         <div class="hero-display">
+            <div id="floatingConstellation"></div>
+            
             <img id="mainHeroImg" class="hero-img" src="role1_null.jpg">
+
             <div class="hero-energy-badge">⚡: <span id="displayEnergy">0</span></div>
             <button class="btn-edit-float" onclick="editProfile()">✏️</button>
             <div class="hero-info-badge">
@@ -188,7 +239,19 @@
     // ==========================================
     // 🗺️ 14日覺醒試煉：任務與裝備設定表
     // ==========================================
-    const taskMatrix = [
+
+    // 🏆 裝備圖文對應清單 (依序排在星座環上的位置)
+    const equipRegistry = [
+        { name: "勇氣徽章", img: "kit_badge1.jpg" },
+        { name: "淨化護盾", img: "kit_shield1.jpg" },
+        { name: "鋼鐵背包", img: "kit_backpack1.jpg" },
+        { name: "尋寶地圖", img: "kit_map1.jpg" },
+        { name: "創意法杖", img: "kit_staff1.jpg" },
+        { name: "精靈之眼", img: "kit_eye1.jpg" },
+        { name: "終極寶箱", img: "kit_chest1.jpg" }
+    ];
+
+    /*const taskMatrix = [
         { 
             title: "🔋 能量三神器的共鳴", 
             desc: "拍下你的「神級裝備組合」<br>(雪克、芒果茶、每日精選)",
@@ -231,7 +294,7 @@
             equipName: "終極寶箱",       // 🎁 任務 7 裝備
             reqPoints: 20               // ⚡ 解鎖條件：該任務期間累計 20 分 (需兩天全滿)
         }  
-    ];
+    ];*/
 
     const roleImages = { 
         '純水使者': 'role1_null.jpg', 
@@ -280,6 +343,8 @@
             updateTask(); 
             // 👇 新增這行：讓玩家一打開畫面就能看到自己的裝備
             renderEquipment();
+            // 👇 新增這行：讓漂浮魔法球在初始化時出現
+            renderFloatingOrbs();
         }
     }
 
@@ -353,6 +418,9 @@
             }, 1500);
         }
         renderEquipment();
+
+        // 👇 新增這行：每當解鎖新裝備，立即更新漂浮魔法球
+        renderFloatingOrbs();
     }
 
     function renderEquipment() {
@@ -372,6 +440,38 @@
                 <span style="font-size: 10px; color:#8b4513; font-weight:bold;">${name}</span>
             </div>
         `).join('');
+    }
+
+    // ==========================================
+    // 🧙‍♂️ 渲染：魔法球漂浮星環 (環繞英雄)
+    // ==========================================
+    function renderFloatingOrbs() {
+        const unlocked = JSON.parse(localStorage.getItem('unlockedEquips')) || [];
+        const constellationArea = document.getElementById('floatingConstellation');
+        if (!constellationArea) return;
+
+        // 清空星環容器
+        constellationArea.innerHTML = "";
+
+        // 在英雄周圍，依序生成7個裝備的位置，不管有沒有解鎖
+        equipRegistry.forEach((eq, index) => {
+            const isUnlocked = unlocked.includes(eq.name);
+            
+            // 創造一顆魔法球
+            let orbEl = document.createElement('img');
+            orbEl.src = eq.img;
+            // 🌟 核心：賦予 .magic-orb 樣式 與 預設的星座定位樣式 (.orb-pos-0 ~ .orb-pos-6)
+            orbEl.className = `magic-orb orb-pos-${index}`;
+            orbEl.title = eq.name; // 點擊或懸停可顯示名稱
+
+            // 如果解鎖，加上激活狀態 (.active)
+            if (isUnlocked) {
+                orbEl.classList.add('active');
+            }
+
+            // 貼到星環區
+            constellationArea.appendChild(orbEl);
+        });
     }
 
     function selectRole(name, el) {
