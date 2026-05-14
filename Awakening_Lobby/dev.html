@@ -214,7 +214,7 @@
 
     // 開發者模式開關
     const debug_mode = true;
-    const GAME_VERSION = "v0.2.0_20260516"; 
+    const GAME_VERSION = "v0.2.2_20260516"; // 自動清除舊記憶，套用新裝備系統
 
     if (localStorage.getItem('gameVersion') !== GAME_VERSION) {
         localStorage.clear(); 
@@ -251,48 +251,92 @@
         { name: "終極寶箱", img: "kit_chest1.jpg" }
     ];
 
-    /*const taskMatrix = [
+    const taskMatrix = [
         { 
             title: "🔋 能量三神器的共鳴", 
             desc: "拍下你的「神級裝備組合」<br>(雪克、芒果茶、每日精選)",
-            equipName: "勇氣徽章",       // 🎁 任務 1 裝備
-            reqPoints: 10               // ⚡ 解鎖條件：該任務期間累計 10 分
+            equipName: equipRegistry[0].name, // 🎁 任務 1 裝備
+            reqPoints: 10                     // ⚡ 解鎖條件：該任務期間累計 10 分
         }, 
         { 
             title: "💧 水之精靈的祝福", 
             desc: "拍下你特調的「魔法藥水」<br>(蘆薈汁/纖維粉/消化酵素/鳳梨酵素)，<br>或標記刻度的大水壺，留言喝的水量",
-            equipName: "淨化護盾",       // 🎁 任務 2 裝備
-            reqPoints: 12               // ⚡ 解鎖條件：該任務期間累計 12 分
+            equipName: equipRegistry[1].name, // 🎁 任務 2 裝備
+            reqPoints: 12                     // ⚡ 解鎖條件：該任務期間累計 12 分
         }, 
         { 
             title: "🍲 翡翠與白玉的相遇", 
             desc: "拍下今天的第一餐「植能大餐」<br>(綠色蔬菜=翡翠，豆腐=白玉，山中珍寶=菇菇家族)",
-            equipName: "鋼鐵背包",       // 🎁 任務 3 裝備
-            reqPoints: 15               // ⚡ 解鎖條件：該任務期間累計 15 分
+            equipName: equipRegistry[2].name, // 🎁 任務 3 裝備
+            reqPoints: 15                     // ⚡ 解鎖條件：該任務期間累計 15 分
         }, 
         { 
             title: "🧺 活力採集", 
             desc: "找一個一起執行的勇士一起去找<br>符合甩油第二階段食物的 夥伴商店 拍合照",
-            equipName: "尋寶地圖",       // 🎁 任務 4 裝備
-            reqPoints: 15               // ⚡ 解鎖條件：該任務期間累計 15 分
+            equipName: equipRegistry[3].name, // 🎁 任務 4 裝備
+            reqPoints: 15                     // ⚡ 解鎖條件：該任務期間累計 15 分
         }, 
         { 
             title: "🥊 擊退嘴饞大魔王", 
             desc: "運動拍照～",
-            equipName: "創意法杖",       // 🎁 任務 5 裝備
-            reqPoints: 17               // ⚡ 解鎖條件：該任務期間累計 17 分
+            equipName: equipRegistry[4].name, // 🎁 任務 5 裝備
+            reqPoints: 17                     // ⚡ 解鎖條件：該任務期間累計 17 分
         }, 
         { 
             title: "🪽 輕盈感知的覺醒", 
             desc: "自拍~~~(不量體重，用心感受！)<br>分享一個這 10 多天來的「體感變化」<br>(例如：精神變好、褲頭變鬆、皮膚變亮)",
-            equipName: "精靈之眼",       // 🎁 任務 6 裝備
-            reqPoints: 17               // ⚡ 解鎖條件：該任務期間累計 17 分
+            equipName: equipRegistry[5].name, // 🎁 任務 6 裝備
+            reqPoints: 17                     // ⚡ 解鎖條件：該任務期間累計 17 分
         }, 
         { 
             title: "🏰 榮耀戰神殿堂", 
             desc: "上傳Before / After 對比照<br>或一張自信滿滿美美的自拍照",
-            equipName: "終極寶箱",       // 🎁 任務 7 裝備
-            reqPoints: 20               // ⚡ 解鎖條件：該任務期間累計 20 分 (需兩天全滿)
+            equipName: equipRegistry[6].name, // 🎁 任務 7 裝備
+            reqPoints: 20                     // ⚡ 解鎖條件：該任務期間累計 20 分 (需兩天全滿)
+        }  
+    ];
+    /*const taskMatrix = [
+        { 
+            title: "🔋 能量三神器的共鳴", 
+            desc: "拍下你的「神級裝備組合」<br>(雪克、芒果茶、每日精選)", 
+            equipName: equipRegistry[0].name, 
+            reqPoints: 10 
+        }, 
+        { 
+            title: "💧 水之精靈的祝福", 
+            desc: "拍下特調魔法藥水", e
+            quipName: equipRegistry[1].name, 
+            reqPoints: 12 
+        }, 
+        { 
+            title: "🍲 翡翠與白玉的相遇", 
+            desc: "拍下第一餐植能大餐", 
+            equipName: equipRegistry[2].name, 
+            reqPoints: 15 
+        }, 
+        { 
+            title: "🧺 活力採集", 
+            desc: "找夥伴商店拍合照", 
+            equipName: equipRegistry[3].name, 
+            reqPoints: 15 
+        }, 
+        { 
+            title: "🥊 擊退嘴饞大魔王", 
+            desc: "運動拍照～", 
+            equipName: equipRegistry[4].name, 
+            reqPoints: 17 
+        }, 
+        { 
+            title: "🪽 輕盈感知的覺醒", 
+            desc: "分享體感變化", 
+            equipName: equipRegistry[5].name, 
+            reqPoints: 17 
+        }, 
+        { 
+            title: "🏰 榮耀戰神殿堂", 
+            desc: "Before / After 對比照", 
+            equipName: equipRegistry[6].name, 
+            reqPoints: 20 
         }  
     ];*/
 
