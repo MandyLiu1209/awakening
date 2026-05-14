@@ -82,6 +82,11 @@
             box-shadow: 0 0 20px rgba(211, 84, 0, 0.8);
             border: 3px solid #fff;
             animation: floatOrb 6s ease-in-out infinite; 
+
+            /* 👇 加上這三行 👇 */
+            -webkit-touch-callout: none; /* 禁用 iOS 長按原圖選單 */
+            user-select: none;           /* 禁用文字/圖片選取 */
+            -webkit-user-drag: none;     /* 禁用拖曳 */
         }
 
         /* 輕微漂浮動畫 Keyframes */
@@ -523,7 +528,8 @@
             let eqDiv = document.createElement('div');
             eqDiv.style.cssText = "display:flex; flex-direction:column; align-items:center; margin: 2px; width: 22%; cursor: pointer;";
             eqDiv.innerHTML = `
-                <img src="${eq.img}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; ${filterStyle} ${borderStyle} transition: all 0.5s ease;" alt="${eq.name}">
+                <img src="${eq.img}" draggable="false" oncontextmenu="return false;" style="-webkit-touch-callout: none; user-select: none; -webkit-user-drag: none; width: 55px; height: 55px; border-radius: 50%; object-fit: cover; ${filterStyle} ${borderStyle} transition: all 0.5s ease;" alt="${eq.name}">
+                
                 <span style="font-size: 11px; margin-top: 5px; text-align: center; line-height: 1.2; ${textStyle}">${eq.name}</span>
             `;
 
@@ -572,6 +578,11 @@
             // 🌟 核心：賦予 .magic-orb 樣式 與 預設的星座定位樣式 (.orb-pos-0 ~ .orb-pos-6)
             orbEl.className = `magic-orb orb-pos-${index}`;
             orbEl.title = eq.name; // 點擊或懸停可顯示名稱
+
+            // 👇 加上這兩行防護 👇
+            orbEl.draggable = false;
+            orbEl.oncontextmenu = function() { return false; };
+
             orbEl.style.cursor = "pointer"; // 加入手指點擊圖示
 
             // 如果解鎖，加上激活狀態 (.active)
