@@ -79,9 +79,9 @@
         .magic-orb.active {
             filter: grayscale(0%) brightness(100%);
             opacity: 1;
-            box-shadow: 0 0 15px rgba(211, 84, 0, 0.8);
-            border: 2px solid #fff;
-            animation: floatOrb 3s ease-in-out infinite; 
+            box-shadow: 0 0 20px rgba(211, 84, 0, 0.8);
+            border: 3px solid #fff;
+            animation: floatOrb 6s ease-in-out infinite; 
         }
 
         /* 輕微漂浮動畫 Keyframes */
@@ -90,27 +90,33 @@
             50%  { transform: translate(0, -5px); } 向上漂移5px 
             100% { transform: translate(0, 0); }
         }*/
-        @keyframes floatOrb { 0%, 100% { transform: translate(-50%, -50%); } 50% { transform: translate(-50%, -60%); } }
+        /* 🌟 改良版動畫：加入上下左右不規則的軌跡 */
+        @keyframes floatOrb { 
+            0%, 100% { transform: translate(-50%, -50%); } 
+            25%      { transform: translate(-53%, -55%); } /* 左上飄 */
+            50%      { transform: translate(-47%, -58%); } /* 右上飄 */
+            75%      { transform: translate(-54%, -46%); } /* 左下飄 */
+        }
 
         /* ⭐ 7個裝備在星座圖上的精準定位 (以100%容器為基準) */
         /* 分佈在英雄圖周圍的環形位置 */
         /* 我們將 top 的百分比變小 (往上移)，將 left/right 的百分比更向兩側調整 (往外移) */
         
-        .orb-pos-0 { top: 8%; left: 50%; }     
+        .orb-pos-0 { top: 8%; left: 50%; animation-delay: 0s !important; }     
         /* 正上 (徽章) - 大幅移高 */
-        .orb-pos-1 { top: 22%; left: 82%; }                                   
+        .orb-pos-1 { top: 22%; left: 82%; animation-delay: -1.5s !important;}
         /* 右上 (護盾) - 移高、移寬 */
-        .orb-pos-6 { top: 22%; left: 18%; }                                   
+        .orb-pos-6 { top: 22%; left: 18%; animation-delay: -3.2s !important;}
         /* 左上 (寶箱) - 移高、移寬 */
         
-        .orb-pos-2 { top: 50%; left: 88%; }                                   
+        .orb-pos-2 { top: 50%; left: 88%; animation-delay: -0.8s !important;}    
         /* 右中 (背包) - 移寬 */
-        .orb-pos-5 { top: 52%; left: 15%; }                                   
+        .orb-pos-5 { top: 52%; left: 15%; animation-delay: -4.1s !important;}    
         /* 左中 (靈眼) - 移寬 */
         
-        .orb-pos-3 { top: 78%; left: 77%; }                                   
+        .orb-pos-3 { top: 78%; left: 77%; animation-delay: -2.3s !important;}
         /* 右下 (地圖) - 稍微移低、移寬 */
-        .orb-pos-4 { top: 80%; left: 22%; }                                   
+        .orb-pos-4 { top: 80%; left: 22%; animation-delay: -5.5s !important;}       
         /* 左下 (法杖) - 稍微移低、移寬 */
     </style>
 </head>
@@ -364,10 +370,10 @@
     ];*/
 
     const roleImages = { 
-        '純水使者': 'role1_null.jpg', 
-        '植能園丁': 'role2_null.jpg', 
-        '意志衛士': 'role3_null.jpg', 
-        '活力採集者': 'role4_null.jpg' 
+        '純水使者': 'role1.jpg', 
+        '植能園丁': 'role2.jpg', 
+        '意志衛士': 'role3.jpg', 
+        '活力採集者': 'role4.jpg' 
     };
 
     let selectedRole = "純水使者";
@@ -817,7 +823,7 @@
         // 跳出成功提示
         showCustomAlert('🔮', '系統作弊碼生效', '已強制喚醒所有沉睡的聖物！\n現在可以查看星環的最終型態了。');
     }
-    
+
 </script>
 </body>
 </html>
