@@ -232,7 +232,7 @@
                     <h2 style="display: flex; align-items: center; justify-content: center; margin: 0 0 15px 0; color: #8b4513; font-size: 1.5rem; gap: 10px;">
                         <span style="font-size: 2.2rem;">${icon}</span><span>${title}</span>
                     </h2>
-                    <p style="color:#333; font-size:1.1rem; line-height:1.6; margin-bottom:20px; font-weight:bold; white-space: pre-wrap;">${message}</p>
+                    <p style="color:#5d4037; font-size:1.1rem; line-height:1.6; margin-bottom:20px; font-weight:bold; white-space: pre-wrap;">${message}</p>
                     <button type="button" onclick="document.getElementById('dynamicAlertModal').remove();" 
                         style="background:#d35400; color:white; border:none; padding:12px 40px; border-radius:50px; font-size:1.1rem; cursor:pointer; font-weight:bold; width:100%;">
                         確定
@@ -553,13 +553,13 @@
                     */
 
                     // 👇 新增/修改：彈窗內的超大預覽圖，也改成 div 背景圖，防止玩家點開後長按存圖
-                    const bigImgMsg = `<div style="width: 140px; height: 140px; border-radius: 50%; border: 4px solid #d35400; box-shadow: 0 0 20px rgba(211,84,0,0.8); display: block; margin: 5px auto 15px auto; background-image: url('${eq.img}'); background-size: cover; background-position: center;"></div>✨ 你已成功喚醒這件聖物！\n它將持續為你的試煉提供強大守護能量。`;
+                    const bigImgMsg = `<div style="width: 140px; height: 140px; border-radius: 50%; border: 4px solid #d35400; box-shadow: 0 0 20px rgba(211,84,0,0.8); display: block; margin: 5px auto 15px auto; background-image: url('${eq.img}'); background-size: cover; background-position: center;"></div><span style="color: #5d4037;">✨ 你已成功喚醒這件聖物！\n它將持續為你的試煉提供強大守護能量。</span>`;
                     showCustomAlert('🛡️', eq.name, bigImgMsg);
                 } else {
                     /*const lockMsg = `<img src="${eq.img}" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #888; filter: grayscale(100%) brightness(30%); display: block; margin: 5px auto 15px auto;">這件神裝仍在沉睡中...\n繼續完成每日試煉來喚醒它吧！`;
                     */
                     // 👇 新增/修改：未解鎖的鎖定彈窗，也改成 div 背景圖
-                    const lockMsg = `<div style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #888; filter: grayscale(100%) brightness(30%); display: block; margin: 5px auto 15px auto; background-image: url('${eq.img}'); background-size: cover; background-position: center;"></div>這件神裝仍在沉睡中...\n繼續完成每日試煉來喚醒它吧！`;
+                    const lockMsg = `<div style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #888; filter: grayscale(100%) brightness(30%); display: block; margin: 5px auto 15px auto; background-image: url('${eq.img}'); background-size: cover; background-position: center;"></div><span style="color: #5d4037;">這件神裝仍在沉睡中...\n繼續完成每日試煉來喚醒它吧！</span>`;
                     showCustomAlert('🔒', '未知的聖物', lockMsg);
                 }
             };
@@ -612,7 +612,7 @@
                     /*const bigImgMsg = `<img src="${eq.img}" style="width: 140px; height: 140px; border-radius: 50%; border: 4px solid #d35400; box-shadow: 0 0 20px rgba(211,84,0,0.8); display: block; margin: 5px auto 15px auto;">✨ 你已成功喚醒這件聖物！\n它將持續為你的試煉提供強大守護能量。`;
                     */
                     // 👇 新增/修改：星環彈窗大圖，改為 div 背景圖防存
-                    const bigImgMsg = `<div style="width: 140px; height: 140px; border-radius: 50%; border: 4px solid #d35400; box-shadow: 0 0 20px rgba(211,84,0,0.8); display: block; margin: 5px auto 15px auto; background-image: url('${eq.img}'); background-size: cover; background-position: center;"></div>✨ 你已成功喚醒這件聖物！\n它將持續為你的試煉提供強大守護能量。`;
+                    const bigImgMsg = `<div style="width: 140px; height: 140px; border-radius: 50%; border: 4px solid #d35400; box-shadow: 0 0 20px rgba(211,84,0,0.8); display: block; margin: 5px auto 15px auto; background-image: url('${eq.img}'); background-size: cover; background-position: center;"></div><span style="color: #5d4037;">✨ 你已成功喚醒這件聖物！\n它將持續為你的試煉提供強大守護能量。</span>`;
                     showCustomAlert('🛡️', eq.name, bigImgMsg);
                 };
             }else {
@@ -621,7 +621,7 @@
                     /*const lockMsg = `<img src="${eq.img}" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #888; filter: grayscale(100%) brightness(30%); display: block; margin: 5px auto 15px auto;">這件神裝仍在沉睡中...\n繼續完成每日試煉來喚醒它吧！`;
                     */
                 // 👇 新增/修改：星環未解鎖彈窗圖，改為 div 背景圖防存
-                    const lockMsg = `<div style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #888; filter: grayscale(100%) brightness(30%); display: block; margin: 5px auto 15px auto; background-image: url('${eq.img}'); background-size: cover; background-position: center;"></div>這件神裝仍在沉睡中...\n繼續完成每日試煉來喚醒它吧！`;
+                    const lockMsg = `<div style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #888; filter: grayscale(100%) brightness(30%); display: block; margin: 5px auto 15px auto; background-image: url('${eq.img}'); background-size: cover; background-position: center;"></div><span style="color: #5d4037;">這件神裝仍在沉睡中...\n繼續完成每日試煉來喚醒它吧！</span>`;
                     showCustomAlert('🔒', '未知的聖物', lockMsg);
                 };
             }
