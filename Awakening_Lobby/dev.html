@@ -81,7 +81,7 @@
             opacity: 1;
             box-shadow: 0 0 20px rgba(211, 84, 0, 0.8);
             border: 3px solid #fff;
-            animation: floatOrb 8s ease-in-out infinite; 
+            animation: floatOrb 6s ease-in-out infinite; 
 
             /* 👇 加上這三行 👇 */
             -webkit-touch-callout: none; /* 禁用 iOS 長按原圖選單 */
@@ -100,11 +100,10 @@
 
         /* 🌊 絲滑精靈軌跡 (消除機器人頓挫感) */
         @keyframes floatOrb { 
-            0%, 100% { transform: translate(-50%, -50%); } /* 節點 1：中心原點 */
-            
-            33%      { transform: translate(-48%, -54%); } /* 節點 2：滑行至右上角 */
-            
-            66%      { transform: translate(-52%, -52%); } /* 節點 3：順著氣流滑行至左側 */
+            0%, 100% { transform: translate(-50%, -50%); } 
+            25%      { transform: translate(-53%, -55%); } /* 左上飄 */
+            50%      { transform: translate(-47%, -58%); } /* 右上飄 */
+            75%      { transform: translate(-54%, -46%); } /* 左下飄 */
         }
 
         /* ⭐ 7個裝備在星座圖上的精準定位 (以100%容器為基準) */
