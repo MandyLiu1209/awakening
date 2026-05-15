@@ -264,7 +264,7 @@
 
     // 開發者模式開關
     const debug_mode = false;
-    const GAME_VERSION = "v0.3.0_20260516"; // 自動清除舊記憶，套用新裝備系統
+    const GAME_VERSION = "v1.0.0_20260516"; // 自動清除舊記憶，套用新裝備系統
 
     if (localStorage.getItem('gameVersion') !== GAME_VERSION) {
         localStorage.clear(); 
@@ -306,37 +306,37 @@
             title: "🔋 能量三神器的共鳴", 
             desc: "拍下你的「神級裝備組合」<br>(雪克、芒果茶、每日精選)",
             equipName: equipRegistry[0].name, // 🎁 任務 1 裝備
-            reqPoints: 4//14                 // ⚡ 解鎖條件：該任務期間累計 14 分
+            reqPoints: 12                 // ⚡ 解鎖條件：該任務期間累計 14 分
         }, 
         { 
             title: "💧 水之精靈的祝福", 
             desc: "拍下你特調的「魔法藥水」<br>(蘆薈汁/纖維粉/消化酵素/鳳梨酵素)，<br>或標記刻度的大水壺，留言喝的水量",
             equipName: equipRegistry[1].name, // 🎁 任務 2 裝備
-            reqPoints: 4//14                 // ⚡ 解鎖條件：該任務期間累計 14 分
+            reqPoints: 12                 // ⚡ 解鎖條件：該任務期間累計 14 分
         }, 
         { 
             title: "🍲 翡翠與白玉的相遇", 
             desc: "拍下今天的第一餐「植能大餐」<br>(綠色蔬菜=翡翠，豆腐=白玉，山中珍寶=菇菇家族)",
             equipName: equipRegistry[2].name, // 🎁 任務 3 裝備
-            reqPoints: 4//16                 // ⚡ 解鎖條件：該任務期間累計 16 分
+            reqPoints: 16                 // ⚡ 解鎖條件：該任務期間累計 16 分
         }, 
         { 
             title: "🧺 活力採集", 
             desc: "找一個一起執行的勇士一起去找<br>符合甩油第二階段食物的 夥伴商店 拍合照",
             equipName: equipRegistry[3].name, // 🎁 任務 4 裝備
-            reqPoints: 4 //16                 // ⚡ 解鎖條件：該任務期間累計 16 分
+            reqPoints: 16                 // ⚡ 解鎖條件：該任務期間累計 16 分
         }, 
         { 
             title: "🥊 擊退嘴饞大魔王", 
             desc: "運動拍照～",
             equipName: equipRegistry[4].name, // 🎁 任務 5 裝備
-            reqPoints: 4 //16                 // ⚡ 解鎖條件：該任務期間累計 16 分
+            reqPoints: 16                 // ⚡ 解鎖條件：該任務期間累計 16 分
         }, 
         { 
             title: "🪽 輕盈感知的覺醒", 
             desc: "自拍~~~(不量體重，用心感受！)<br>分享一個這 10 多天來的「體感變化」<br>(例如：精神變好、褲頭變鬆、皮膚變亮)",
             equipName: equipRegistry[5].name, // 🎁 任務 6 裝備
-            reqPoints: 4 //18                 // ⚡ 解鎖條件：該任務期間累計 18 分
+            reqPoints: 18                 // ⚡ 解鎖條件：該任務期間累計 18 分
         }, 
         { 
             title: "🏰 榮耀戰神殿堂", 

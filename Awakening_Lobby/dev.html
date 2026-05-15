@@ -724,7 +724,7 @@
 
                 const res = await fetch(GAS_URL, {
                     method: 'POST',
-                    body: JssSON.stringify({ 
+                    body: JSON.stringify({ 
                         nickname: nickname, 
                         fileName: nickname + "_" + Date.now() + ".jpg", 
                         mimeType: fileInput.files[0].type, 
