@@ -171,7 +171,7 @@
 
         <button class="btn-action" onclick="submitQuest()">送出打卡，提升能量</button>
 
-        <div id="debugPanel" style="background: rgba(255,230,230,0.8); padding: 12px; border-radius: 15px; margin-top: 20px; margin-bottom: 15px; border: 2px dashed #cc0000; text-align: left;">
+        <div id="debugPanel" style="background: rgba(255,230,230,0.8); padding: 12px; border-radius: 15px; margin-top: 20px; margin-bottom: 15px; border: 2px dashed #cc0000; text-align: left;display: none;">
             <label style="font-size: 14px; font-weight: bold; color: #cc0000;">🐞 開發者快速測試區 (不干擾主程式)：</label>
             
             <button type="button" onclick="debugSubmit()" style="margin-top: 10px; width: 100%; padding: 12px; font-size: 16px; background: #cc0000; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
@@ -677,11 +677,16 @@
         document.getElementById('checkinSection').classList.add('hidden');
     }
 
+    const debugPanel = document.getElementById('debugPanel');
+    if (debugPanel) {
+        debugPanel.style.display = debug_mode ? 'block' : 'none';
+    }
+
     liff.init({ liffId: MY_LIFF_ID }).then(() => {
-        const debugPanel = document.getElementById('debugPanel');
+        /*const debugPanel = document.getElementById('debugPanel');
         if (debugPanel) {
             debugPanel.style.display = debug_mode ? 'block' : 'none';
-        }
+        }*/
 
         document.getElementById('mainContainer').style.display = "block";
 
