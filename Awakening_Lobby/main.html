@@ -662,6 +662,12 @@
     }
 
     function saveProfile() {
+        // 🔒 鐵壁防作弊鎖：若系統判定連線失敗或時空錯亂，直接攔截不給進入！
+        if (window.liffInitFailed) {
+            showCustomAlert('⚠️', '時空秩序混亂', '偵測到時域異常或網路斷線，核心系統已全面鎖定！\n請將手機日期與時間恢復為「自動設定」並重新整理網頁。');
+            return;
+        }
+
         const nickname = document.getElementById('gameNickname').value;
         if (!nickname) { showCustomAlert('📢', '系統通知', '請輸入英雄大名！'); return; }
         localStorage.setItem('gameNickname', nickname);
@@ -704,11 +710,22 @@
     }).catch(err => {
         //// 👇 改良版：就算連線失敗，也強制把大容器打開，並彈出警告，才不會一片咖啡色
         document.getElementById('mainContainer').style.display = "block";
+
+        // 🔒 核心關鍵：強制隱藏打卡畫面、強制顯現大廳選角頁面
+        document.getElementById('checkinSection').classList.add('hidden');
+        document.getElementById('setupSection').classList.remove('hidden');
+
+        // 🔒 啟動全局鎖定：將安全鎖旗標設為 true
+        window.liffInitFailed = true;
+
         const errorInput = document.getElementById('lineNameDisplay');
         if (errorInput) errorInput.value = "連線失敗";
         
         // 彈出華麗的警告視窗提醒玩家
-        showCustomAlert('❌', '傳輸陣連線失敗', '無法與 LINE 試煉伺服器建立安全連線。\n請檢查網路是否正常，或手機的「日期與時間」是否開啟自動同步。');document.getElementById('lineNameDisplay').value = "連線失敗";
+        //showCustomAlert('❌', '傳輸陣連線失敗', '無法與 LINE 試煉伺服器建立安全連線。\n請檢查網路是否正常，或手機的「日期與時間」是否開啟自動同步。');document.getElementById('lineNameDisplay').value = "連線失敗";
+        
+        // 彈出警告，按下確定後，因為上面強制排版，玩家依然會死死留在大廳
+        showCustomAlert('❌', '傳輸陣連線失敗', '無法與 LINE 試煉伺服器建立安全連線。\n請檢查網路是否正常，或手機的「日期與時間」是否開啟自動同步。\n\n⚠️ 系統已全面鎖定，在恢復正常連線前無法進行任何打卡試煉。');
     });
 
     async function submitQuest() {
