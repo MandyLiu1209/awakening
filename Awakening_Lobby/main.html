@@ -318,13 +318,13 @@
             title: "🍲 翡翠與白玉的相遇", 
             desc: "拍下今天的第一餐「植能大餐」<br>(綠色蔬菜=翡翠，豆腐=白玉，山中珍寶=菇菇家族)",
             equipName: equipRegistry[2].name, // 🎁 任務 3 裝備
-            reqPoints: 16                 // ⚡ 解鎖條件：該任務期間累計 16 分
+            reqPoints: 14                 // ⚡ 解鎖條件：該任務期間累計 16 分
         }, 
         { 
             title: "🧺 活力採集", 
             desc: "找一個一起執行的勇士一起去找<br>符合甩油第二階段食物的 夥伴商店 拍合照",
             equipName: equipRegistry[3].name, // 🎁 任務 4 裝備
-            reqPoints: 16                 // ⚡ 解鎖條件：該任務期間累計 16 分
+            reqPoints: 14                 // ⚡ 解鎖條件：該任務期間累計 16 分
         }, 
         { 
             title: "🥊 擊退嘴饞大魔王", 
@@ -336,7 +336,7 @@
             title: "🪽 輕盈感知的覺醒", 
             desc: "自拍~~~(不量體重，用心感受！)<br>分享一個這 10 多天來的「體感變化」<br>(例如：精神變好、褲頭變鬆、皮膚變亮)",
             equipName: equipRegistry[5].name, // 🎁 任務 6 裝備
-            reqPoints: 18                 // ⚡ 解鎖條件：該任務期間累計 18 分
+            reqPoints: 16                 // ⚡ 解鎖條件：該任務期間累計 18 分
         }, 
         { 
             title: "🏰 榮耀戰神殿堂", 
@@ -697,7 +697,13 @@
             });
         }
     }).catch(err => {
-        document.getElementById('lineNameDisplay').value = "連線失敗";
+        //// 👇 改良版：就算連線失敗，也強制把大容器打開，並彈出警告，才不會一片咖啡色
+        document.getElementById('mainContainer').style.display = "block";
+        const errorInput = document.getElementById('lineNameDisplay');
+        if (errorInput) errorInput.value = "連線失敗";
+        
+        // 彈出華麗的警告視窗提醒玩家
+        showCustomAlert('❌', '傳輸陣連線失敗', '無法與 LINE 試煉伺服器建立安全連線。\n請檢查網路是否正常，或手機的「日期與時間」是否開啟自動同步。');document.getElementById('lineNameDisplay').value = "連線失敗";
     });
 
     async function submitQuest() {

@@ -266,7 +266,7 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
 
     // 開發者模式開關
-    const debug_mode = true;
+    const debug_mode = false;
     const GAME_VERSION = "v0.2.2_20260516"; // 自動清除舊記憶，套用新裝備系統
 
     if (localStorage.getItem('gameVersion') !== GAME_VERSION) {
@@ -699,7 +699,14 @@
             });
         }
     }).catch(err => {
-        document.getElementById('lineNameDisplay').value = "連線失敗";
+        //document.getElementById('lineNameDisplay').value = "連線失敗";
+        // 👇 改良版：就算連線失敗，也強制把大容器打開，並彈出警告，才不會一片咖啡色
+        document.getElementById('mainContainer').style.display = "block";
+        const errorInput = document.getElementById('lineNameDisplay');
+        if (errorInput) errorInput.value = "連線失敗";
+        
+        // 彈出華麗的警告視窗提醒玩家
+        showCustomAlert('❌', '傳輸陣連線失敗', '無法與 LINE 試煉伺服器建立安全連線。\n請檢查網路是否正常，或手機的「日期與時間」是否開啟自動同步。');
     });
 
     async function submitQuest() {
