@@ -81,7 +81,7 @@
             opacity: 1;
             box-shadow: 0 0 20px rgba(211, 84, 0, 0.8);
             border: 3px solid #fff;
-            animation: floatOrb 6s ease-in-out infinite; 
+            animation: floatOrb 8s ease-in-out infinite; 
 
             /* 👇 加上這三行 👇 */
             -webkit-touch-callout: none; /* 禁用 iOS 長按原圖選單 */
@@ -96,11 +96,19 @@
             100% { transform: translate(0, 0); }
         }*/
         /* 🌟 改良版動畫：加入上下左右不規則的軌跡 */
+   
+
+        /* 🧙‍♂️ 五角形 (五芒星) 不規則軌跡魔法球漂浮動畫 */
         @keyframes floatOrb { 
-            0%, 100% { transform: translate(-50%, -50%); } /*回到中心點*/
-            25%      { transform: translate(-58%, -60%); } /* 左上飄 */
-            50%      { transform: translate(-42%, -63%); } /* 右上飄 */
-            75%      { transform: translate(-59%, -41%); } /* 左下飄 */
+            0%, 100% { transform: translate(-50%, -50%); } /* 節點 1：中心原點 */
+            
+            20%      { transform: translate(-65%, -75%); } /* 節點 2：往左上方漂移 */
+            
+            40%      { transform: translate(-25%, -65%); } /* 節點 3：大甩尾到右上方 */
+            
+            60%      { transform: translate(-35%, -30%); } /* 節點 4：緩降到右下方 */
+            
+            80%      { transform: translate(-75%, -35%); } /* 節點 5：橫移到左下方，準備回原點 */
         }
 
         /* ⭐ 7個裝備在星座圖上的精準定位 (以100%容器為基準) */
