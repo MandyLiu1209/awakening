@@ -243,6 +243,22 @@
         document.body.appendChild(alertModal);
     }
 
+    // 🗓️ 核心工具：計算從 startDate 到今天過了幾個日曆日
+    function getCalendarDiffDays() {
+        const startTimestamp = parseInt(localStorage.getItem('startDate')) || Date.now();
+        const startDate = new Date(startTimestamp);
+        startDate.setHours(0, 0, 0, 0); // 將啟動日期歸零到當天凌晨
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);     // 將今天日期歸零到凌晨
+
+        // 計算日期差距 (毫秒轉天數)
+        const diffTime = today.getTime() - startDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        
+        return diffDays > 0 ? diffDays : 1;
+    }
+
     const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
 
@@ -384,11 +400,15 @@
     let selectedRole = "純水使者";
 
     function updateTask() {
-        const startTimestamp = localStorage.getItem('startDate') || Date.now();
-        if (!localStorage.getItem('startDate')) localStorage.setItem('startDate', startTimestamp);
+        // 使用新的日曆日期計算法
+        const diffDays = getCalendarDiffDays();
+
+        //const startTimestamp = localStorage.getItem('startDate') || Date.now();
+        // 確保 startDate 存在
+        if (!localStorage.getItem('startDate')) localStorage.setItem('startDate', Date.now());
         
-        const diffTime = Math.abs(Date.now() - startTimestamp);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; 
+        //const diffTime = Math.abs(Date.now() - startTimestamp);
+        //const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; 
         
         let taskIndex = Math.floor((diffDays - 1) / 2);
         if (taskIndex > 6) taskIndex = 6; 
@@ -426,10 +446,14 @@
         }
     }
 
+
     function calculateAndAddEnergy() {
-        const startTimestamp = localStorage.getItem('startDate') || Date.now();
-        const diffTime = Math.abs(Date.now() - startTimestamp);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; 
+        // 使用新的日曆日期計算法
+        const diffDays = getCalendarDiffDays();
+
+        //const startTimestamp = localStorage.getItem('startDate') || Date.now();
+        //const diffTime = Math.abs(Date.now() - startTimestamp);
+        //const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; 
         let taskIndex = Math.floor((diffDays - 1) / 2);
         if (taskIndex > 6) taskIndex = 6; 
         
@@ -444,7 +468,7 @@
         let lastDayKey = localStorage.getItem('lastCheckinDayKey');
         let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
         
-        // 原本完美的重置邏輯，完全保留！
+        // 🌅 換日判定：日期字串變了 OR 天數 Key 變了
         if (lastDate !== today || lastDayKey !== currentDayKey) {
             todayEnergy = 0; 
             localStorage.setItem('lastCheckinDate', today);
