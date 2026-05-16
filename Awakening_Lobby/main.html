@@ -454,19 +454,27 @@
         let isTimeCheat = false;
 
         try {
-            // 🌐 向世界時間伺服器請求真實時間，無視手機內部時鐘
-            const timeRes = await fetch("https://worldtimeapi.org/api/timezone/Asia/Taipei");
+            // 🌐 終極防護：直接向我們自己的伺服器 (GitHub Pages) 詢問真實網路時間
+            // 好處：100% 穩定不斷線，沒有被外部阻擋的問題
+            const timeRes = await fetch(window.location.href + "?t=" + Date.now(), { 
+                method: 'HEAD',
+                cache: 'no-store'
+            });
+
             if (timeRes.ok) {
-                const timeData = await timeRes.json();
-                trueToday = new Date(timeData.datetime);
-                
-                // 🕵️ 抓包判定：如果手機系統時間跟真實時間相差超過 1 小時，判定為作弊
-                if (Math.abs(Date.now() - trueToday.getTime()) > 60 * 60 * 1000) {
-                    isTimeCheat = true;
+                const dateHeader = timeRes.headers.get('Date');
+                if (dateHeader) {
+                    trueToday = new Date(dateHeader);
+                    
+                    // 🕵️ 抓包判定：如果手機系統時間跟真實伺服器時間相差超過 1 小時，判定為作弊
+                    if (Math.abs(Date.now() - trueToday.getTime()) > 60 * 60 * 1000) {
+                        isTimeCheat = true;
+                    }
                 }
             }
         } catch (err) {
-            console.log("時間防護機制連線異常，暫用本地時間");
+            //console.log("時間防護機制連線異常，暫用本地時間");
+            console.log("時間防護伺服器連線異常", err);
         }
 
         if (isTimeCheat) {
