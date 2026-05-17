@@ -180,13 +180,13 @@
             
             <img id="mainHeroImg" class="hero-img" src="role1_null.jpg">
 
-            <img id="equip_badge" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/5168/5168864.png">
-            <img id="equip_shield" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/3050/3050516.png">
-            <img id="equip_backpack" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/2903/2903513.png">
-            <img id="equip_map" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/854/854878.png">
-            <img id="equip_staff" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/3416/3416073.png">
-            <img id="equip_eye" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/10044/10044199.png">
-            <img id="equip_chest" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/2881/2881144.png">
+            <img id="equip_badge" class="equip-layer" src="equip_badge.png">
+            <img id="equip_shield" class="equip-layer" src="equip_shield.png">
+            <img id="equip_backpack" class="equip-layer" src="equip_backpack.png">
+            <img id="equip_map" class="equip-layer" src="equip_map.png">
+            <img id="equip_staff" class="equip-layer" src="equip_staff.png">
+            <img id="equip_eye" class="equip-layer" src="equip_eye.png">
+            <img id="equip_chest" class="equip-layer" src="equip_chest.png">
 
             <div class="hero-energy-badge">⚡: <span id="displayEnergy">0</span></div>
             <button class="btn-edit-float" onclick="editProfile()">✏️</button>
@@ -479,25 +479,29 @@
             document.getElementById('displayEnergy').innerText = total;
 
             // ==========================================
-            // 🛡️ 紙娃娃系統：全自動階梯式裝備解鎖引擎 (每20分開一件)
+            // 🛡️ 紙娃娃系統：統一讀取「已解鎖清單」來穿裝備
             // ==========================================
-            const toggleEquip = (id, condition) => {
+            const unlocked = JSON.parse(localStorage.getItem('unlockedEquips')) || [];
+            
+            const toggleEquip = (id, equipName) => {
                 const el = document.getElementById(id);
                 if (el) {
-                    if (condition) el.classList.add('equip-unlocked');
+                    // 如果已解鎖清單內有這個裝備的名字，就顯示它！
+                    if (unlocked.includes(equipName)) el.classList.add('equip-unlocked');
                     else el.classList.remove('equip-unlocked');
                 }
             };
 
-            toggleEquip('equip_badge',    total >= 20);  // 能量 >= 20，解鎖勇氣徽章
-            toggleEquip('equip_shield',   total >= 40);  // 能量 >= 40，解鎖淨化護盾
-            toggleEquip('equip_backpack', total >= 60);  // 能量 >= 60，解鎖鋼鐵背包
-            toggleEquip('equip_map',      total >= 80);  // 能量 >= 80，解鎖尋寶地圖
-            toggleEquip('equip_staff',    total >= 100); // 能量 >= 100，解鎖創意法杖
-            toggleEquip('equip_eye',      total >= 120); // 能量 >= 120，解鎖精靈之眼
-            toggleEquip('equip_chest',    total >= 140); // 能量 >= 140，終極寶箱降臨！
+            // 讓紙娃娃直接對應裝備名稱
+            toggleEquip('equip_badge',    '勇氣徽章');  
+            toggleEquip('equip_shield',   '淨化護盾');  
+            toggleEquip('equip_backpack', '鋼鐵背包');  
+            toggleEquip('equip_map',      '尋寶地圖');  
+            toggleEquip('equip_staff',    '創意法杖'); 
+            toggleEquip('equip_eye',      '精靈之眼'); 
+            toggleEquip('equip_chest',    '終極寶箱');
             // ==========================================
-            
+
             updateTask(); 
             // 👇 新增這行：讓玩家一打開畫面就能看到自己的裝備
             renderEquipment();
@@ -1023,6 +1027,9 @@
         
         // 重新渲染畫面上的魔法球 (不須重整網頁即刻生效)
         renderFloatingOrbs();
+
+        // 👇 補上這行：強制重新檢查記憶，讓角色把裝備立刻穿上身！
+        checkMemory();
         
         // 跳出成功提示
         showCustomAlert('🔮', '系統作弊碼生效', '已強制喚醒所有沉睡的聖物！\n現在可以查看星環的最終型態了。');
