@@ -75,6 +75,7 @@
 
         /* 守護星環的容器 (固定在英雄圖區中間) */
         #floatingConstellation {
+            display: none; /* 👇 加上這行，把整個泡泡星環徹底隱形 👇 */
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: 8; /* 介於英雄圖(1)和資訊徽章(5)之間 */
