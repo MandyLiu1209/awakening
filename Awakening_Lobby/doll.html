@@ -19,6 +19,33 @@
         .hero-img { width: 90%; height: 90%; object-fit: contain; position: absolute; top: 5%; left: 5%; z-index: 1; }
         .btn-edit-float { position: absolute; top: 12px; right: 12px; font-size: 18px; background: rgba(255, 255, 255, 0.9); border: 2px solid #d2b48c; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border:none; cursor: pointer;}
         .hero-info-badge { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(139, 69, 19, 0.85); color: white; padding: 8px 30px; border-radius: 20px; text-align: center; z-index: 5; backdrop-filter: blur(5px); white-space: nowrap; font-size: 16px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); }
+        
+        /* 👇👇👇 村長，請把這段貼在這裡！ 👇👇👇 */
+        .equip-layer { 
+            position: absolute; 
+            z-index: 2; 
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 帥氣的彈跳出櫃動畫 */
+            opacity: 0; 
+            transform: scale(0.3) rotate(-20deg); 
+            pointer-events: none; /* 防止圖片阻擋到後方的點擊事件 */
+        }
+        
+        /* 當裝備被解鎖時觸發 */
+        .equip-unlocked {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        /* 📍 7 大神裝在角色圖上的「精準定位掛鉤」 */
+        #equip_badge    { top: 22%; left: 18%; width: 20%; } 
+        #equip_shield   { top: 38%; right: 5%; width: 32%; }  
+        #equip_backpack { top: 30%; left: -5%; width: 35%; z-index: 0; } 
+        #equip_map      { bottom: 5%; left: 8%; width: 28%; }  
+        #equip_staff    { top: 15%; right: -8%; width: 40%; } 
+        #equip_eye      { top: 8%; left: 25%; width: 18%; }   
+        #equip_chest    { bottom: -5%; right: 10%; width: 35%; }
+        /* 👆👆👆 貼到這邊結束 👆👆👆 */
+
         .hero-energy-badge { position: absolute; top: 12px; left: 12px; background: rgba(211, 84, 0, 0.9); color: white; padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; z-index: 10; border: 2px solid #fdf5e6; box-shadow: 0 2px 6px rgba(0,0,0,0.3); backdrop-filter: blur(2px); }
 
         .task-container { background: #fef9e7; border: 2px dashed #d35400; border-radius: 15px; padding: 12px; margin-bottom: 15px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -153,6 +180,14 @@
             
             <img id="mainHeroImg" class="hero-img" src="role1_null.jpg">
 
+            <img id="equip_badge" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/5168/5168864.png">
+            <img id="equip_shield" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/3050/3050516.png">
+            <img id="equip_backpack" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/2903/2903513.png">
+            <img id="equip_map" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/854/854878.png">
+            <img id="equip_staff" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/3416/3416073.png">
+            <img id="equip_eye" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/10044/10044199.png">
+            <img id="equip_chest" class="equip-layer" src="https://cdn-icons-png.flaticon.com/512/2881/2881144.png">
+
             <div class="hero-energy-badge">⚡: <span id="displayEnergy">0</span></div>
             <button class="btn-edit-float" onclick="editProfile()">✏️</button>
             <div class="hero-info-badge">
@@ -268,7 +303,7 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
 
     // 開發者模式開關
-    const debug_mode = false;
+    const debug_mode = true;
     const GAME_VERSION = "v0.2.2_20260516"; // 自動清除舊記憶，套用新裝備系統
 
     if (localStorage.getItem('gameVersion') !== GAME_VERSION) {
@@ -443,6 +478,26 @@
             const total = parseInt(localStorage.getItem('totalEnergy')) || 0;
             document.getElementById('displayEnergy').innerText = total;
 
+            // ==========================================
+            // 🛡️ 紙娃娃系統：全自動階梯式裝備解鎖引擎 (每20分開一件)
+            // ==========================================
+            const toggleEquip = (id, condition) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (condition) el.classList.add('equip-unlocked');
+                    else el.classList.remove('equip-unlocked');
+                }
+            };
+
+            toggleEquip('equip_badge',    total >= 20);  // 能量 >= 20，解鎖勇氣徽章
+            toggleEquip('equip_shield',   total >= 40);  // 能量 >= 40，解鎖淨化護盾
+            toggleEquip('equip_backpack', total >= 60);  // 能量 >= 60，解鎖鋼鐵背包
+            toggleEquip('equip_map',      total >= 80);  // 能量 >= 80，解鎖尋寶地圖
+            toggleEquip('equip_staff',    total >= 100); // 能量 >= 100，解鎖創意法杖
+            toggleEquip('equip_eye',      total >= 120); // 能量 >= 120，解鎖精靈之眼
+            toggleEquip('equip_chest',    total >= 140); // 能量 >= 140，終極寶箱降臨！
+            // ==========================================
+            
             updateTask(); 
             // 👇 新增這行：讓玩家一打開畫面就能看到自己的裝備
             renderEquipment();
