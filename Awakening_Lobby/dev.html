@@ -748,7 +748,7 @@
         debugPanel.style.display = debug_mode ? 'block' : 'none';
     }
 
-    liff.init({ liffId: MY_LIFF_ID }).then(() => {
+    liff.init({ liffId: MY_LIFF_ID }).then(async () => { // 💡 關鍵點：這裡加上了 async
         /*const debugPanel = document.getElementById('debugPanel');
         if (debugPanel) {
             debugPanel.style.display = debug_mode ? 'block' : 'none';
@@ -759,13 +759,50 @@
         if (!liff.isLoggedIn()) { 
             liff.login(); 
         } else {
-            checkMemory();
-            liff.getProfile().then(p => {
+            // 👤 1. 讀取 LINE 個人資料 (維持您原本的邏輯與錯誤處理)
+            try {
+                const p = await liff.getProfile();
                 document.getElementById('lineNameDisplay').value = p.displayName;
                 window.userProfile = p;
-            }).catch(err => {
+            } catch (err) {
                 document.getElementById('lineNameDisplay').value = "讀取失敗";
-            });
+                console.error("LINE 個人資料讀取失敗:", err);
+            }
+
+            // 📡 2. 跨裝置雲端同步：去 Firebase 撈取最高榮譽聖碑紀錄
+            try {
+                const context = liff.getContext();
+                const userId = context ? context.userId : null;
+                
+                if (userId) {
+                    // 查詢這名玩家在雲端測試服 (Players_Dev) 的存檔
+                    const doc = await db.collection("Players_Dev").doc(userId).get();
+                    
+                    if (doc.exists) {
+                        const cloudData = doc.data();
+                        console.log("📡 偵測到雲端進度，正在同步至當前裝置...", cloudData);
+                        
+                        // 用雲端最新數據，強制覆蓋這台手機/電腦的 localStorage 達成雙向同步
+                        if (cloudData.nickname) localStorage.setItem('gameNickname', cloudData.nickname);
+                        if (cloudData.role) localStorage.setItem('selectedRole', cloudData.role);
+                        if (cloudData.totalEnergy !== undefined) localStorage.setItem('totalEnergy', cloudData.totalEnergy);
+                        
+                        // 同步累積解鎖的裝備泡泡進度
+                        if (cloudData.equips) {
+                            localStorage.setItem('unlockedEquips', JSON.stringify(cloudData.equips));
+                        }
+                    } else {
+                        console.log("🆕 歡迎新冒險者，此帳號尚未有雲端存檔。");
+                    }
+                }
+            } catch (cloudErr) {
+                // 萬一 Firebase 斷線或大塞車，靜靜走本地快取方案，確保遊戲不卡死黑畫面
+                console.log("雲端同步伺服器延遲，先啟用本地記憶體載入", cloudErr);
+            }
+
+            // 🏁 3. 【核心關鍵改動】同步完最新雲端數據後，最後才執行 checkMemory() 渲染畫面
+            // 這樣能保證不論用手機還是電腦開，畫面一亮起來就是最新的能量與解鎖進度！
+            checkMemory();
         }
     }).catch(err => {
         //// 👇 改良版：就算連線失敗，也強制把大容器打開，並彈出警告，才不會一片咖啡色
@@ -780,9 +817,6 @@
 
         const errorInput = document.getElementById('lineNameDisplay');
         if (errorInput) errorInput.value = "連線失敗";
-        
-        // 彈出華麗的警告視窗提醒玩家
-        //showCustomAlert('❌', '傳輸陣連線失敗', '無法與 LINE 試煉伺服器建立安全連線。\n請檢查網路是否正常，或手機的「日期與時間」是否開啟自動同步。');document.getElementById('lineNameDisplay').value = "連線失敗";
         
         // 彈出警告，按下確定後，因為上面強制排版，玩家依然會死死留在大廳
         showCustomAlert('❌', '傳輸陣連線失敗', '無法與 LINE 試煉伺服器建立安全連線。\n請檢查網路是否正常，或手機的「日期與時間」是否開啟自動同步。\n\n⚠️ 系統已全面鎖定，在恢復正常連線前無法進行任何打卡試煉。');
