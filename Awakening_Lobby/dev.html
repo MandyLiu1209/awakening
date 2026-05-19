@@ -525,6 +525,30 @@
                 document.getElementById('displayEnergy').innerText = total;
             }
 
+            // 👇👇👇 請在這裡插入【雲端備份防護網 (正式服專用)】 👇👇👇
+            try {
+                // 取得玩家的 LINE ID 作為唯一識別碼 (若抓不到則給予臨時 ID 避免報錯)
+                const userId = liff.getContext() ? liff.getContext().userId : ("anonymous_" + Date.now());
+                const nickname = localStorage.getItem('gameNickname') || "未知勇者";
+                const currentRole = localStorage.getItem('selectedRole') || "未選擇";
+                const unlocked = JSON.parse(localStorage.getItem('unlockedEquips')) || [];
+                
+                // 將最新狀態寫入 Firebase 的【Players_Main】資料庫
+                db.collection("Players_Main").doc(userId).set({
+                    lineName: window.userProfile ? window.userProfile.displayName : "未知",
+                    nickname: nickname,
+                    role: currentRole,
+                    totalEnergy: total,         // 備份總能量
+                    level: (taskIndex + 1),     // 備份當前等級
+                    equips: unlocked,           // 連同解鎖的裝備一起備份！
+                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true }); // 使用 merge: true 確保資料合併，不覆蓋其它屬性
+            } catch (err) {
+                // 如果網路突然卡住導致上傳失敗，只在後台記錄，絕對不干擾玩家的打卡畫面
+                console.log("雲端備份暫時失敗，但不影響本地遊戲進行", err);
+            }
+            // 👆👆👆 插入結束 👆👆👆
+
             // 記錄當前任務的累計分數，並檢查是否解鎖裝備
             let taskScoreKey = "taskScore_" + taskIndex;
             let currentTaskScore = parseInt(localStorage.getItem(taskScoreKey)) || 0;
@@ -717,6 +741,11 @@
     function editProfile() {
         document.getElementById('setupSection').classList.remove('hidden');
         document.getElementById('checkinSection').classList.add('hidden');
+    }
+
+    const debugPanel = document.getElementById('debugPanel');
+    if (debugPanel) {
+        debugPanel.style.display = debug_mode ? 'block' : 'none';
     }
 
     liff.init({ liffId: MY_LIFF_ID }).then(() => {
