@@ -532,7 +532,18 @@
                 const nickname = localStorage.getItem('gameNickname') || "未知勇者";
                 const currentRole = localStorage.getItem('selectedRole') || "未選擇";
                 const unlocked = JSON.parse(localStorage.getItem('unlockedEquips')) || [];
-                
+
+                // 🌟 新增：把防作弊與天數記憶也抓出來
+                const startDate = localStorage.getItem('startDate') || Date.now();
+                const todayEnergy = localStorage.getItem('todayEnergy') || 0;
+                const lastCheckinDate = localStorage.getItem('lastCheckinDate') || "";
+
+                // 🌟 新增：把各關卡的獨立分數打包成一個物件
+                let taskScores = {};
+                for (let i = 0; i <= 6; i++) {
+                    taskScores["taskScore_" + i] = localStorage.getItem("taskScore_" + i) || 0;
+                }
+
                 // 將最新狀態寫入 Firebase 的【Players_Dev】資料庫
                 db.collection("Players_Dev").doc(userId).set({
                     lineName: window.userProfile ? window.userProfile.displayName : "未知",
@@ -541,6 +552,13 @@
                     totalEnergy: total,         // 備份總能量
                     level: (taskIndex + 1),     // 備份當前等級
                     equips: unlocked,           // 連同解鎖的裝備一起備份！
+
+                    // 🌟 把新增的這三項一起存進雲端！
+                    startDate: startDate,
+                    todayEnergy: todayEnergy,
+                    lastCheckinDate: lastCheckinDate,
+                    taskScores: taskScores,
+
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true }); // 使用 merge: true 確保資料合併，不覆蓋其它屬性
             } catch (err) {
@@ -790,6 +808,18 @@
                         // 同步累積解鎖的裝備泡泡進度
                         if (cloudData.equips) {
                             localStorage.setItem('unlockedEquips', JSON.stringify(cloudData.equips));
+                        }
+
+                        // 🌟 新增：天數與防作弊機制覆蓋
+                        if (cloudData.startDate) localStorage.setItem('startDate', cloudData.startDate);
+                        if (cloudData.todayEnergy !== undefined) localStorage.setItem('todayEnergy', cloudData.todayEnergy);
+                        if (cloudData.lastCheckinDate) localStorage.setItem('lastCheckinDate', cloudData.lastCheckinDate);
+                        
+                        // 🌟 新增：各關卡獨立分數覆蓋
+                        if (cloudData.taskScores) {
+                            for (const [key, value] of Object.entries(cloudData.taskScores)) {
+                                localStorage.setItem(key, value);
+                            }
                         }
                     } else {
                         console.log("🆕 歡迎新冒險者，此帳號尚未有雲端存檔。");
