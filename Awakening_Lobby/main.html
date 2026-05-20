@@ -96,6 +96,9 @@
             100% { transform: translate(0, 0); }
         }*/
         /* 🌟 改良版動畫：加入上下左右不規則的軌跡 */
+   
+
+        /* 🌊 絲滑精靈軌跡 (消除機器人頓挫感) */
         @keyframes floatOrb { 
             0%, 100% { transform: translate(-50%, -50%); } 
             25%      { transform: translate(-53%, -55%); } /* 左上飄 */
@@ -522,6 +525,52 @@
                 document.getElementById('displayEnergy').innerText = total;
             }
 
+            // 👇👇👇 請在這裡插入【雲端備份防護網 (正式服專用)】 👇👇👇
+            try {
+                // 取得玩家的 LINE ID 作為唯一識別碼 (若抓不到則給予臨時 ID 避免報錯)
+                //const userId = liff.getContext() ? liff.getContext().userId : ("anonymous_" + Date.now());
+                //const nickname = localStorage.getItem('gameNickname') || "未知勇者";
+                
+                const userId = window.userProfile ? window.userProfile.userId : ("anonymous_" + Date.now());
+                const nickname = localStorage.getItem('gameNickname') || "未知勇者";
+
+                const currentRole = localStorage.getItem('selectedRole') || "未選擇";
+                const unlocked = JSON.parse(localStorage.getItem('unlockedEquips')) || [];
+
+                // 🌟 新增：把防作弊與天數記憶也抓出來
+                const startDate = localStorage.getItem('startDate') || Date.now();
+                const todayEnergy = localStorage.getItem('todayEnergy') || 0;
+                const lastCheckinDate = localStorage.getItem('lastCheckinDate') || "";
+
+                // 🌟 新增：把各關卡的獨立分數打包成一個物件
+                let taskScores = {};
+                for (let i = 0; i <= 6; i++) {
+                    taskScores["taskScore_" + i] = localStorage.getItem("taskScore_" + i) || 0;
+                }
+                
+                // 將最新狀態寫入 Firebase 的【Players_Dev】資料庫
+                await db.collection("Players_Main").doc(userId).set({
+                    lineName: window.userProfile ? window.userProfile.displayName : "未知",
+                    nickname: nickname,
+                    role: currentRole,
+                    totalEnergy: total,         // 備份總能量
+                    level: (taskIndex + 1),     // 備份當前等級
+                    equips: unlocked,           // 連同解鎖的裝備一起備份！
+
+                    // 🌟 把新增的這三項一起存進雲端！
+                    startDate: startDate,
+                    todayEnergy: todayEnergy,
+                    lastCheckinDate: lastCheckinDate,
+                    taskScores: taskScores,
+
+                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true }); // 使用 merge: true 確保資料合併，不覆蓋其它屬性
+            } catch (err) {
+                // 如果網路突然卡住導致上傳失敗，只在後台記錄，絕對不干擾玩家的打卡畫面
+                console.log("雲端備份暫時失敗，但不影響本地遊戲進行", err);
+            }
+            // 👆👆👆 插入結束 👆👆👆
+
             // 記錄當前任務的累計分數，並檢查是否解鎖裝備
             let taskScoreKey = "taskScore_" + taskIndex;
             let currentTaskScore = parseInt(localStorage.getItem(taskScoreKey)) || 0;
@@ -721,7 +770,7 @@
         debugPanel.style.display = debug_mode ? 'block' : 'none';
     }
 
-    liff.init({ liffId: MY_LIFF_ID }).then(() => {
+    liff.init({ liffId: MY_LIFF_ID }).then(async () => { // 💡 關鍵點：這裡加上了 async
         /*const debugPanel = document.getElementById('debugPanel');
         if (debugPanel) {
             debugPanel.style.display = debug_mode ? 'block' : 'none';
@@ -732,13 +781,64 @@
         if (!liff.isLoggedIn()) { 
             liff.login(); 
         } else {
-            checkMemory();
-            liff.getProfile().then(p => {
+            // 👤 1. 讀取 LINE 個人資料 (維持您原本的邏輯與錯誤處理)
+            try {
+                const p = await liff.getProfile();
                 document.getElementById('lineNameDisplay').value = p.displayName;
                 window.userProfile = p;
-            }).catch(err => {
+            } catch (err) {
                 document.getElementById('lineNameDisplay').value = "讀取失敗";
-            });
+                console.error("LINE 個人資料讀取失敗:", err);
+            }
+
+            // 📡 2. 跨裝置雲端同步：去 Firebase 撈取最高榮譽聖碑紀錄
+            try {
+                const context = liff.getContext();
+                //const userId = context ? context.userId : null;
+                // 💡 修正：改用 userProfile 抓 ID，解決電腦版讀不到的 Bug
+                const userId = window.userProfile ? window.userProfile.userId : null;
+                
+                if (userId) {
+                    // 查詢這名玩家在雲端測試服 (Players_Dev) 的存檔
+                    const doc = await db.collection("Players_Main").doc(userId).get();
+                    
+                    if (doc.exists) {
+                        const cloudData = doc.data();
+                        console.log("📡 偵測到雲端進度，正在同步至當前裝置...", cloudData);
+                        
+                        // 用雲端最新數據，強制覆蓋這台手機/電腦的 localStorage 達成雙向同步
+                        if (cloudData.nickname) localStorage.setItem('gameNickname', cloudData.nickname);
+                        if (cloudData.role) localStorage.setItem('selectedRole', cloudData.role);
+                        if (cloudData.totalEnergy !== undefined) localStorage.setItem('totalEnergy', cloudData.totalEnergy);
+                        
+                        // 同步累積解鎖的裝備泡泡進度
+                        if (cloudData.equips) {
+                            localStorage.setItem('unlockedEquips', JSON.stringify(cloudData.equips));
+                        }
+
+                        // 🌟 新增：天數與防作弊機制覆蓋
+                        if (cloudData.startDate) localStorage.setItem('startDate', cloudData.startDate);
+                        if (cloudData.todayEnergy !== undefined) localStorage.setItem('todayEnergy', cloudData.todayEnergy);
+                        if (cloudData.lastCheckinDate) localStorage.setItem('lastCheckinDate', cloudData.lastCheckinDate);
+                        
+                        // 🌟 新增：各關卡獨立分數覆蓋
+                        if (cloudData.taskScores) {
+                            for (const [key, value] of Object.entries(cloudData.taskScores)) {
+                                localStorage.setItem(key, value);
+                            }
+                        }
+                    } else {
+                        console.log("🆕 歡迎新冒險者，此帳號尚未有雲端存檔。");
+                    }
+                }
+            } catch (cloudErr) {
+                // 萬一 Firebase 斷線或大塞車，靜靜走本地快取方案，確保遊戲不卡死黑畫面
+                console.log("雲端同步伺服器延遲，先啟用本地記憶體載入", cloudErr);
+            }
+
+            // 🏁 3. 【核心關鍵改動】同步完最新雲端數據後，最後才執行 checkMemory() 渲染畫面
+            // 這樣能保證不論用手機還是電腦開，畫面一亮起來就是最新的能量與解鎖進度！
+            checkMemory();
         }
     }).catch(err => {
         //// 👇 改良版：就算連線失敗，也強制把大容器打開，並彈出警告，才不會一片咖啡色
@@ -796,7 +896,7 @@
                 const gasRes = await res.json();
                 
                 if (gasRes.status === "success") {
-                    await db.collection("QuestLogs_Dev").add({
+                    await db.collection("QuestLogs").add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
                         gameNickname: nickname, 
                         role: selectedRole,
@@ -883,7 +983,7 @@
             });
             const gasRes = await res.json();
             if (gasRes.status === "success") {
-                await db.collection("QuestLogs_Dev").add({
+                await db.collection("QuestLogs").add({
                     lineName: window.userProfile ? window.userProfile.displayName : "未知",
                     gameNickname: nickname,
                     role: selectedRole,
@@ -935,14 +1035,36 @@
         }
     }
 
-    function applyTimeTravel() {
+    async function applyTimeTravel() {
         let day = parseInt(document.getElementById('demoDayInput').value);
         if (isNaN(day) || day < 1) day = 1;
         if (day > 15) day = 15;
         document.getElementById('demoDayInput').value = day;
 
+        // 計算目標時間戳記
         const targetDate = Date.now() - ((day - 1) * 24 * 60 * 60 * 1000);
+
+        // 1. 更改本地記憶體
         localStorage.setItem('startDate', targetDate);
+
+        // 2. 🌟 關鍵新增：同時更改 Firebase 雲端記憶，避免重整時被舊資料覆蓋
+        try {
+            const context = liff.getContext();
+            //const userId = context ? context.userId : null;
+            const userId = window.userProfile ? window.userProfile.userId : null;
+
+            if (userId) {
+                // 這裡以 Players_Dev 測試服為例
+                await db.collection("Players_Dev").doc(userId).set({
+                    startDate: targetDate,
+                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            }
+        } catch(err) {
+            console.log("時光機雲端同步失敗", err);
+        }
+
+        // 3. 重新整理網頁
         location.reload();
     }
 
