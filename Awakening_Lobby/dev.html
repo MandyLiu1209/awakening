@@ -1032,8 +1032,28 @@
         if (day > 15) day = 15;
         document.getElementById('demoDayInput').value = day;
 
+        // 計算目標時間戳記
         const targetDate = Date.now() - ((day - 1) * 24 * 60 * 60 * 1000);
+
+        // 1. 更改本地記憶體
         localStorage.setItem('startDate', targetDate);
+
+        // 2. 🌟 關鍵新增：同時更改 Firebase 雲端記憶，避免重整時被舊資料覆蓋
+        try {
+            const context = liff.getContext();
+            const userId = context ? context.userId : null;
+            if (userId) {
+                // 這裡以 Players_Dev 測試服為例
+                await db.collection("Players_Dev").doc(userId).set({
+                    startDate: targetDate,
+                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            }
+        } catch(err) {
+            console.log("時光機雲端同步失敗", err);
+        }
+
+        // 3. 重新整理網頁
         location.reload();
     }
 
