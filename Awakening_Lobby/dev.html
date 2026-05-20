@@ -1026,7 +1026,7 @@
         }
     }
 
-    function applyTimeTravel() {
+    async function applyTimeTravel() {
         let day = parseInt(document.getElementById('demoDayInput').value);
         if (isNaN(day) || day < 1) day = 1;
         if (day > 15) day = 15;
