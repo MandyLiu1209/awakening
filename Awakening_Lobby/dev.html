@@ -131,7 +131,7 @@
 <body>
 
 <div class="container" id="mainContainer" style="display: none;">
-    <div class="header-banner">英雄試煉殿堂</div>
+    <div class="header-banner" onclick="countAdminClick()" style="cursor: pointer;">英雄試煉殿堂</div>
 
     <div id="setupSection">
         <div class="input-group">
@@ -212,12 +212,26 @@
         </div>
     </div>
 </div>
-
+<!--
 <div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;">
     <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; border: 4px solid #d35400;">
         <div class="spinner"></div>
         <h3 style="color: #8b4513; margin: 10px 0 0 0;">⚡ 能量傳輸中...</h3>
         <p style="color: #d35400; font-size: 14px; margin: 5px 0 0 0;">請稍候，正在將紀錄刻入石碑</p>
+    </div>
+</div>
+-->
+
+<div id="adminModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 400; justify-content: center; align-items: center; font-family: '微軟正黑體', sans-serif;">
+    <div style="background: #fffdfa; border: 5px double #8b4513; border-radius: 20px; width: 92%; max-width: 450px; padding: 20px; position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); text-align: center;">
+        <button onclick="document.getElementById('adminModal').style.display='none'" style="position: absolute; top: -15px; right: -15px; background: #c0392b; color: white; border: 2px solid #fff; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">X</button>
+        
+        <h2 style="color: #8b4513; margin-top: 0; border-bottom: 3px double #8b4513; padding-bottom: 8px; font-size: 22px;">🔮 村長神聖裁決所 ⚖️</h2>
+        <p style="font-size: 12px; color: #7f8c8d; margin-top: -5px;">※ 扣除能量後，玩家若未達解鎖門檻，神裝將於下次登入自動收回</p>
+        
+        <div id="adminPlayerList" style="max-height: 55vh; overflow-y: auto; padding-right: 5px; margin-top: 15px; border: 1px inset #d2b48c; background: #faf4e8; border-radius: 10px; padding: 10px;">
+            <div style="text-align: center; color: #d35400; font-size: 14px;">📡 正在召喚眾神名冊...</div>
+        </div>
     </div>
 </div>
 
@@ -528,8 +542,12 @@
             // 👇👇👇 請在這裡插入【雲端備份防護網 (Dev測試服專用)】 👇👇👇
             try {
                 // 取得玩家的 LINE ID 作為唯一識別碼 (若抓不到則給予臨時 ID 避免報錯)
-                const userId = liff.getContext() ? liff.getContext().userId : ("anonymous_" + Date.now());
+                //const userId = liff.getContext() ? liff.getContext().userId : ("anonymous_" + Date.now());
+                //const nickname = localStorage.getItem('gameNickname') || "未知勇者";
+                
+                const userId = window.userProfile ? window.userProfile.userId : ("anonymous_" + Date.now());
                 const nickname = localStorage.getItem('gameNickname') || "未知勇者";
+
                 const currentRole = localStorage.getItem('selectedRole') || "未選擇";
                 const unlocked = JSON.parse(localStorage.getItem('unlockedEquips')) || [];
 
@@ -790,7 +808,9 @@
             // 📡 2. 跨裝置雲端同步：去 Firebase 撈取最高榮譽聖碑紀錄
             try {
                 const context = liff.getContext();
-                const userId = context ? context.userId : null;
+                //const userId = context ? context.userId : null;
+                // 💡 修正：改用 userProfile 抓 ID，解決電腦版讀不到的 Bug
+                const userId = window.userProfile ? window.userProfile.userId : null;
                 
                 if (userId) {
                     // 查詢這名玩家在雲端測試服 (Players_Dev) 的存檔
@@ -798,6 +818,16 @@
                     
                     if (doc.exists) {
                         const cloudData = doc.data();
+
+                        // 👇 核心新增：偵測到村長發布的重置勒令，瞬間執行本機洗白轉生
+                        if (cloudData.role === "RESET") {
+                            localStorage.clear(); 
+                            await db.collection("Players_Dev").doc(userId).delete(); 
+                            showCustomAlert('🔄', '命運重組', '村長已協助您重置英雄靈魂。\n系統即將重新引導您進入選角大廳！');
+                            setTimeout(() => { location.reload(); }, 2500);
+                            return; 
+                        }
+
                         console.log("📡 偵測到雲端進度，正在同步至當前裝置...", cloudData);
                         
                         // 用雲端最新數據，強制覆蓋這台手機/電腦的 localStorage 達成雙向同步
@@ -847,6 +877,9 @@
 
         const errorInput = document.getElementById('lineNameDisplay');
         if (errorInput) errorInput.value = "連線失敗";
+        
+        // 彈出華麗的警告視窗提醒玩家
+        //showCustomAlert('❌', '傳輸陣連線失敗', '無法與 LINE 試煉伺服器建立安全連線。\n請檢查網路是否正常，或手機的「日期與時間」是否開啟自動同步。');document.getElementById('lineNameDisplay').value = "連線失敗";
         
         // 彈出警告，按下確定後，因為上面強制排版，玩家依然會死死留在大廳
         showCustomAlert('❌', '傳輸陣連線失敗', '無法與 LINE 試煉伺服器建立安全連線。\n請檢查網路是否正常，或手機的「日期與時間」是否開啟自動同步。\n\n⚠️ 系統已全面鎖定，在恢復正常連線前無法進行任何打卡試煉。');
@@ -1041,7 +1074,9 @@
         // 2. 🌟 關鍵新增：同時更改 Firebase 雲端記憶，避免重整時被舊資料覆蓋
         try {
             const context = liff.getContext();
-            const userId = context ? context.userId : null;
+            //const userId = context ? context.userId : null;
+            const userId = window.userProfile ? window.userProfile.userId : null;
+
             if (userId) {
                 // 這裡以 Players_Dev 測試服為例
                 await db.collection("Players_Dev").doc(userId).set({
@@ -1079,6 +1114,107 @@
         
         // 跳出成功提示
         showCustomAlert('🔮', '系統作弊碼生效', '已強制喚醒所有沉睡的聖物！\n現在可以查看星環的最終型態了。');
+    }
+
+    // ==========================================
+    // 🔮 村長隱藏管理後台核心控制
+    // ==========================================
+    let adminClickCount = 0;
+    let adminClickTimeout = null;
+
+    // 1. 連點 5 下標題監聽器
+    function countAdminClick() {
+        adminClickCount++;
+        clearTimeout(adminClickTimeout);
+        
+        if (adminClickCount >= 5) {
+            adminClickCount = 0;
+            let password = prompt("🔮 偵測到古老管理員共鳴！\n請輸入村長神秘口令：");
+            if (password === "mis1209") { // 💡 您專屬的進入密碼
+                openAdminPanel();
+            } else if (password !== null) {
+                alert("❌ 口令錯誤！凡人切勿染指神聖領域！");
+            }
+        } else {
+            adminClickTimeout = setTimeout(() => { adminClickCount = 0; }, 2000);
+        }
+    }
+
+    // 2. 召喚全服玩家名冊
+    async function openAdminPanel() {
+        document.getElementById('adminModal').style.display = 'flex';
+        const listDiv = document.getElementById('adminPlayerList');
+        listDiv.innerHTML = `<div style="text-align: center; color: #d35400; font-size: 15px; font-weight: bold; padding: 20px;">📡 正在召喚眾神名冊...</div>`;
+        
+        try {
+            const snapshot = await db.collection("Players_Dev").get();
+            if (snapshot.empty) {
+                listDiv.innerHTML = `<div style="text-align: center; color: #888;">目前試煉村還沒有任何勇者建檔。</div>`;
+                return;
+            }
+            
+            let htmlContent = "";
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const uId = doc.id;
+                
+                if (data.role === "RESET" || uId.startsWith("anonymous_")) return; // 跳過已重置或匿名的資料
+
+                htmlContent += `
+                <div style="background: #fff; border: 2px solid #e67e22; border-radius: 12px; padding: 12px; margin-bottom: 12px; box-shadow: 0 3px 6px rgba(0,0,0,0.05); text-align: left;">
+                    <div style="font-weight: bold; color: #5d4037; font-size: 15px; display: flex; justify-content: space-between;">
+                        <span>👤 ${data.nickname || '未命名'}</span>
+                    </div>
+                    <div style="font-size: 13px; color: #7f8c8d; margin: 6px 0; border-bottom: 1px dashed #f39c12; padding-bottom: 4px;">
+                        職業: <span style="color: #2980b9; font-weight: bold;">${data.role || '未選擇'}</span> | 
+                        能量: <span id="admin-energy-${uId}" style="color: #e67e22; font-weight: bold;">⚡ ${data.totalEnergy || 0}</span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 6px; margin-top: 8px; align-items: center;">
+                        <input type="number" id="input-energy-${uId}" placeholder="新分數" style="width: 70px; padding: 5px; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 12px; text-align: center;">
+                        <button onclick="adminModifyEnergy('${uId}', '${data.nickname || '勇者'}')" style="background: #e67e22; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">⚖️ 修正</button>
+                        <button onclick="adminResetPlayer('${uId}', '${data.nickname || '勇者'}')" style="background: #95a5a6; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: auto;">🔄 重置</button>
+                    </div>
+                </div>
+                `;
+            });
+            
+            listDiv.innerHTML = htmlContent || `<div style="text-align: center; color: #888;">暫無有效玩家資料。</div>`;
+        } catch (err) {
+            listDiv.innerHTML = `<div style="text-align: center; color: red; padding: 10px;">名冊召喚失敗，請檢查網路。</div>`;
+        }
+    }
+
+    // 3. 執行遠端修正分數
+    async function adminModifyEnergy(userId, nickname) {
+        const inputEl = document.getElementById(`input-energy-${userId}`);
+        const newEnergy = parseInt(inputEl.value);
+        
+        if (isNaN(newEnergy) || newEnergy < 0) {
+            alert("請輸入正確的數字！"); return;
+        }
+        
+        if (confirm(`⚖️ 確定將【${nickname}】的能量修改為 ⚡ ${newEnergy} 嗎？`)) {
+            try {
+                await db.collection("Players_Dev").doc(userId).update({ totalEnergy: newEnergy });
+                document.getElementById(`admin-energy-${userId}`).innerText = `⚡ ${newEnergy}`;
+                inputEl.value = "";
+                alert(`✅ 修改成功！重新載入後生效。`);
+            } catch (err) { alert("⚠️ 失敗：" + err); }
+        }
+    }
+
+    // 4. 執行遠端強制轉生
+    async function adminResetPlayer(userId, nickname) {
+        if (confirm(`🔥 確定要強制重置【${nickname}】嗎？\n他下次開啟網頁時將被踢回選角大廳！`)) {
+            try {
+                await db.collection("Players_Dev").doc(userId).update({
+                    role: "RESET", totalEnergy: 0, equips: []
+                });
+                alert(`⚡ 已下達轉生勒令！`);
+                openAdminPanel();
+            } catch (err) { alert("⚠️ 失敗：" + err); }
+        }
     }
 
 </script>
