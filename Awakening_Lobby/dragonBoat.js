@@ -16,7 +16,7 @@ function checkBoatEligibility() {
         console.log("🛠️ 龍舟 DEBUG 模式已開啟：允許無限次數遊玩");
         return true; 
     }
-    
+
     const playedDate = localStorage.getItem('dragonBoatPlayedDate');
     const todayStr = new Date().toDateString();
     if (playedDate === todayStr) {
@@ -93,6 +93,12 @@ function runDragonBoatTimer() {
     boatTimerInterval = setInterval(() => {
         let passed = (Date.now() - boatStartTime) / 1000;
         document.getElementById('boatTimer').innerText = passed.toFixed(2);
+
+        // 💀 核心新增：只要超過 25 秒，立刻終止比賽並強制結算！
+        if (passed > 25.0) {
+            clearInterval(boatTimerInterval); // 立刻停止計時
+            finishDragonBoat(); // 強制進入結算畫面
+        }
     }, 50);
 }
 
