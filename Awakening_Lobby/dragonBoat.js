@@ -1,6 +1,7 @@
 // ==========================================
 // 🛶 端午限定小遊戲：極速龍舟引擎 (全新倒數防抖版)
 // ==========================================
+const DRAGON_BOAT_DEBUG = true; // 💡 測試模式開關：設為 true 即可無限重複玩！正式上線記得改為 false。
 let boatProgress = 0;
 let lastPaddle = '';
 let isBoatStunned = false;
@@ -10,6 +11,12 @@ const MAX_STROKES = 30; // 總共需要划30下 (左右各15下)
 
 // 檢查今天是否已經玩過
 function checkBoatEligibility() {
+    // 🌟 核心新增：如果 DEBUG 模式開啟，直接無視規則放行！
+    if (DRAGON_BOAT_DEBUG) {
+        console.log("🛠️ 龍舟 DEBUG 模式已開啟：允許無限次數遊玩");
+        return true; 
+    }
+    
     const playedDate = localStorage.getItem('dragonBoatPlayedDate');
     const todayStr = new Date().toDateString();
     if (playedDate === todayStr) {
@@ -125,12 +132,15 @@ async function finishDragonBoat() {
     let timeTaken = parseFloat(document.getElementById('boatTimer').innerText);
     
     // 🏆 分數評級運算
-    let bonusPoints = 1;
-    let grade = "參加獎";
+    let bonusPoints = 0;
+    let grade = "挑戰失敗"; // 預設超過25秒就是失敗
+    
     if (timeTaken <= 6.0) { bonusPoints = 10; grade = "S 級神速"; }
     else if (timeTaken <= 8.0) { bonusPoints = 8; grade = "A 級高手"; }
     else if (timeTaken <= 11.0) { bonusPoints = 5; grade = "B 級好手"; }
     else if (timeTaken <= 15.0) { bonusPoints = 3; grade = "C 級新手"; }
+    else if (timeTaken <= 25.0) { bonusPoints = 1; grade = "參加獎"; }
+    else { bonusPoints = 0; grade = "挑戰失敗 😭"; } // 超過 25 秒
 
     localStorage.setItem('dragonBoatPlayedDate', todayStr = new Date().toDateString());
 
