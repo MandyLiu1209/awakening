@@ -1,5 +1,5 @@
 // ==========================================
-// 🛶 端午限定小遊戲：極速龍舟引擎 (環境自適應防呆版)
+// 🛶 端午限定小遊戲：極速龍舟引擎 (全新倒數防抖版)
 // ==========================================
 let boatProgress = 0;
 let lastPaddle = '';
@@ -8,18 +8,8 @@ let boatStartTime = 0;
 let boatTimerInterval = null;
 const MAX_STROKES = 30; // 總共需要划30下 (左右各15下)
 
-// 🔍 【核心自動偵測】判斷目前是測試服還是正式服
-const IS_DEV_MODE = window.location.pathname.includes('dev.html') || window.location.search.includes('debug=true');
-const DB_COLLECTION = IS_DEV_MODE ? "Players_Dev" : "Players_Main";
-
 // 檢查今天是否已經玩過
 function checkBoatEligibility() {
-    // 🛠️ Debug 模式特權：如果是測試服，直接放行，讓村長一直划！
-    if (IS_DEV_MODE) {
-        console.log("🛠️ [Debug 模式] 偵測到測試環境：已自動繞過每日限制！");
-        return true;
-    }
-
     const playedDate = localStorage.getItem('dragonBoatPlayedDate');
     const todayStr = new Date().toDateString();
     if (playedDate === todayStr) {
@@ -35,17 +25,15 @@ function checkBoatEligibility() {
 
 function openDragonBoatModal() {
     if (!checkBoatEligibility()) return;
+    
+    // 🔒 防晃動核心：鎖死主網頁滾動條
+    document.body.style.overflow = 'hidden';
+    
     document.getElementById('dragonBoatModal').style.display = 'flex';
     document.getElementById('boatStartOverlay').style.display = 'flex';
+    document.getElementById('boatIntroGroup').style.display = 'flex';
+    document.getElementById('boatCountdownBox').style.display = 'none';
     
-    // 🛠️ Debug 模式視覺提示：讓村長知道現在可以無限測試
-    if (IS_DEV_MODE) {
-        const descEl = document.querySelector('#boatStartOverlay p');
-        if (descEl && !descEl.innerHTML.includes('🛠️')) {
-            descEl.innerHTML += `<br><span style="color:#00e5ff; font-weight:bold;">🛠️ 偵測到測試服：已啟動無限除錯暢玩模式！</span>`;
-        }
-    }
-
     // 重置賽道狀態
     boatProgress = 0;
     lastPaddle = '';
@@ -58,13 +46,43 @@ function openDragonBoatModal() {
 function closeDragonBoat() {
     document.getElementById('dragonBoatModal').style.display = 'none';
     clearInterval(boatTimerInterval);
+    
+    // 🔓 解鎖主網頁滾動條
+    document.body.style.overflow = '';
 }
 
-function startDragonBoat() {
-    document.getElementById('boatStartOverlay').style.display = 'none';
-    boatStartTime = Date.now();
+// ⏱️ 核心新增：3秒倒數計時魔法
+function startDragonBoatCountdown() {
+    // 隱藏說明文字，開啟倒數大字
+    document.getElementById('boatIntroGroup').style.display = 'none';
+    const countdownBox = document.getElementById('boatCountdownBox');
+    countdownBox.style.display = 'block';
+    countdownBox.style.color = '#ffca28';
     
-    // 啟動毫秒碼表
+    let currentCount = 3;
+    countdownBox.innerText = currentCount;
+    
+    let countdownInterval = setInterval(() => {
+        currentCount--;
+        
+        if (currentCount > 0) {
+            countdownBox.innerText = currentCount;
+        } else if (currentCount === 0) {
+            countdownBox.innerText = "🏁 GO!";
+            countdownBox.style.color = "#2ecc71"; // 變成亮綠色出發點
+        } else {
+            // 倒數結束，全面開打！
+            clearInterval(countdownInterval);
+            document.getElementById('boatStartOverlay').style.display = 'none';
+            
+            // 啟動毫秒遊戲碼表
+            runDragonBoatTimer();
+        }
+    }, 1000); // 每隔 1 秒跳動一次
+}
+
+function runDragonBoatTimer() {
+    boatStartTime = Date.now();
     boatTimerInterval = setInterval(() => {
         let passed = (Date.now() - boatStartTime) / 1000;
         document.getElementById('boatTimer').innerText = passed.toFixed(2);
@@ -72,6 +90,7 @@ function startDragonBoat() {
 }
 
 function paddleBoat(side) {
+    // 碼表尚未啟動（包含倒數期間）或是暈眩中，通通不理按鈕
     if (isBoatStunned || boatStartTime === 0) return;
 
     if (side === lastPaddle) {
@@ -113,13 +132,8 @@ async function finishDragonBoat() {
     else if (timeTaken <= 11.0) { bonusPoints = 5; grade = "B 級好手"; }
     else if (timeTaken <= 15.0) { bonusPoints = 3; grade = "C 級新手"; }
 
-    // 只有在「非開發模式」下，才寫入今日日期封鎖後續遊玩
-    if (!IS_DEV_MODE) {
-        const todayStr = new Date().toDateString();
-        localStorage.setItem('dragonBoatPlayedDate', todayStr);
-    }
+    localStorage.setItem('dragonBoatPlayedDate', todayStr = new Date().toDateString());
 
-    // 🌟 關鍵保護：加總分
     let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
     total += bonusPoints;
     localStorage.setItem('totalEnergy', total);
@@ -128,25 +142,22 @@ async function finishDragonBoat() {
         document.getElementById('displayEnergy').innerText = total;
     }
 
-    // 同步寫入 Firebase (自動導流至正確的資料庫)
     try {
         const userId = window.userProfile ? window.userProfile.userId : ("anonymous_" + Date.now());
         if (typeof db !== "undefined") {
-            await db.collection(DB_COLLECTION).doc(userId).set({
+            await db.collection("Players_Dev").doc(userId).set({
                 totalEnergy: total
             }, { merge: true });
-            console.log(`📡 分數已成功刻入雲端金庫：${DB_COLLECTION}`);
         }
     } catch (err) {
         console.log("龍舟分數雲端同步延遲", err);
     }
 
-    closeDragonBoat();
+    closeDragonBoat(); // 內部已整合自動恢復解鎖網頁滾動
     
-    let suffix = IS_DEV_MODE ? "\n\n⚠️ [Debug 提示] 測試服未鎖定遊玩次數，關閉後可重新開啟再度測試！" : "";
     if (typeof showCustomAlert === "function") {
-        showCustomAlert('🏆', '奪標成功！', `划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！${suffix}`);
+        showCustomAlert('🏆', '奪標成功！', `划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！`);
     } else {
-        alert(`🏆 奪標成功！\n\n划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！${suffix}`);
+        alert(`🏆 奪標成功！\n\n划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！`);
     }
 }
