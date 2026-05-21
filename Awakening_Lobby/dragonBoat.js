@@ -1,5 +1,5 @@
 // ==========================================
-// 🛶 端午限定小遊戲：極速龍舟引擎
+// 🛶 端午限定小遊戲：極速龍舟引擎 (環境自適應防呆版)
 // ==========================================
 let boatProgress = 0;
 let lastPaddle = '';
@@ -8,12 +8,21 @@ let boatStartTime = 0;
 let boatTimerInterval = null;
 const MAX_STROKES = 30; // 總共需要划30下 (左右各15下)
 
+// 🔍 【核心自動偵測】判斷目前是測試服還是正式服
+const IS_DEV_MODE = window.location.pathname.includes('dev.html') || window.location.search.includes('debug=true');
+const DB_COLLECTION = IS_DEV_MODE ? "Players_Dev" : "Players_Main";
+
 // 檢查今天是否已經玩過
 function checkBoatEligibility() {
+    // 🛠️ Debug 模式特權：如果是測試服，直接放行，讓村長一直划！
+    if (IS_DEV_MODE) {
+        console.log("🛠️ [Debug 模式] 偵測到測試環境：已自動繞過每日限制！");
+        return true;
+    }
+
     const playedDate = localStorage.getItem('dragonBoatPlayedDate');
     const todayStr = new Date().toDateString();
     if (playedDate === todayStr) {
-        // 如果您原本有 showCustomAlert 函數，這裡可以直接呼叫
         if (typeof showCustomAlert === "function") {
             showCustomAlert('🛶', '今日已完賽', '勇者，您今天已經參與過端午龍舟賽了！\n請好好休息，明天再來奪標！');
         } else {
@@ -29,6 +38,14 @@ function openDragonBoatModal() {
     document.getElementById('dragonBoatModal').style.display = 'flex';
     document.getElementById('boatStartOverlay').style.display = 'flex';
     
+    // 🛠️ Debug 模式視覺提示：讓村長知道現在可以無限測試
+    if (IS_DEV_MODE) {
+        const descEl = document.querySelector('#boatStartOverlay p');
+        if (descEl && !descEl.innerHTML.includes('🛠️')) {
+            descEl.innerHTML += `<br><span style="color:#00e5ff; font-weight:bold;">🛠️ 偵測到測試服：已啟動無限除錯暢玩模式！</span>`;
+        }
+    }
+
     // 重置賽道狀態
     boatProgress = 0;
     lastPaddle = '';
@@ -55,14 +72,13 @@ function startDragonBoat() {
 }
 
 function paddleBoat(side) {
-    // 如果還沒按開始，或是正在暈眩中，都不受理按鈕
     if (isBoatStunned || boatStartTime === 0) return;
 
     if (side === lastPaddle) {
         // ❌ 懲罰機制：按錯邊，原地打結 0.5 秒
         isBoatStunned = true;
         document.getElementById('stunMsg').style.display = 'block';
-        if (navigator.vibrate) navigator.vibrate(200); // 讓手機震動一下(若支援)
+        if (navigator.vibrate) navigator.vibrate(200); 
         
         setTimeout(() => {
             isBoatStunned = false;
@@ -75,11 +91,9 @@ function paddleBoat(side) {
     lastPaddle = side;
     boatProgress++;
     
-    // 計算位移：從底部 5% 往上移動到 85% (共移動 80%)
     let newBottom = 5 + (boatProgress * (80 / MAX_STROKES));
     document.getElementById('playerBoat').style.bottom = newBottom + '%';
 
-    // 抵達終點！
     if (boatProgress >= MAX_STROKES) {
         finishDragonBoat();
     }
@@ -99,11 +113,13 @@ async function finishDragonBoat() {
     else if (timeTaken <= 11.0) { bonusPoints = 5; grade = "B 級好手"; }
     else if (timeTaken <= 15.0) { bonusPoints = 3; grade = "C 級新手"; }
 
-    // 寫入今日日期，防作弊重複刷分
-    const todayStr = new Date().toDateString();
-    localStorage.setItem('dragonBoatPlayedDate', todayStr);
+    // 只有在「非開發模式」下，才寫入今日日期封鎖後續遊玩
+    if (!IS_DEV_MODE) {
+        const todayStr = new Date().toDateString();
+        localStorage.setItem('dragonBoatPlayedDate', todayStr);
+    }
 
-    // 🌟 關鍵保護：將獎勵「只加進總能量」，絕對不影響解鎖任務的分數！
+    // 🌟 關鍵保護：加總分
     let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
     total += bonusPoints;
     localStorage.setItem('totalEnergy', total);
@@ -112,16 +128,14 @@ async function finishDragonBoat() {
         document.getElementById('displayEnergy').innerText = total;
     }
 
-    // 同步寫入 Firebase (只更新總分)
+    // 同步寫入 Firebase (自動導流至正確的資料庫)
     try {
         const userId = window.userProfile ? window.userProfile.userId : ("anonymous_" + Date.now());
-        // 注意這裡：如果是正式版，記得在 main.html 呼叫時會寫入 Players_Main，
-        // 但因為邏輯現在在外部，只要 db.collection 指向正確即可。
-        // 我們先寫死 Players_Dev 以供測試服使用，後續可優化為傳入參數或判斷環境。
         if (typeof db !== "undefined") {
-            await db.collection("Players_Dev").doc(userId).set({
+            await db.collection(DB_COLLECTION).doc(userId).set({
                 totalEnergy: total
             }, { merge: true });
+            console.log(`📡 分數已成功刻入雲端金庫：${DB_COLLECTION}`);
         }
     } catch (err) {
         console.log("龍舟分數雲端同步延遲", err);
@@ -129,9 +143,10 @@ async function finishDragonBoat() {
 
     closeDragonBoat();
     
+    let suffix = IS_DEV_MODE ? "\n\n⚠️ [Debug 提示] 測試服未鎖定遊玩次數，關閉後可重新開啟再度測試！" : "";
     if (typeof showCustomAlert === "function") {
-        showCustomAlert('🏆', '奪標成功！', `划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！`);
+        showCustomAlert('🏆', '奪標成功！', `划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！${suffix}`);
     } else {
-        alert(`🏆 奪標成功！\n\n划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！`);
+        alert(`🏆 奪標成功！\n\n划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！${suffix}`);
     }
 }
