@@ -49,8 +49,8 @@ function openDragonBoatModal() {
     document.getElementById('playerBoat').style.bottom = '5%';
     // 👇 新增這三行：讓船身與雙槳回正
     document.getElementById('playerBoat').style.transform = 'translateX(-50%) rotate(0deg)';
-    document.getElementById('paddleLeft').style.transform = 'rotate(0deg)';
-    document.getElementById('paddleRight').style.transform = 'rotate(0deg)';
+    document.getElementById('paddleLeftWrapper').style.transform = 'rotate(0deg)';
+    document.getElementById('paddleRightWrapper').style.transform = 'rotate(0deg)';
 
     document.getElementById('boatTimer').innerText = '00.00';
 }

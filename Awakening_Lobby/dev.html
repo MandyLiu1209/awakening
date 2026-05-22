@@ -9,6 +9,35 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <style>
+        /* 🌊 極速龍舟專屬：流體動力學划槳動畫 CSS */
+        
+        /* 定義左槳划船循環 (模擬 GIF 軌跡) */
+        @keyframes rowingLeft {
+            0% { transform: translate(0px, 0px) rotate(0deg) scale(1); }           /* 準備 */
+            15% { transform: translate(-3px, -8px) rotate(15deg) scale(1.1); }    /* 入水 Catch (向前探、變大) */
+            50% { transform: translate(2px, 25px) rotate(-60deg) scale(0.9); }    /* 用力划 Pull (向後拉、變小模擬水底) */
+            80% { transform: translate(0px, 10px) rotate(-15deg) scale(1); }      /* 出水 Finish */
+            100% { transform: translate(0px, 0px) rotate(0deg) scale(1); }        /* 復位 Recovery */
+        }
+
+        /* 定義右槳划船循環 (對稱) */
+        @keyframes rowingRight {
+            0% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
+            15% { transform: translate(3px, -8px) rotate(-15deg) scale(1.1); }
+            50% { transform: translate(-2px, 25px) rotate(60deg) scale(0.9); }
+            80% { transform: translate(0px, 10px) rotate(15deg) scale(1); }
+            100% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
+        }
+
+        /* 觸發動畫的 CSS 類別 */
+        .animate-rowing-left {
+            animation: rowingLeft 0.4s ease-out forwards; /* 動畫持續 0.4秒，模擬快速點擊手感 */
+        }
+        
+        .animate-rowing-right {
+            animation: rowingRight 0.4s ease-out forwards;
+        }
+        
         :root { --main-brown: #8b4513; --accent-orange: #d35400; --bg-cream: #fffaf0; }
         body { font-family: '微軟正黑體', sans-serif; background: #2c1e1a; color: #fff; margin: 0; padding: 10px; display: flex; justify-content: center; }
         .container { background: url('https://www.transparenttextures.com/patterns/paper-fibers.png'), var(--bg-cream); border: 6px solid var(--main-brown); border-radius: 30px; padding: 4vw; max-width: 500px; width: 95%; box-sizing: border-box; margin: 2vh auto; text-align: center; color: #5d4037; position: relative; }
@@ -227,43 +256,29 @@
         
         <div style="flex: 1; position: relative; background: linear-gradient(#b2ebf2, #4dd0e1); border-left: 3px dashed #00838f; border-right: 3px dashed #00838f; margin: 0 20px;">
             <div style="position: absolute; top: 12%; width: 100%; border-top: 5px dashed #d32f2f; text-align: center; color: #d32f2f; font-weight: bold; font-size: 16px; padding-top: 5px;">🚩 終點線</div>
-            <!--龍舟圖-->
-            <!--
-            <div id="playerBoat" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%) rotate(0deg); transition: bottom 0.1s ease-out, transform 0.1s ease-out; z-index: 5; user-select: none; -webkit-user-select: none; display: flex; justify-content: center; align-items: center; width: 60px;">
-                <div id="paddleLeft" style="position: absolute; left: -5px; top: 20px; width: 6px; height: 35px; background: #8b4513; border-radius: 5px; transform-origin: top center; transition: transform 0.1s;"></div>
-                <div style="font-size: 60px; transform: rotate(-90deg); line-height: 1;">🛶</div>
-                <div id="paddleRight" style="position: absolute; right: -5px; top: 20px; width: 6px; height: 35px; background: #8b4513; border-radius: 5px; transform-origin: top center; transition: transform 0.1s;"></div>
-            </div>
-            -->
-
-            <!--龍舟圖-->
+            
             <div id="playerBoat" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%) rotate(0deg); transition: bottom 0.1s ease-out, transform 0.1s ease-out; z-index: 5; user-select: none; -webkit-user-select: none; display: flex; justify-content: center; align-items: center; width: 80px; height: 120px;">
                 
-                <div id="paddleLeft" style="position: absolute; left: -2px; top: 40px; width: 8px; height: 45px; background: #8b4513; border-radius: 5px; transform-origin: top center; transition: transform 0.1s; box-shadow: 2px 2px 4px rgba(0,0,0,0.4);"></div>
+                <div id="paddleLeftWrapper" style="position: absolute; left: 0px; top: 40px; transform-origin: top center; z-index: 1;">
+                    <svg class="paddle-blade" width="12" height="60" viewBox="0 0 12 60" style="filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.4));">
+                        <rect x="4" y="0" width="4" height="40" rx="2" fill="#8b4513"/> 
+                        <path d="M 6 40 C 0 45, 0 55, 6 60 C 12 55, 12 45, 6 40 Z" fill="#cd853f"/> 
+                    </svg>
+                </div>
                 
                 <svg width="60" height="120" viewBox="0 0 60 120" xmlns="http://www.w3.org/2000/svg" style="z-index: 2; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.4));">
-                    <path d="M 25 100 L 35 100 L 30 115 Z" fill="#2ecc71"/>
-                    <rect x="15" y="30" width="30" height="75" rx="15" fill="#a0522d"/>
-                    <rect x="20" y="35" width="20" height="65" rx="10" fill="#f5deb3"/>
-                    
-                    <path d="M 10 30 Q 30 5 50 30 Z" fill="#c0392b"/>
-                    <rect x="15" y="15" width="30" height="25" rx="8" fill="#2ecc71"/>
-                    <path d="M 18 15 L 42 15 L 38 5 L 22 5 Z" fill="#27ae60"/>
-                    
-                    <path d="M 20 15 L 10 2 L 25 10 Z" fill="#f1c40f"/>
-                    <path d="M 40 15 L 50 2 L 35 10 Z" fill="#f1c40f"/>
-                    
-                    <circle cx="22" cy="18" r="3.5" fill="white"/>
-                    <circle cx="38" cy="18" r="3.5" fill="white"/>
-                    <circle cx="22" cy="18" r="1.5" fill="black"/>
-                    <circle cx="38" cy="18" r="1.5" fill="black"/>
-                    <circle cx="26" cy="8" r="1" fill="#145a32"/>
-                    <circle cx="34" cy="8" r="1" fill="#145a32"/>
+                    <path d="M 25 100 L 35 100 L 30 115 Z" fill="#2ecc71"/><rect x="15" y="30" width="30" height="75" rx="15" fill="#a0522d"/><rect x="20" y="35" width="20" height="65" rx="10" fill="#f5deb3"/><path d="M 10 30 Q 30 5 50 30 Z" fill="#c0392b"/><rect x="15" y="15" width="30" height="25" rx="8" fill="#2ecc71"/><path d="M 18 15 L 42 15 L 38 5 L 22 5 Z" fill="#27ae60"/><path d="M 20 15 L 10 2 L 25 10 Z" fill="#f1c40f"/><path d="M 40 15 L 50 2 L 35 10 Z" fill="#f1c40f"/><circle cx="22" cy="18" r="3.5" fill="white"/><circle cx="38" cy="18" r="3.5" fill="white"/>
+                    <circle cx="22" cy="18" r="1.5" fill="black"/><circle cx="38" cy="18" r="1.5" fill="black"/>
+                    <circle cx="26" cy="8" r="1" fill="#145a32"/><circle cx="34" cy="8" r="1" fill="#145a32"/>
                 </svg>
 
-                <div id="paddleRight" style="position: absolute; right: -2px; top: 40px; width: 8px; height: 45px; background: #8b4513; border-radius: 5px; transform-origin: top center; transition: transform 0.1s; box-shadow: -2px 2px 4px rgba(0,0,0,0.4);"></div>
+                <div id="paddleRightWrapper" style="position: absolute; right: 0px; top: 40px; transform-origin: top center; z-index: 1;">
+                    <svg class="paddle-blade" width="12" height="60" viewBox="0 0 12 60" style="filter: drop-shadow(-2px 2px 3px rgba(0,0,0,0.4));">
+                        <rect x="4" y="0" width="4" height="40" rx="2" fill="#8b4513"/> 
+                        <path d="M 6 40 C 0 45, 0 55, 6 60 C 12 55, 12 45, 6 40 Z" fill="#cd853f"/> 
+                    </svg>
+                </div>
             </div>
-            <!--龍舟結束-->
 
             <div id="stunMsg" style="position: absolute; top: 40%; width: 100%; text-align: center; color: #d32f2f; font-weight: bold; font-size: 28px; display: none; text-shadow: 2px 2px 0px white, -2px -2px 0px white;">❌ 划錯邊啦！</div>
         </div>
