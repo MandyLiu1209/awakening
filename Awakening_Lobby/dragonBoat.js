@@ -46,11 +46,12 @@ function openDragonBoatModal() {
     lastPaddle = '';
     isBoatStunned = false;
     boatStartTime = 0;
+    // 👇 關鍵新增：遊戲開啟或重玩時，強制讓船身回正，木槳回到「前探姿勢」！
     document.getElementById('playerBoat').style.bottom = '5%';
-    // 👇 新增這三行：讓船身與雙槳回正
     document.getElementById('playerBoat').style.transform = 'translateX(-50%) rotate(0deg)';
-    document.getElementById('paddleLeftWrapper').style.transform = 'rotate(0deg)';
-    document.getElementById('paddleRightWrapper').style.transform = 'rotate(0deg)';
+    document.getElementById('paddleLeftWrapper').style.transform = 'rotate(70deg)'; // 👈 改為前探 angles
+    document.getElementById('paddleRightWrapper').style.transform = 'rotate(-70deg)'; // 👈 改為前探 angles
+    // 👆 新增結束
 
     document.getElementById('boatTimer').innerText = '00.00';
 }

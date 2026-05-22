@@ -13,24 +13,23 @@
         
         /* 定義左槳划船循環 (模擬 GIF 軌跡) */
         @keyframes rowingLeft {
-            0%   { transform: rotate(0deg) scale(1); }
-            /* 往前伸 (Catch)：槳葉向外、向上揚起準備入水 */
-            20%  { transform: rotate(50deg) scale(1.05); }
-            /* 往後划 (Drive)：用力往後掃水，產生推進力 */
-            60%  { transform: rotate(-25deg) scale(0.95); }
-            /* 復位 (Recovery)：回到原位 */
-            100% { transform: rotate(0deg) scale(1); }
+            0%   { transform: rotate(70deg); }   /* 前探準備姿勢 (Forward-ready) */
+            /* 1. Catch 入水：往前伸得更遠，準備咬住水面 */
+            20%  { transform: rotate(85deg); } 
+            /* 2. Drive 用力划：狠狠地拉動水流，槳轉向後方 */
+            60%  { transform: rotate(-10deg); } 
+            /* 3. Recovery 復位：提起槳快速回到前探姿勢 */
+            80%  { transform: rotate(30deg); } 
+            100% { transform: rotate(70deg); }   /* 回到前探準備姿勢 */
         }
 
         /* 定義右槳划船循環 (對稱) */
         @keyframes rowingRight {
-            0%   { transform: rotate(0deg) scale(1); }
-            /* 往前伸 (Catch)：槳葉向外、向上揚起準備入水 */
-            20%  { transform: rotate(-50deg) scale(1.05); }
-            /* 往後划 (Drive)：用力往後掃水，產生推進力 */
-            60%  { transform: rotate(25deg) scale(0.95); }
-            /* 復位 (Recovery)：回到原位 */
-            100% { transform: rotate(0deg) scale(1); }
+            0%   { transform: rotate(-70deg); } /* 前探準備姿勢 */
+            20%  { transform: rotate(-85deg); } /* Catch */
+            60%  { transform: rotate(10deg); }  /* Drive */
+            80%  { transform: rotate(-30deg); } /* Recovery */
+            100% { transform: rotate(-70deg); } /* 回到前探準備姿勢 */
         }
 
         /* 觸發動畫的 CSS 類別 */
@@ -263,10 +262,10 @@
             
             <div id="playerBoat" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%) rotate(0deg); transition: bottom 0.1s ease-out, transform 0.1s ease-out; z-index: 5; user-select: none; -webkit-user-select: none; display: flex; justify-content: center; align-items: center; width: 80px; height: 120px;">
                 
-                <div id="paddleLeftWrapper" style="position: absolute; left: 22px; top: 55px; transform-origin: top center; z-index: 3;">
+                <div id="paddleLeftWrapper" style="position: absolute; left: 22px; top: 40px; transform-origin: top center; z-index: 3; transform: rotate(70deg);">
                     <svg class="paddle-blade" width="12" height="60" viewBox="0 0 12 60" style="filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.4));">
-                        <rect x="4" y="0" width="4" height="40" rx="2" fill="#8b4513"/>
-                        <path d="M 6 40 C 0 45, 0 55, 6 60 C 12 55, 12 45, 6 40 Z" fill="#cd853f"/>
+                        <rect x="4" y="0" width="4" height="40" rx="2" fill="#8b4513"/> 
+                        <path d="M 6 40 C 0 45, 0 55, 6 60 C 12 55, 12 45, 6 40 Z" fill="#cd853f"/> 
                     </svg>
                 </div>
                 
@@ -276,10 +275,10 @@
                     <circle cx="26" cy="8" r="1" fill="#145a32"/><circle cx="34" cy="8" r="1" fill="#145a32"/>
                 </svg>
 
-                <div id="paddleRightWrapper" style="position: absolute; right: 22px; top: 55px; transform-origin: top center; z-index: 3;">
+                <div id="paddleRightWrapper" style="position: absolute; right: 22px; top: 40px; transform-origin: top center; z-index: 3; transform: rotate(-70deg);">
                     <svg class="paddle-blade" width="12" height="60" viewBox="0 0 12 60" style="filter: drop-shadow(-2px 2px 3px rgba(0,0,0,0.4));">
-                        <rect x="4" y="0" width="4" height="40" rx="2" fill="#8b4513"/>
-                        <path d="M 6 40 C 0 45, 0 55, 6 60 C 12 55, 12 45, 6 40 Z" fill="#cd853f"/>
+                        <rect x="4" y="0" width="4" height="40" rx="2" fill="#8b4513"/> 
+                        <path d="M 6 40 C 0 45, 0 55, 6 60 C 12 55, 12 45, 6 40 Z" fill="#cd853f"/> 
                     </svg>
                 </div>
             </div>
