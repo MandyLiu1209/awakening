@@ -13,26 +13,24 @@
         
         /* 定義左槳划船循環 (模擬 GIF 軌跡) */
         @keyframes rowingLeft {
-            0% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
-            /* 入水 Catch：槳往前伸、往外擴張 */
-            15% { transform: translate(-6px, -20px) rotate(35deg) scale(1.1); }
-            /* 用力划 Pull：從前面用力「由上往下(後)」拉！ */
-            50% { transform: translate(0px, 25px) rotate(0deg) scale(0.9); }
-            /* 出水復位 Recovery：抬起槳準備下一次 */
-            80% { transform: translate(-3px, 5px) rotate(15deg) scale(1); }
-            100% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
+            0%   { transform: rotate(0deg) scale(1); }
+            /* 往前伸 (Catch)：槳葉向外、向上揚起準備入水 */
+            20%  { transform: rotate(50deg) scale(1.05); }
+            /* 往後划 (Drive)：用力往後掃水，產生推進力 */
+            60%  { transform: rotate(-25deg) scale(0.95); }
+            /* 復位 (Recovery)：回到原位 */
+            100% { transform: rotate(0deg) scale(1); }
         }
 
         /* 定義右槳划船循環 (對稱) */
         @keyframes rowingRight {
-            0% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
-            /* 入水 Catch：槳往前伸、往外擴張 */
-            15% { transform: translate(6px, -20px) rotate(-35deg) scale(1.1); }
-            /* 用力划 Pull：從前面用力「由上往下(後)」拉！ */
-            50% { transform: translate(0px, 25px) rotate(0deg) scale(0.9); }
-            /* 出水復位 Recovery：抬起槳準備下一次 */
-            80% { transform: translate(3px, 5px) rotate(-15deg) scale(1); }
-            100% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
+            0%   { transform: rotate(0deg) scale(1); }
+            /* 往前伸 (Catch)：槳葉向外、向上揚起準備入水 */
+            20%  { transform: rotate(-50deg) scale(1.05); }
+            /* 往後划 (Drive)：用力往後掃水，產生推進力 */
+            60%  { transform: rotate(25deg) scale(0.95); }
+            /* 復位 (Recovery)：回到原位 */
+            100% { transform: rotate(0deg) scale(1); }
         }
 
         /* 觸發動畫的 CSS 類別 */
