@@ -47,6 +47,11 @@ function openDragonBoatModal() {
     isBoatStunned = false;
     boatStartTime = 0;
     document.getElementById('playerBoat').style.bottom = '5%';
+    // 👇 新增這三行：讓船身與雙槳回正
+    document.getElementById('playerBoat').style.transform = 'translateX(-50%) rotate(0deg)';
+    document.getElementById('paddleLeft').style.transform = 'rotate(0deg)';
+    document.getElementById('paddleRight').style.transform = 'rotate(0deg)';
+
     document.getElementById('boatTimer').innerText = '00.00';
 }
 
@@ -106,10 +111,15 @@ function paddleBoat(side) {
     // 碼表尚未啟動（包含倒數期間）或是暈眩中，通通不理按鈕
     if (isBoatStunned || boatStartTime === 0) return;
 
+    const boatEl = document.getElementById('playerBoat');
+    const paddleLeft = document.getElementById('paddleLeft');
+    const paddleRight = document.getElementById('paddleRight');
+
     if (side === lastPaddle) {
         // ❌ 懲罰機制：按錯邊，原地打結 0.5 秒
         isBoatStunned = true;
         document.getElementById('stunMsg').style.display = 'block';
+        boatEl.style.transform = 'translateX(-50%) rotate(0deg)'; // 船身回正
         if (navigator.vibrate) navigator.vibrate(200); 
         
         setTimeout(() => {
@@ -123,10 +133,24 @@ function paddleBoat(side) {
     lastPaddle = side;
     boatProgress++;
     
+    // 🌊 核心動態特效：划水與船身反作用力傾斜
+    if (side === 'A') {
+        boatEl.style.transform = 'translateX(-50%) rotate(10deg)'; // 左槳划，船身向右傾
+        paddleLeft.style.transform = 'rotate(-65deg)'; // 左槳往後揚起
+        setTimeout(() => { paddleLeft.style.transform = 'rotate(0deg)'; }, 100);
+    } else {
+        boatEl.style.transform = 'translateX(-50%) rotate(-10deg)'; // 右槳划，船身向左傾
+        paddleRight.style.transform = 'rotate(65deg)'; // 右槳往後揚起
+        setTimeout(() => { paddleRight.style.transform = 'rotate(0deg)'; }, 100);
+    }
+
+    // 船身往前推進
     let newBottom = 5 + (boatProgress * (80 / MAX_STROKES));
     document.getElementById('playerBoat').style.bottom = newBottom + '%';
 
     if (boatProgress >= MAX_STROKES) {
+        // 抵達終點前，讓船身帥氣回正
+        boatEl.style.transform = 'translateX(-50%) rotate(0deg)';
         finishDragonBoat();
     }
 }
@@ -170,6 +194,9 @@ async function finishDragonBoat() {
     }
 
     closeDragonBoat(); // 內部已整合自動恢復解鎖網頁滾動
+
+    // 👇 核心新增：強制讓網頁平滑滾動回最頂部看能量值！
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     
     if (typeof showCustomAlert === "function") {
         showCustomAlert('🏆', '奪標成功！', `划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！`);
@@ -177,3 +204,11 @@ async function finishDragonBoat() {
         alert(`🏆 奪標成功！\n\n划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！`);
     }
 }
+
+
+
+
+
+
+
+

@@ -227,7 +227,13 @@
         
         <div style="flex: 1; position: relative; background: linear-gradient(#b2ebf2, #4dd0e1); border-left: 3px dashed #00838f; border-right: 3px dashed #00838f; margin: 0 20px;">
             <div style="position: absolute; top: 12%; width: 100%; border-top: 5px dashed #d32f2f; text-align: center; color: #d32f2f; font-weight: bold; font-size: 16px; padding-top: 5px;">🚩 終點線</div>
-            <div id="playerBoat" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); font-size: 60px; transition: bottom 0.1s ease-out; z-index: 5; user-select: none; -webkit-user-select: none;">🛶</div>
+            <!--龍舟圖-->
+            <div id="playerBoat" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%) rotate(0deg); transition: bottom 0.1s ease-out, transform 0.1s ease-out; z-index: 5; user-select: none; -webkit-user-select: none; display: flex; justify-content: center; align-items: center; width: 60px;">
+                <div id="paddleLeft" style="position: absolute; left: -5px; top: 20px; width: 6px; height: 35px; background: #8b4513; border-radius: 5px; transform-origin: top center; transition: transform 0.1s;"></div>
+                <div style="font-size: 60px; transform: rotate(-90deg); line-height: 1;">🛶</div>
+                <div id="paddleRight" style="position: absolute; right: -5px; top: 20px; width: 6px; height: 35px; background: #8b4513; border-radius: 5px; transform-origin: top center; transition: transform 0.1s;"></div>
+            </div>
+
             <div id="stunMsg" style="position: absolute; top: 40%; width: 100%; text-align: center; color: #d32f2f; font-weight: bold; font-size: 28px; display: none; text-shadow: 2px 2px 0px white, -2px -2px 0px white;">❌ 划錯邊啦！</div>
         </div>
 
