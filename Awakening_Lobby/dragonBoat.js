@@ -112,8 +112,10 @@ function paddleBoat(side) {
     if (isBoatStunned || boatStartTime === 0) return;
 
     const boatEl = document.getElementById('playerBoat');
-    const paddleLeft = document.getElementById('paddleLeft');
-    const paddleRight = document.getElementById('paddleRight');
+    //const paddleLeft = document.getElementById('paddleLeft');
+    //const paddleRight = document.getElementById('paddleRight');
+    const paddleLeftWrap = document.getElementById('paddleLeftWrapper');
+    const paddleRightWrap = document.getElementById('paddleRightWrapper');
 
     if (side === lastPaddle) {
         // ❌ 懲罰機制：按錯邊，原地打結 0.5 秒
@@ -135,18 +137,37 @@ function paddleBoat(side) {
     
     // 🌊 核心動態特效：划水與船身反作用力傾斜
     if (side === 'A') {
-        boatEl.style.transform = 'translateX(-50%) rotate(10deg)'; // 左槳划，船身向右傾
-        paddleLeft.style.transform = 'rotate(-65deg)'; // 左槳往後揚起
-        setTimeout(() => { paddleLeft.style.transform = 'rotate(0deg)'; }, 100);
+        //boatEl.style.transform = 'translateX(-50%) rotate(10deg)'; // 左槳划，船身向右傾
+        //paddleLeft.style.transform = 'rotate(-65deg)'; // 左槳往後揚起
+        //setTimeout(() => { paddleLeft.style.transform = 'rotate(0deg)'; }, 100);
+
+        // 先移除舊的 class (防止連點導致動畫沒重跑)
+        paddleLeftWrap.classList.remove('animate-rowing-left');
+        // 強制瀏覽器重繪 (這行是魔法，確保動畫能再次觸發)
+        void paddleLeftWrap.offsetWidth; 
+        // 加上新的 class，開始跑 0.4秒的完整的划船循環
+        paddleLeftWrap.classList.add('animate-rowing-left');
+        
+        // 船身維持輕微向右傾斜
+        boatEl.style.transform = 'translateX(-50%) rotate(8deg)';
+
     } else {
-        boatEl.style.transform = 'translateX(-50%) rotate(-10deg)'; // 右槳划，船身向左傾
-        paddleRight.style.transform = 'rotate(65deg)'; // 右槳往後揚起
-        setTimeout(() => { paddleRight.style.transform = 'rotate(0deg)'; }, 100);
+        //boatEl.style.transform = 'translateX(-50%) rotate(-10deg)'; // 右槳划，船身向左傾
+        //paddleRight.style.transform = 'rotate(65deg)'; // 右槳往後揚起
+        //setTimeout(() => { paddleRight.style.transform = 'rotate(0deg)'; }, 100);
+
+        paddleRightWrap.classList.remove('animate-rowing-right');
+        void paddleRightWrap.offsetWidth;
+        paddleRightWrap.classList.add('animate-rowing-right');
+        
+        // 船身維持輕微向左傾斜
+        boatEl.style.transform = 'translateX(-50%) rotate(-8deg)';
     }
 
     // 船身往前推進
     let newBottom = 5 + (boatProgress * (80 / MAX_STROKES));
-    document.getElementById('playerBoat').style.bottom = newBottom + '%';
+    //document.getElementById('playerBoat').style.bottom = newBottom + '%';
+    boatEl.style.bottom = newBottom + '%';
 
     if (boatProgress >= MAX_STROKES) {
         // 抵達終點前，讓船身帥氣回正
