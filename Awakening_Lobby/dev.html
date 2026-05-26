@@ -633,7 +633,25 @@
                 document.getElementById('displayEnergy').innerText = total;
             }
 
-            // 👇👇👇 請在這裡插入【雲端備份防護網 (Dev測試服專用)】 👇👇👇
+            // ========================================================
+            // 🌟 修正點 1：先更新關卡分數
+            // ========================================================
+            // 記錄當前任務的累計分數，並檢查是否解鎖裝備
+            let taskScoreKey = "taskScore_" + taskIndex;
+            let currentTaskScore = parseInt(localStorage.getItem(taskScoreKey)) || 0;
+            currentTaskScore += actualAdd;
+            localStorage.setItem(taskScoreKey, currentTaskScore);
+
+            // ========================================================
+            // 🌟 修正點 2：先檢查並發放裝備 (寫入本地 localStorage)
+            // ========================================================
+            checkEquipmentUnlocked(taskIndex, currentTaskScore);
+
+            // ========================================================
+            // 🌟 修正點 3：最後才執行雲端備份！(確保打包的是最新狀態)
+            // ========================================================
+
+            // 👇👇👇 請在這裡插入【雲端備份防護網 (正式服專用)】 👇👇👇
             try {
                 // 取得玩家的 LINE ID 作為唯一識別碼 (若抓不到則給予臨時 ID 避免報錯)
                 //const userId = liff.getContext() ? liff.getContext().userId : ("anonymous_" + Date.now());
@@ -641,8 +659,9 @@
                 
                 const userId = window.userProfile ? window.userProfile.userId : ("anonymous_" + Date.now());
                 const nickname = localStorage.getItem('gameNickname') || "未知勇者";
-
                 const currentRole = localStorage.getItem('selectedRole') || "未選擇";
+                
+                // 這裡抓到的 unlocked 就會是剛剛 checkEquipmentUnlocked 發放過的最新的裝備清單！
                 const unlocked = JSON.parse(localStorage.getItem('unlockedEquips')) || [];
 
                 // 🌟 新增：把防作弊與天數記憶也抓出來
@@ -655,9 +674,9 @@
                 for (let i = 0; i <= 6; i++) {
                     taskScores["taskScore_" + i] = localStorage.getItem("taskScore_" + i) || 0;
                 }
-
+                
                 // 將最新狀態寫入 Firebase 的【Players_Dev】資料庫
-                db.collection("Players_Dev").doc(userId).set({
+                await db.collection("Players_Main").doc(userId).set({
                     lineName: window.userProfile ? window.userProfile.displayName : "未知",
                     nickname: nickname,
                     role: currentRole,
@@ -677,15 +696,7 @@
                 // 如果網路突然卡住導致上傳失敗，只在後台記錄，絕對不干擾玩家的打卡畫面
                 console.log("雲端備份暫時失敗，但不影響本地遊戲進行", err);
             }
-            // 👆👆👆 插入結束 👆👆👆
 
-            // 記錄當前任務的累計分數，並檢查是否解鎖裝備
-            let taskScoreKey = "taskScore_" + taskIndex;
-            let currentTaskScore = parseInt(localStorage.getItem(taskScoreKey)) || 0;
-            currentTaskScore += actualAdd;
-            localStorage.setItem(taskScoreKey, currentTaskScore);
-
-            checkEquipmentUnlocked(taskIndex, currentTaskScore);
         }
         
         //return { added: actualAdd, current: todayEnergy, limit: dailyLimit };
