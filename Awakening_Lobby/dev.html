@@ -258,30 +258,22 @@
                 
                 <div id="boatRockContainer" style="width: 100%; height: 100%; position: relative; transition: transform 0.1s ease-out; display: flex; justify-content: center; align-items: center; transform-origin: center center;">
                     
-                    <div id="paddleLeftWrapper" style="position: absolute; left: 22px; top: 40px; transform-origin: top center; z-index: 3; transform: rotate(70deg);">
-                        <svg class="paddle-blade" width="12" height="60" viewBox="0 0 12 60" style="filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.4));">
-                            <rect x="4" y="0" width="4" height="40" rx="2" fill="#8b4513"/> 
-                            <path d="M 6 40 C 0 45, 0 55, 6 60 C 12 55, 12 45, 6 40 Z" fill="#cd853f"/> 
-                        </svg>
-                        <img id="splashLeft" src="https://i.imgur.com/xXGvUfH.png" alt="水花" style="position: absolute; left: -15px; top: 35px; width: 40px; display: none; filter: brightness(1.2) contrast(1.1);">
+                    <div id="paddleLeftWrapper" style="position: absolute; left: 10px; top: 30px; transform-origin: center 20%; z-index: 3; transform: rotate(70deg);">
+                        <img src="paddle.png" alt="左槳" style="width: 25px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));">
+                        
+                        <img id="splashLeft" src="splash.png" alt="水花" style="position: absolute; left: -15px; top: 15px; width: 40px; display: none;">
                     </div>
                     
-                    <svg width="60" height="120" viewBox="0 0 60 120" xmlns="http://www.w3.org/2000/svg" style="z-index: 2; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.4));">
-                        <path d="M 25 100 L 35 100 L 30 115 Z" fill="#2ecc71"/><rect x="15" y="30" width="30" height="75" rx="15" fill="#a0522d"/><rect x="20" y="35" width="20" height="65" rx="10" fill="#f5deb3"/><path d="M 10 30 Q 30 5 50 30 Z" fill="#c0392b"/><rect x="15" y="15" width="30" height="25" rx="8" fill="#2ecc71"/><path d="M 18 15 L 42 15 L 38 5 L 22 5 Z" fill="#27ae60"/><path d="M 20 15 L 10 2 L 25 10 Z" fill="#f1c40f"/><path d="M 40 15 L 50 2 L 35 10 Z" fill="#f1c40f"/><circle cx="22" cy="18" r="3.5" fill="white"/><circle cx="38" cy="18" r="3.5" fill="white"/>
-                        <circle cx="22" cy="18" r="1.5" fill="black"/><circle cx="38" cy="18" r="1.5" fill="black"/>
-                        <circle cx="26" cy="8" r="1" fill="#145a32"/><circle cx="34" cy="8" r="1" fill="#145a32"/>
-                    </svg>
+                    <img src="boat.png" alt="龍舟" style="width: 80px; z-index: 2; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.5));">
 
-                    <div id="paddleRightWrapper" style="position: absolute; right: 22px; top: 40px; transform-origin: top center; z-index: 3; transform: rotate(-70deg);">
-                        <svg class="paddle-blade" width="12" height="60" viewBox="0 0 12 60" style="filter: drop-shadow(-2px 2px 3px rgba(0,0,0,0.4));">
-                            <rect x="4" y="0" width="4" height="40" rx="2" fill="#8b4513"/> 
-                            <path d="M 6 40 C 0 45, 0 55, 6 60 C 12 55, 12 45, 6 40 Z" fill="#cd853f"/> 
-                        </svg>
-                        <img id="splashRight" src="https://i.imgur.com/xXGvUfH.png" alt="水花" style="position: absolute; right: -15px; top: 35px; width: 40px; display: none; transform: scaleX(-1) brightness(1.2) contrast(1.1);">
-                    </div>
-
+                    <div id="paddleRightWrapper" style="position: absolute; right: 10px; top: 30px; transform-origin: center 20%; z-index: 3; transform: rotate(-70deg);">
+                        <img src="paddle.png" alt="右槳" style="width: 25px; filter: drop-shadow(-2px 2px 3px rgba(0,0,0,0.5));">
+                        
+                        <img id="splashRight" src="splash.png" alt="水花" style="position: absolute; right: -15px; top: 15px; width: 40px; display: none; transform: scaleX(-1);">
                 </div>
+
             </div>
+        </div>
         
         <!--
         <div style="flex: 1; position: relative; background: linear-gradient(#b2ebf2, #4dd0e1); border-left: 3px dashed #00838f; border-right: 3px dashed #00838f; margin: 0 20px;">
