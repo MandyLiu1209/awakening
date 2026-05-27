@@ -112,17 +112,22 @@ function paddleBoat(side) {
     // 碼表尚未啟動（包含倒數期間）或是暈眩中，通通不理按鈕
     if (isBoatStunned || boatStartTime === 0) return;
 
-    const boatEl = document.getElementById('playerBoat');
+    const boatMainEl = document.getElementById('playerBoat');
+    const boatRockContainer = document.getElementById('boatRockContainer');
     //const paddleLeft = document.getElementById('paddleLeft');
     //const paddleRight = document.getElementById('paddleRight');
     const paddleLeftWrap = document.getElementById('paddleLeftWrapper');
     const paddleRightWrap = document.getElementById('paddleRightWrapper');
+    const splashLeft = document.getElementById('splashLeft');
+    const splashRight = document.getElementById('splashRight');
 
     if (side === lastPaddle) {
         // ❌ 懲罰機制：按錯邊，原地打結 0.5 秒
         isBoatStunned = true;
         document.getElementById('stunMsg').style.display = 'block';
-        boatEl.style.transform = 'translateX(-50%) rotate(0deg)'; // 船身回正
+        //boatEl.style.transform = 'translateX(-50%) rotate(0deg)'; // 船身回正
+        boatRockContainer.style.transform = 'rotate(0deg)'; // 船身瞬間回正
+        
         if (navigator.vibrate) navigator.vibrate(200); 
         
         setTimeout(() => {
@@ -136,43 +141,46 @@ function paddleBoat(side) {
     lastPaddle = side;
     boatProgress++;
     
-    // 🌊 核心動態特效：划水與船身反作用力傾斜
+    // 🌊 核心改動：驅動 CSS 動畫與爆發力「整船搖擺」
     if (side === 'A') {
-        //boatEl.style.transform = 'translateX(-50%) rotate(10deg)'; // 左槳划，船身向右傾
-        //paddleLeft.style.transform = 'rotate(-65deg)'; // 左槳往後揚起
-        //setTimeout(() => { paddleLeft.style.transform = 'rotate(0deg)'; }, 100);
-
-        // 先移除舊的 class (防止連點導致動畫沒重跑)
+        // 1. 觸發左槳 CSS 掃水動畫
         paddleLeftWrap.classList.remove('animate-rowing-left');
-        // 強制瀏覽器重繪 (這行是魔法，確保動畫能再次觸發)
         void paddleLeftWrap.offsetWidth; 
-        // 加上新的 class，開始跑 0.4秒的完整的划船循環
         paddleLeftWrap.classList.add('animate-rowing-left');
         
-        // 船身維持輕微向右傾斜
-        boatEl.style.transform = 'translateX(-50%) rotate(8deg)';
+        // 2. 物理爆發力：整艘船瞬間向右傾斜 ( rotate(5deg) )！
+        boatRockContainer.style.transform = 'rotate(5deg)'; 
+        
+        // 3. 實體圖片水花：延遲 0.05秒(入水瞬間)召喚水花，0.2秒後消失
+        setTimeout(() => { 
+            splashLeft.style.display = 'block'; 
+            setTimeout(() => { splashLeft.style.display = 'none'; }, 200);
+        }, 50);
 
     } else {
-        //boatEl.style.transform = 'translateX(-50%) rotate(-10deg)'; // 右槳划，船身向左傾
-        //paddleRight.style.transform = 'rotate(65deg)'; // 右槳往後揚起
-        //setTimeout(() => { paddleRight.style.transform = 'rotate(0deg)'; }, 100);
-
+        // 1. 觸發右槳 CSS 掃水動畫
         paddleRightWrap.classList.remove('animate-rowing-right');
         void paddleRightWrap.offsetWidth;
         paddleRightWrap.classList.add('animate-rowing-right');
         
-        // 船身維持輕微向左傾斜
-        boatEl.style.transform = 'translateX(-50%) rotate(-8deg)';
+        // 2. 物理爆發力：整艘船瞬間向左傾斜 ( rotate(-5deg) )！
+        boatRockContainer.style.transform = 'rotate(-5deg)';
+
+        // 3. 實體圖片水花：召喚右側水花
+        setTimeout(() => { 
+            splashRight.style.display = 'block'; 
+            setTimeout(() => { splashRight.style.display = 'none'; }, 200);
+        }, 50);
     }
 
     // 船身往前推進
     let newBottom = 5 + (boatProgress * (80 / MAX_STROKES));
     //document.getElementById('playerBoat').style.bottom = newBottom + '%';
-    boatEl.style.bottom = newBottom + '%';
+    boatMainEl.style.bottom = newBottom + '%';
 
     if (boatProgress >= MAX_STROKES) {
         // 抵達終點前，讓船身帥氣回正
-        boatEl.style.transform = 'translateX(-50%) rotate(0deg)';
+        boatRockContainer.style.transform = 'rotate(0deg)';
         finishDragonBoat();
     }
 }

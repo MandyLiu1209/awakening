@@ -11,34 +11,31 @@
     <style>
         /* 🌊 極速龍舟專屬：流體動力學划槳動畫 CSS */
         
-        /* 定義左槳划船循環 (模擬 GIF 軌跡) */
+        /* 定義左槳划船循環 (0.3秒的快速物理過程) */
         @keyframes rowingLeft {
-            0%   { transform: rotate(70deg); }   /* 前探準備姿勢 (Forward-ready) */
-            /* 1. Catch 入水：往前伸得更遠，準備咬住水面 */
-            20%  { transform: rotate(85deg); } 
-            /* 2. Drive 用力划：狠狠地拉動水流，槳轉向後方 */
-            60%  { transform: rotate(-10deg); } 
-            /* 3. Recovery 復位：提起槳快速回到前探姿勢 */
-            80%  { transform: rotate(30deg); } 
-            100% { transform: rotate(70deg); }   /* 回到前探準備姿勢 */
+            0%   { transform: rotate(70deg); }   /* 前探準備姿勢 */
+            15%  { transform: rotate(85deg); }   /* 1. Catch：向前探出吃水 */
+            45%  { transform: rotate(-10deg); }  /* 2. Drive：狠狠往後下拉動水流！ */
+            75%  { transform: rotate(20deg); }   /* 3. Recovery：出水彈起 */
+            100% { transform: rotate(70deg); }   /* 回到準備姿勢 */
         }
 
         /* 定義右槳划船循環 (對稱) */
         @keyframes rowingRight {
             0%   { transform: rotate(-70deg); } /* 前探準備姿勢 */
-            20%  { transform: rotate(-85deg); } /* Catch */
-            60%  { transform: rotate(10deg); }  /* Drive */
-            80%  { transform: rotate(-30deg); } /* Recovery */
-            100% { transform: rotate(-70deg); } /* 回到前探準備姿勢 */
+            15%  { transform: rotate(-85deg); } /* Catch */
+            45%  { transform: rotate(10deg); }  /* Drive */
+            75%  { transform: rotate(-20deg); } /* Recovery */
+            100% { transform: rotate(-70deg); } /* 回到準備姿勢 */
         }
 
         /* 觸發動畫的 CSS 類別 */
         .animate-rowing-left {
-            animation: rowingLeft 0.4s ease-out forwards; /* 動畫持續 0.4秒，模擬快速點擊手感 */
+            animation: rowingLeft 0.3s ease-out forwards; /* 動畫持續 0.3秒，模擬快速點擊手感 */
         }
         
         .animate-rowing-right {
-            animation: rowingRight 0.4s ease-out forwards;
+            animation: rowingRight 0.3s ease-out forwards;
         }
 
         :root { --main-brown: #8b4513; --accent-orange: #d35400; --bg-cream: #fffaf0; }
@@ -256,22 +253,53 @@
             ⏱️ <span id="boatTimer">00.00</span> 秒
             <button onclick="closeDragonBoat()" style="position: absolute; right: 10px; top: 10px; background: #ff5252; color: white; border: 2px solid white; border-radius: 50%; width: 32px; height: 32px; font-weight: bold; cursor: pointer;">X</button>
         </div>
+
+        <div id="playerBoat" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); transition: bottom 0.1s ease-out; z-index: 5; user-select: none; -webkit-user-select: none; width: 80px; height: 120px;">
+                
+                <div id="boatRockContainer" style="width: 100%; height: 100%; position: relative; transition: transform 0.1s ease-out; display: flex; justify-content: center; align-items: center; transform-origin: center center;">
+                    
+                    <div id="paddleLeftWrapper" style="position: absolute; left: 22px; top: 40px; transform-origin: top center; z-index: 3; transform: rotate(70deg);">
+                        <svg class="paddle-blade" width="12" height="60" viewBox="0 0 12 60" style="filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.4));">
+                            <rect x="4" y="0" width="4" height="40" rx="2" fill="#8b4513"/> 
+                            <path d="M 6 40 C 0 45, 0 55, 6 60 C 12 55, 12 45, 6 40 Z" fill="#cd853f"/> 
+                        </svg>
+                        <img id="splashLeft" src="https://i.imgur.com/xXGvUfH.png" alt="水花" style="position: absolute; left: -15px; top: 35px; width: 40px; display: none; filter: brightness(1.2) contrast(1.1);">
+                    </div>
+                    
+                    <svg width="60" height="120" viewBox="0 0 60 120" xmlns="http://www.w3.org/2000/svg" style="z-index: 2; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.4));">
+                        <path d="M 25 100 L 35 100 L 30 115 Z" fill="#2ecc71"/><rect x="15" y="30" width="30" height="75" rx="15" fill="#a0522d"/><rect x="20" y="35" width="20" height="65" rx="10" fill="#f5deb3"/><path d="M 10 30 Q 30 5 50 30 Z" fill="#c0392b"/><rect x="15" y="15" width="30" height="25" rx="8" fill="#2ecc71"/><path d="M 18 15 L 42 15 L 38 5 L 22 5 Z" fill="#27ae60"/><path d="M 20 15 L 10 2 L 25 10 Z" fill="#f1c40f"/><path d="M 40 15 L 50 2 L 35 10 Z" fill="#f1c40f"/><circle cx="22" cy="18" r="3.5" fill="white"/><circle cx="38" cy="18" r="3.5" fill="white"/>
+                        <circle cx="22" cy="18" r="1.5" fill="black"/><circle cx="38" cy="18" r="1.5" fill="black"/>
+                        <circle cx="26" cy="8" r="1" fill="#145a32"/><circle cx="34" cy="8" r="1" fill="#145a32"/>
+                    </svg>
+
+                    <div id="paddleRightWrapper" style="position: absolute; right: 22px; top: 40px; transform-origin: top center; z-index: 3; transform: rotate(-70deg);">
+                        <svg class="paddle-blade" width="12" height="60" viewBox="0 0 12 60" style="filter: drop-shadow(-2px 2px 3px rgba(0,0,0,0.4));">
+                            <rect x="4" y="0" width="4" height="40" rx="2" fill="#8b4513"/> 
+                            <path d="M 6 40 C 0 45, 0 55, 6 60 C 12 55, 12 45, 6 40 Z" fill="#cd853f"/> 
+                        </svg>
+                        <img id="splashRight" src="https://i.imgur.com/xXGvUfH.png" alt="水花" style="position: absolute; right: -15px; top: 35px; width: 40px; display: none; transform: scaleX(-1) brightness(1.2) contrast(1.1);">
+                    </div>
+
+                </div>
+            </div>
         
+        <!--
         <div style="flex: 1; position: relative; background: linear-gradient(#b2ebf2, #4dd0e1); border-left: 3px dashed #00838f; border-right: 3px dashed #00838f; margin: 0 20px;">
             <div style="position: absolute; top: 12%; width: 100%; border-top: 5px dashed #d32f2f; text-align: center; color: #d32f2f; font-weight: bold; font-size: 16px; padding-top: 5px;">🚩 終點線</div>
 
             <div id="playerBoat" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%) rotate(0deg); transition: bottom 0.1s ease-out, transform 0.1s ease-out; z-index: 5; user-select: none; -webkit-user-select: none; display: flex; justify-content: center; align-items: center; width: 80px; height: 120px;">
                 
-                <div id="paddleLeftWrapper" style="position: absolute; left: 12px; top: 60px; transform-origin: center 20%; z-index: 3; transform: rotate(70deg);">
+                <div id="paddleLeftWrapper" style="position: absolute; left: 14px; top: 60px; transform-origin: center 20%; z-index: 3; transform: rotate(70deg);">
                     <img src="paddle.png" alt="左槳" style="width: 25px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));">
                 </div>
                 
                 <img src="boat.png" alt="龍舟" style="width: 80px; z-index: 2; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.5));">
 
-                <div id="paddleRightWrapper" style="position: absolute; right: 8px; top: 60px; transform-origin: center 20%; z-index: 3; transform: rotate(-70deg);">
+                <div id="paddleRightWrapper" style="position: absolute; right: 6px; top: 60px; transform-origin: center 20%; z-index: 3; transform: rotate(-70deg);">
                     <img src="paddle.png" alt="右槳" style="width: 25px; filter: drop-shadow(-2px 2px 3px rgba(0,0,0,0.5));">
                 </div>
             </div>
+            -->
             
             <!--
             <div id="playerBoat" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%) rotate(0deg); transition: bottom 0.1s ease-out, transform 0.1s ease-out; z-index: 5; user-select: none; -webkit-user-select: none; display: flex; justify-content: center; align-items: center; width: 80px; height: 120px;">
