@@ -118,8 +118,8 @@ function paddleBoat(side) {
     //const paddleRight = document.getElementById('paddleRight');
     const paddleLeftWrap = document.getElementById('paddleLeftWrapper');
     const paddleRightWrap = document.getElementById('paddleRightWrapper');
-    const splashLeft = document.getElementById('splashLeft');
-    const splashRight = document.getElementById('splashRight');
+    //const splashLeft = document.getElementById('splashLeft');
+    //const splashRight = document.getElementById('splashRight');
 
     if (side === lastPaddle) {
         // ❌ 懲罰機制：按錯邊，原地打結 0.5 秒
@@ -127,7 +127,7 @@ function paddleBoat(side) {
         document.getElementById('stunMsg').style.display = 'block';
         //boatEl.style.transform = 'translateX(-50%) rotate(0deg)'; // 船身回正
         boatRockContainer.style.transform = 'rotate(0deg)'; // 船身瞬間回正
-        
+
         if (navigator.vibrate) navigator.vibrate(200); 
         
         setTimeout(() => {
