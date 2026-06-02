@@ -9,6 +9,28 @@ let boatStartTime = 0;
 let boatTimerInterval = null;
 const MAX_STROKES = 30; // 總共需要划30下 (左右各15下)
 
+// 🌟 核心新增：設定每天小遊戲的解鎖門檻分數
+function getRequiredEnergyForDay(day) {
+    const thresholds = {
+        1: 13,  // 第 1 天需要 16 分才能玩
+        2: 13,  // 第 2 天需要 16 分
+        3: 13,  // 例如第 3 天任務比較難，可以提高到 18 分
+        4: 13,
+        5: 16,  
+        6: 16,  // 
+        7: 16,  // 
+        8: 19,
+        9: 19,  // 
+        10: 19,  // 
+        11: 22,  // 
+        12: 22,
+        13: 22,  // 
+        14: 25,  // 
+    };
+    // 如果找不到當天的設定，預設為 16 分
+    return thresholds[day] || 16; 
+}
+
 // 檢查今天是否已經玩過
 function checkBoatEligibility() {
     // 🌟 核心新增：如果 DEBUG 模式開啟，直接無視規則放行！
@@ -17,6 +39,27 @@ function checkBoatEligibility() {
         return true; 
     }
 
+    // 👇 核心新增：檢查今日能量是否達標
+    // 從手機記憶體抓取「今日能量」與「目前天數」
+    let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
+    let currentDay = parseInt(localStorage.getItem('currentDay')) || 1; 
+    
+    // 呼叫我們剛剛寫好的函數，取得今天的及格分數
+    let requiredEnergy = getRequiredEnergyForDay(currentDay);
+
+    // 如果今天分數不夠，直接擋下來！
+    if (todayEnergy < requiredEnergy) {
+        if (typeof showCustomAlert === "function") {
+            showCustomAlert('🔒', '能量不足', `勇者，今日需累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前今日能量：⚡ ${todayEnergy} 分\n快去完成任務與打卡吧！`);
+        } else {
+            alert(`🔒 能量不足\n\n勇者，今日需累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前今日能量：⚡ ${todayEnergy} 分\n快去完成任務與打卡吧！`);
+        }
+        return false; // 回傳 false，不准開啟小遊戲視窗
+    }
+    // 👆 新增結束
+
+
+    // 檢查今天是否已經玩過了 (維持原本的邏輯)
     const playedDate = localStorage.getItem('dragonBoatPlayedDate');
     const todayStr = new Date().toDateString();
     if (playedDate === todayStr) {
@@ -28,6 +71,57 @@ function checkBoatEligibility() {
         return false;
     }
     return true;
+}
+
+// 🌟 核心新增：自動更新龍舟按鈕狀態 (反灰/亮起)
+function updateDragonBoatButtonState() {
+    // 假設您主畫面的龍舟按鈕 ID 是 'btnDragonBoat'
+    // (如果您的按鈕 ID 不同，請把下面這行的 'btnDragonBoat' 換成您的 ID)
+    const btn = document.getElementById('btnDragonBoat'); 
+    if (!btn) return;
+
+    // 1. 如果是 DEBUG 模式，直接全亮並解鎖
+    if (typeof DRAGON_BOAT_DEBUG !== 'undefined' && DRAGON_BOAT_DEBUG) {
+        btn.style.filter = 'grayscale(0%)';
+        btn.style.opacity = '1';
+        btn.onclick = openDragonBoatModal;
+        btn.innerHTML = "🐉 進入龍舟 (測試中)";
+        return;
+    }
+
+    // 2. 檢查今天是否已經玩過了
+    const playedDate = localStorage.getItem('dragonBoatPlayedDate');
+    const todayStr = new Date().toDateString();
+    if (playedDate === todayStr) {
+        btn.style.filter = 'grayscale(100%)';
+        btn.style.opacity = '0.5';
+        btn.onclick = () => { alert("🛶 您今日已完賽，請明天再來挑戰！"); };
+        btn.innerHTML = "✅ 今日已完賽";
+        return;
+    }
+
+    // 3. 檢查能量是否達標
+    let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
+    let currentDay = parseInt(localStorage.getItem('currentDay')) || 1; 
+    let requiredEnergy = getRequiredEnergyForDay(currentDay);
+
+    if (todayEnergy >= requiredEnergy) {
+        // 🎉 達標：按鈕亮起，綁定開啟遊戲功能
+        btn.style.filter = 'grayscale(0%) drop-shadow(0px 0px 8px rgba(255, 215, 0, 0.8))'; // 加上黃色發光特效
+        btn.style.opacity = '1';
+        btn.onclick = openDragonBoatModal;
+        btn.innerHTML = "🐉 開始挑戰！";
+    } else {
+        // 🔒 未達標：按鈕反灰鎖定
+        btn.style.filter = 'grayscale(100%)';
+        btn.style.opacity = '0.6';
+        // 點擊反灰按鈕時，溫馨提示還差幾分
+        btn.onclick = () => { 
+            let diff = requiredEnergy - todayEnergy;
+            alert(`🔒 能量不足\n\n還差 ⚡ ${diff} 分即可解鎖今日龍舟挑戰！\n快去完成任務與打卡吧！`); 
+        };
+        btn.innerHTML = `🔒 達 ${requiredEnergy} 分解鎖`;
+    }
 }
 
 function openDragonBoatModal() {
@@ -224,6 +318,7 @@ async function finishDragonBoat() {
     }
 
     closeDragonBoat(); // 內部已整合自動恢復解鎖網頁滾動
+    updateDragonBoatButtonState();
 
     // 👇 核心新增：強制讓網頁平滑滾動回最頂部看能量值！
     window.scrollTo({ top: 0, behavior: 'smooth' });

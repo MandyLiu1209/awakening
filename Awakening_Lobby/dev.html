@@ -177,7 +177,7 @@
     </div>
 
     <div id="checkinSection" class="hidden">
-        <button type="button" onclick="openDragonBoatModal()" style="width: 100%; padding: 12px; margin-top: 10px; margin-bottom: 15px; font-size: 16px; background: linear-gradient(135deg, #00838f, #00b8d4); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #006064; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif;">
+        <button id="btnDragonBoat" type="button" onclick="openDragonBoatModal()" style="width: 100%; padding: 12px; margin-top: 10px; margin-bottom: 15px; font-size: 16px; background: linear-gradient(135deg, #00838f, #00b8d4); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #006064; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif;">
             🛶 端午限定：極速龍舟挑戰！<br>(每日一次)
         </button>
 
@@ -733,6 +733,9 @@
             }
 
         }
+
+        // 👇 🌟 請在這裡貼上這一行！讓系統算完分數後，順便更新按鈕狀態
+        updateDragonBoatButtonState();
         
         //return { added: actualAdd, current: todayEnergy, limit: dailyLimit };
         return { added: actualAdd, current: todayEnergy, limit: dailyLimit, cheat: false };
@@ -1110,6 +1113,9 @@
                     document.getElementById('questLog').value = "";
                     document.getElementById('questImage').value = "";
 
+                    // 👇 🌟 請在這裡也貼上這一行！讓玩家看到打卡成功時，後面的按鈕已經發光了
+                    updateDragonBoatButtonState();
+
                     showCustomAlert('🎉', '打卡成功！', alertMsg);
                 } else {
                     showCustomAlert('⚠️', '系統繁忙', '後端處理失敗，請稍後再試。');
@@ -1359,5 +1365,14 @@
 
 </script>
 <script src="dragonBoat.js"></script>
+
+<script>
+    // 網頁一打開，立刻檢查按鈕狀態
+    window.onload = function() {
+        if (typeof updateDragonBoatButtonState === "function") {
+            updateDragonBoatButtonState();
+        }
+    };
+</script>
 </body>
 </html>
