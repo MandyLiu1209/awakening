@@ -25,7 +25,7 @@ function getRequiredEnergyForDay(day) {
         11: 8, //22,  // 
         12: 8, //22,
         13: 8, //22,  // 
-        14: 10; //25,  // 
+        14: 10， //25,  // 
     };
     // 如果找不到當天的設定，預設為 16 分
     return thresholds[day] || 16; 
