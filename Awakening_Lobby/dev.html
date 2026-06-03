@@ -188,7 +188,7 @@
 
             <div class="hero-energy-badge">⚡: <span id="displayEnergy">0</span></div>
             <button class="btn-edit-float" onclick="editProfile()">✏️</button>
-            <div class="hero-info-badge">
+            <div class="hero-info-badge" onclick="if(typeof secretDebugToggle === 'function') secretDebugToggle();">
                 LV<span id="displayLevel">1</span> : <span id="displayNameBadge">載入中...</span>
             </div>
         </div>
@@ -1378,10 +1378,7 @@
 
 </script>
 
-<div onclick="if(typeof secretDebugToggle === 'function') secretDebugToggle();" style="height: 60px; width: 100%; background: transparent; -webkit-tap-highlight-color: transparent;">
-</div>
-
-<script src="dragonBoat.js?v=0607"></script>
+<script src="dragonBoat.js?v=0608"></script>
 
 </body>
 </html>

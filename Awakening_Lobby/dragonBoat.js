@@ -20,10 +20,42 @@ function secretDebugToggle() {
     secretTapTimer = setTimeout(() => { secretTapCount = 0; }, 2000);
 
     if (secretTapCount >= 5) {
-        DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG; 
-        secretTapCount = 0; 
+        //DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG; 
+        secretTapCount = 0; // 觸發後立刻歸零
+
+        // 🌟 彈出 GM 指令輸入框
+        let cmd = prompt("🛠️【村長專屬 GM 控制台】\n\n請輸入指令代碼：\n[1] 切換龍舟測試模式 (無限玩)\n[2] 開啟資料庫管理面板\n", "");
+        
+        if (cmd === "1") {
+            // 指令 1：切換龍舟 Debug 模式
+            DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG; 
+            if (DRAGON_BOAT_DEBUG) {
+                alert("🛠️ 【龍舟測試模式：已開啟】\n解鎖無限次數與無視分數特權！");
+            } else {
+                alert("🔒 【龍舟測試模式：已關閉】\n已恢復一般玩家限制。");
+            }
+            // 立刻更新龍舟按鈕狀態
+            if (typeof updateDragonBoatButtonState === "function") {
+                updateDragonBoatButtonState();
+            }
+        } 
+        else if (cmd === "2") {
+            // 指令 2：呼叫原本寫在 dev.html 裡的管理員面板
+            if (typeof openAdminPanel === "function") {
+                openAdminPanel(); 
+            } else {
+                alert("⚠️ 找不到管理面板功能！");
+            }
+        } 
+        else if (cmd !== null && cmd !== "") {
+            // 輸入錯誤代碼
+            alert("❌ 無效的指令代碼！");
+        }
+        // 如果按「取消」(cmd === null) 則什麼都不做，默默關閉
+        
 
         // 👇 核心新增：去 dev.html 抓出那個隱藏的除錯面板
+        /*
         const devDebugPanel = document.getElementById('debugPanel');
 
         if (DRAGON_BOAT_DEBUG) {
@@ -35,11 +67,12 @@ function secretDebugToggle() {
             if (devDebugPanel) devDebugPanel.style.display = 'none';
             alert("🔒 【開發者模式：已關閉】\n已恢復一般玩家的正常限制，測試區已隱藏。");
         }
-        
+
         // 切換後立刻更新按鈕外觀
         if (typeof updateDragonBoatButtonState === "function") {
             updateDragonBoatButtonState();
         }
+        */
     }
 }
 
