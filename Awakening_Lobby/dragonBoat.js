@@ -1,7 +1,8 @@
 // ==========================================
 // 🛶 端午限定小遊戲：極速龍舟引擎 (全新倒數防抖版)
 // ==========================================
-let DRAGON_BOAT_DEBUG = false; // 💡 測試模式開關：設為 true 即可無限重複玩！正式上線記得改為 false。
+
+let DRAGON_BOAT_DEBUG = false; // 💡 測試模式開關：靠主畫面的隱形彩蛋連點5下開啟！
 let boatProgress = 0;
 let lastPaddle = '';
 let isBoatStunned = false;
@@ -49,65 +50,19 @@ function getRequiredEnergyForDay(day) {
         11: 8, //22,  // 
         12: 8, //22,
         13: 8, //22,  // 
-        14: 10， //25,  // 
+        14: 10 //25,  // 
     };
-    // 如果找不到當天的設定，預設為 16 分
-    return thresholds[day] || 16; 
-}
-
-
-// 檢查今天是否已經玩過
-function checkBoatEligibility() {
-    // 🌟 核心新增：如果 DEBUG 模式開啟，直接無視規則放行！
-    if (DRAGON_BOAT_DEBUG) {
-        console.log("🛠️ 龍舟 DEBUG 模式已開啟：允許無限次數遊玩");
-        return true; 
-    }
-
-    // 👇 核心新增：檢查今日能量是否達標
-    // 從手機記憶體抓取「今日能量」與「目前天數」
-    let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
-    let currentDay = parseInt(localStorage.getItem('currentDay')) || 1; 
-    
-    // 呼叫我們剛剛寫好的函數，取得今天的及格分數
-    let requiredEnergy = getRequiredEnergyForDay(currentDay);
-
-    // 如果今天分數不夠，直接擋下來！
-    if (todayEnergy < requiredEnergy) {
-        if (typeof showCustomAlert === "function") {
-            showCustomAlert('🔒', '能量不足', `勇者，今日需累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前今日能量：⚡ ${todayEnergy} 分\n快去完成任務與打卡吧！`);
-        } else {
-            alert(`🔒 能量不足\n\n勇者，今日需累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前今日能量：⚡ ${todayEnergy} 分\n快去完成任務與打卡吧！`);
-        }
-        return false; // 回傳 false，不准開啟小遊戲視窗
-    }
-    // 👆 新增結束
-
-
-    // 檢查今天是否已經玩過了 (維持原本的邏輯)
-    const playedDate = localStorage.getItem('dragonBoatPlayedDate');
-    const todayStr = new Date().toDateString();
-    if (playedDate === todayStr) {
-        if (typeof showCustomAlert === "function") {
-            showCustomAlert('🛶', '今日已完賽', '勇者，您今天已經參與過端午龍舟賽了！\n請好好休息，明天再來奪標！');
-        } else {
-            alert('🛶 今日已完賽\n\n勇者，您今天已經參與過端午龍舟賽了！\n請好好休息，明天再來奪標！');
-        }
-        return false;
-    }
-    return true;
+    return thresholds[day] || 2; 
 }
 
 // 🌟 核心新增：自動更新龍舟按鈕狀態 (反灰/亮起)
 function updateDragonBoatButtonState() {
-    // 假設您主畫面的龍舟按鈕 ID 是 'btnDragonBoat'
-    // (如果您的按鈕 ID 不同，請把下面這行的 'btnDragonBoat' 換成您的 ID)
     const btn = document.getElementById('btnDragonBoat'); 
     if (!btn) return;
 
     // 1. 如果是 DEBUG 模式，直接全亮並解鎖
     if (typeof DRAGON_BOAT_DEBUG !== 'undefined' && DRAGON_BOAT_DEBUG) {
-        btn.style.filter = 'grayscale(0%)';
+        btn.style.filter = 'grayscale(0%) drop-shadow(0px 0px 8px rgba(255, 215, 0, 0.8))';
         btn.style.opacity = '1';
         btn.onclick = openDragonBoatModal;
         btn.innerHTML = "🐉 進入龍舟 (測試中)";
@@ -127,7 +82,12 @@ function updateDragonBoatButtonState() {
 
     // 3. 檢查能量是否達標
     let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
-    let currentDay = parseInt(localStorage.getItem('currentDay')) || 1; 
+    
+    let currentDay = 1;
+    if (typeof getCalendarDiffDays === "function") {
+        currentDay = getCalendarDiffDays();
+    }
+    
     let requiredEnergy = getRequiredEnergyForDay(currentDay);
 
     if (todayEnergy >= requiredEnergy) {
@@ -149,12 +109,44 @@ function updateDragonBoatButtonState() {
     }
 }
 
+function checkBoatEligibility() {
+    if (DRAGON_BOAT_DEBUG) return true; 
+
+    let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
+    let currentDay = 1;
+    if (typeof getCalendarDiffDays === "function") {
+        currentDay = getCalendarDiffDays();
+    }
+    
+    let requiredEnergy = getRequiredEnergyForDay(currentDay);
+
+    if (todayEnergy < requiredEnergy) {
+        if (typeof showCustomAlert === "function") {
+            showCustomAlert('🔒', '能量不足', `勇者，今日需累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前今日能量：⚡ ${todayEnergy} 分\n快去完成任務與打卡吧！`);
+        } else {
+            alert(`🔒 能量不足\n\n勇者，今日需累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前今日能量：⚡ ${todayEnergy} 分\n快去完成任務與打卡吧！`);
+        }
+        return false;
+    }
+
+    const playedDate = localStorage.getItem('dragonBoatPlayedDate');
+    const todayStr = new Date().toDateString();
+    if (playedDate === todayStr) {
+        if (typeof showCustomAlert === "function") {
+            showCustomAlert('🛶', '今日已完賽', '勇者，您今天已經參與過端午龍舟賽了！\n請好好休息，明天再來奪標！');
+        } else {
+            alert('🛶 今日已完賽\n\n勇者，您今天已經參與過端午龍舟賽了！\n請好好休息，明天再來奪標！');
+        }
+        return false;
+    }
+    return true;
+}
+
 function openDragonBoatModal() {
     if (!checkBoatEligibility()) return;
     
     // 🔒 防晃動核心：鎖死主網頁滾動條
     document.body.style.overflow = 'hidden';
-    
     document.getElementById('dragonBoatModal').style.display = 'flex';
     document.getElementById('boatStartOverlay').style.display = 'flex';
     document.getElementById('boatIntroGroup').style.display = 'flex';
@@ -165,12 +157,12 @@ function openDragonBoatModal() {
     lastPaddle = '';
     isBoatStunned = false;
     boatStartTime = 0;
+    
     // 👇 關鍵新增：遊戲開啟或重玩時，強制讓船身回正，木槳回到「前探姿勢」！
-    document.getElementById('playerBoat').style.bottom = '5%';
-    document.getElementById('playerBoat').style.transform = 'translateX(-50%) rotate(0deg)';
-    document.getElementById('paddleLeftWrapper').style.transform = 'rotate(70deg)'; // 👈 改為前探 angles
-    document.getElementById('paddleRightWrapper').style.transform = 'rotate(-70deg)'; // 👈 改為前探 angles
-    // 👆 新增結束
+    if(document.getElementById('playerBoat')) document.getElementById('playerBoat').style.bottom = '5%';
+    if(document.getElementById('boatRockContainer')) document.getElementById('boatRockContainer').style.transform = 'rotate(0deg)';
+    if(document.getElementById('paddleLeftWrapper')) document.getElementById('paddleLeftWrapper').style.transform = 'rotate(70deg)';
+    if(document.getElementById('paddleRightWrapper')) document.getElementById('paddleRightWrapper').style.transform = 'rotate(-70deg)';
 
     document.getElementById('boatTimer').innerText = '00.00';
 }
@@ -196,7 +188,6 @@ function startDragonBoatCountdown() {
     
     let countdownInterval = setInterval(() => {
         currentCount--;
-        
         if (currentCount > 0) {
             countdownBox.innerText = currentCount;
         } else if (currentCount === 0) {
@@ -233,20 +224,16 @@ function paddleBoat(side) {
 
     const boatMainEl = document.getElementById('playerBoat');
     const boatRockContainer = document.getElementById('boatRockContainer');
-    //const paddleLeft = document.getElementById('paddleLeft');
-    //const paddleRight = document.getElementById('paddleRight');
     const paddleLeftWrap = document.getElementById('paddleLeftWrapper');
     const paddleRightWrap = document.getElementById('paddleRightWrapper');
-    //const splashLeft = document.getElementById('splashLeft');
-    //const splashRight = document.getElementById('splashRight');
+    const splashLeft = document.getElementById('splashLeft');
+    const splashRight = document.getElementById('splashRight');
 
     if (side === lastPaddle) {
         // ❌ 懲罰機制：按錯邊，原地打結 0.5 秒
         isBoatStunned = true;
         document.getElementById('stunMsg').style.display = 'block';
-        //boatEl.style.transform = 'translateX(-50%) rotate(0deg)'; // 船身回正
-        boatRockContainer.style.transform = 'rotate(0deg)'; // 船身瞬間回正
-
+        boatRockContainer.style.transform = 'rotate(0deg)'; 
         if (navigator.vibrate) navigator.vibrate(200); 
         
         setTimeout(() => {
@@ -275,7 +262,6 @@ function paddleBoat(side) {
             splashLeft.style.display = 'block'; 
             setTimeout(() => { splashLeft.style.display = 'none'; }, 200);
         }, 50);
-
     } else {
         // 1. 觸發右槳 CSS 掃水動畫
         paddleRightWrap.classList.remove('animate-rowing-right');
@@ -294,7 +280,6 @@ function paddleBoat(side) {
 
     // 船身往前推進
     let newBottom = 5 + (boatProgress * (80 / MAX_STROKES));
-    //document.getElementById('playerBoat').style.bottom = newBottom + '%';
     boatMainEl.style.bottom = newBottom + '%';
 
     if (boatProgress >= MAX_STROKES) {
@@ -321,7 +306,7 @@ async function finishDragonBoat() {
     else if (timeTaken <= 25.0) { bonusPoints = 1; grade = "參加獎"; }
     else { bonusPoints = 0; grade = "挑戰失敗 😭"; } // 超過 25 秒
 
-    localStorage.setItem('dragonBoatPlayedDate', todayStr = new Date().toDateString());
+    localStorage.setItem('dragonBoatPlayedDate', new Date().toDateString());
 
     let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
     total += bonusPoints;
@@ -342,8 +327,7 @@ async function finishDragonBoat() {
         console.log("龍舟分數雲端同步延遲", err);
     }
 
-    closeDragonBoat(); // 內部已整合自動恢復解鎖網頁滾動
-    //updateDragonBoatButtonState();
+    closeDragonBoat(); 
 
     // 🌟 核心：打完龍舟後，更新按鈕狀態
     if (typeof updateDragonBoatButtonState === "function") {
@@ -359,11 +343,3 @@ async function finishDragonBoat() {
         alert(`🏆 奪標成功！\n\n划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！`);
     }
 }
-
-
-
-
-
-
-
-
