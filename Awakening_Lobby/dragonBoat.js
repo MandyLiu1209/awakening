@@ -1,35 +1,13 @@
 // ==========================================
 // 🛶 端午限定小遊戲：極速龍舟引擎 (全新倒數防抖版)
 // ==========================================
-const DRAGON_BOAT_DEBUG = false; // 💡 測試模式開關：設為 true 即可無限重複玩！正式上線記得改為 false。
+let DRAGON_BOAT_DEBUG = false; // 💡 測試模式開關：設為 true 即可無限重複玩！正式上線記得改為 false。
 let boatProgress = 0;
 let lastPaddle = '';
 let isBoatStunned = false;
 let boatStartTime = 0;
 let boatTimerInterval = null;
 const MAX_STROKES = 30; // 總共需要划30下 (左右各15下)
-
-// 🌟 核心新增：設定每天小遊戲的解鎖門檻分數
-function getRequiredEnergyForDay(day) {
-    const thresholds = {
-        1: 2, //13,  // 第 1 天需要 16 分才能玩
-        2: 2, //13,  // 第 2 天需要 16 分
-        3: 2, //13,  // 例如第 3 天任務比較難，可以提高到 18 分
-        4: 2, //13,
-        5: 4, //16,  
-        6: 4, //16,  // 
-        7: 4, //16,  // 
-        8: 6, //19,
-        9: 6, //19,  // 
-        10: 6, //19,  // 
-        11: 8, //22,  // 
-        12: 8, //22,
-        13: 8, //22,  // 
-        14: 10， //25,  // 
-    };
-    // 如果找不到當天的設定，預設為 16 分
-    return thresholds[day] || 16; 
-}
 
 // 🥚 彩蛋開關：連點5次切換 Debug 模式
 let secretTapCount = 0;
@@ -54,6 +32,29 @@ function secretDebugToggle() {
         }
     }
 }
+
+// 🌟 核心新增：設定每天小遊戲的解鎖門檻分數
+function getRequiredEnergyForDay(day) {
+    const thresholds = {
+        1: 2, //13,  // 第 1 天需要 16 分才能玩
+        2: 2, //13,  // 第 2 天需要 16 分
+        3: 2, //13,  // 例如第 3 天任務比較難，可以提高到 18 分
+        4: 2, //13,
+        5: 4, //16,  
+        6: 4, //16,  // 
+        7: 4, //16,  // 
+        8: 6, //19,
+        9: 6, //19,  // 
+        10: 6, //19,  // 
+        11: 8, //22,  // 
+        12: 8, //22,
+        13: 8, //22,  // 
+        14: 10， //25,  // 
+    };
+    // 如果找不到當天的設定，預設為 16 分
+    return thresholds[day] || 16; 
+}
+
 
 // 檢查今天是否已經玩過
 function checkBoatEligibility() {
@@ -342,7 +343,12 @@ async function finishDragonBoat() {
     }
 
     closeDragonBoat(); // 內部已整合自動恢復解鎖網頁滾動
-    updateDragonBoatButtonState();
+    //updateDragonBoatButtonState();
+
+    // 🌟 核心：打完龍舟後，更新按鈕狀態
+    if (typeof updateDragonBoatButtonState === "function") {
+        updateDragonBoatButtonState();
+    }
 
     // 👇 核心新增：強制讓網頁平滑滾動回最頂部看能量值！
     window.scrollTo({ top: 0, behavior: 'smooth' });
