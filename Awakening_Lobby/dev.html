@@ -1363,16 +1363,26 @@
         }
     }
 
-</script>
-<script src="dragonBoat.js?v=0603"></script>
-
-<script>
-    // 網頁一打開，立刻檢查按鈕狀態
+    // 👇 🌟 從這裡開始貼上終極大老闆！
     window.onload = function() {
+        // 1. 處理玩家資料與日常重置
+        if (typeof checkAndResetDailyData === "function") checkAndResetDailyData();
+        if (typeof loadUserData === "function") loadUserData();
+        if (typeof loadPlayerList === "function") loadPlayerList();
+        
+        // 2. 檢查龍舟按鈕要不要發光
         if (typeof updateDragonBoatButtonState === "function") {
             updateDragonBoatButtonState();
         }
     };
+
 </script>
+
+<div onclick="if(typeof secretDebugToggle === 'function') secretDebugToggle();" style="text-align: center; color: #b0bec5; font-size: 12px; padding: 30px 0; user-select: none; -webkit-user-select: none; cursor: pointer;">
+            14日覺醒試煉 v1.0.0 (Beta)
+</div>
+
+<script src="dragonBoat.js?v=0603"></script>
+
 </body>
 </html>

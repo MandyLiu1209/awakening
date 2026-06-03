@@ -1,7 +1,7 @@
 // ==========================================
 // 🛶 端午限定小遊戲：極速龍舟引擎 (全新倒數防抖版)
 // ==========================================
-const DRAGON_BOAT_DEBUG = true; // 💡 測試模式開關：設為 true 即可無限重複玩！正式上線記得改為 false。
+const DRAGON_BOAT_DEBUG = false; // 💡 測試模式開關：設為 true 即可無限重複玩！正式上線記得改為 false。
 let boatProgress = 0;
 let lastPaddle = '';
 let isBoatStunned = false;
@@ -29,6 +29,30 @@ function getRequiredEnergyForDay(day) {
     };
     // 如果找不到當天的設定，預設為 16 分
     return thresholds[day] || 16; 
+}
+
+// 🥚 彩蛋開關：連點5次切換 Debug 模式
+let secretTapCount = 0;
+let secretTapTimer = null;
+
+function secretDebugToggle() {
+    secretTapCount++;
+    if (secretTapTimer) clearTimeout(secretTapTimer);
+    secretTapTimer = setTimeout(() => { secretTapCount = 0; }, 2000);
+
+    if (secretTapCount >= 5) {
+        DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG; 
+        secretTapCount = 0; 
+        if (DRAGON_BOAT_DEBUG) {
+            alert("🛠️ 【開發者模式：已開啟】\n您現在擁有無限次數與無視分數的特權！");
+        } else {
+            alert("🔒 【開發者模式：已關閉】\n已恢復一般玩家的正常限制。");
+        }
+        // 切換後立刻更新按鈕外觀
+        if (typeof updateDragonBoatButtonState === "function") {
+            updateDragonBoatButtonState();
+        }
+    }
 }
 
 // 檢查今天是否已經玩過
