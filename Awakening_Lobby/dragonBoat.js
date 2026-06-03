@@ -10,7 +10,7 @@ let boatStartTime = 0;
 let boatTimerInterval = null;
 const MAX_STROKES = 30; // 總共需要划30下 (左右各15下)
 
-// 🥚 彩蛋開關：連點5次切換 Debug 模式
+// 🥚 彩蛋開關：連點5次切換 Debug 模式 (雙效合一版)
 let secretTapCount = 0;
 let secretTapTimer = null;
 
@@ -22,11 +22,20 @@ function secretDebugToggle() {
     if (secretTapCount >= 5) {
         DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG; 
         secretTapCount = 0; 
+
+        // 👇 核心新增：去 dev.html 抓出那個隱藏的除錯面板
+        const devDebugPanel = document.getElementById('debugPanel');
+
         if (DRAGON_BOAT_DEBUG) {
-            alert("🛠️ 【開發者模式：已開啟】\n您現在擁有無限次數與無視分數的特權！");
+            // 開啟時：面板顯示，龍舟解鎖
+            if (devDebugPanel) devDebugPanel.style.display = 'block';
+            alert("🛠️ 【開發者模式：已開啟】\n您現在擁有龍舟無限特權，且已解鎖底部的「快速測試區」！");
         } else {
-            alert("🔒 【開發者模式：已關閉】\n已恢復一般玩家的正常限制。");
+            // 關閉時：面板隱藏，龍舟上鎖
+            if (devDebugPanel) devDebugPanel.style.display = 'none';
+            alert("🔒 【開發者模式：已關閉】\n已恢復一般玩家的正常限制，測試區已隱藏。");
         }
+        
         // 切換後立刻更新按鈕外觀
         if (typeof updateDragonBoatButtonState === "function") {
             updateDragonBoatButtonState();
