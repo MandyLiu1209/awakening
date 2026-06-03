@@ -23,36 +23,35 @@ function secretDebugToggle() {
         //DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG; 
         secretTapCount = 0; // 觸發後立刻歸零
 
-        // 🌟 彈出 GM 指令輸入框
-        let cmd = prompt("🛠️【村長專屬 GM 控制台】\n\n請輸入指令代碼：\n[1] 切換龍舟測試模式 (無限玩)\n[2] 開啟資料庫管理面板\n", "");
-        
-        if (cmd === "1") {
-            // 指令 1：切換龍舟 Debug 模式
-            DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG; 
-            if (DRAGON_BOAT_DEBUG) {
-                alert("🛠️ 【龍舟測試模式：已開啟】\n解鎖無限次數與無視分數特權！");
+        let currentStatus = DRAGON_BOAT_DEBUG ? "🟢 已開啟" : "🔴 已關閉";
+
+        // 呼叫輸入框，把兩個功能結合在一起
+        let pass = prompt(`🛠️ 【村長隱藏控制台】\n\n目前龍舟無敵模式：${currentStatus}\n\n👉 進入資料庫：請輸入密碼\n👉 切換龍舟模式：請直接留白並按「確定」`);
+
+        if (pass === "mis1209") {
+            // 密碼正確：開啟原本的資料庫面板
+            if (typeof openAdminPanel === "function") {
+                openAdminPanel();
             } else {
-                alert("🔒 【龍舟測試模式：已關閉】\n已恢復一般玩家限制。");
+                alert("⚠️ 系統找不到資料庫面板。");
             }
-            // 立刻更新龍舟按鈕狀態
+        } 
+        else if (pass === "1") {
+            // 留白按確定：切換龍舟模式
+            DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG; 
+            alert(DRAGON_BOAT_DEBUG ? "🛠️ 魔法成功！龍舟測試模式【已開啟】！" : "🔒 魔法成功！龍舟測試模式【已關閉】。");
+            
+            // 立刻叫大腦更新畫面上的按鈕狀態
             if (typeof updateDragonBoatButtonState === "function") {
                 updateDragonBoatButtonState();
             }
         } 
-        else if (cmd === "2") {
-            // 指令 2：呼叫原本寫在 dev.html 裡的管理員面板
-            if (typeof openAdminPanel === "function") {
-                openAdminPanel(); 
-            } else {
-                alert("⚠️ 找不到管理面板功能！");
-            }
-        } 
-        else if (cmd !== null && cmd !== "") {
-            // 輸入錯誤代碼
-            alert("❌ 無效的指令代碼！");
+        else if (pass !== null) {
+            // 輸入錯密碼
+            alert("❌ 密碼或指令錯誤！");
         }
         // 如果按「取消」(cmd === null) 則什麼都不做，默默關閉
-        
+
 
         // 👇 核心新增：去 dev.html 抓出那個隱藏的除錯面板
         /*
