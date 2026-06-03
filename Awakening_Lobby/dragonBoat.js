@@ -343,3 +343,7 @@ async function finishDragonBoat() {
         alert(`🏆 奪標成功！\n\n划行時間：${timeTaken} 秒\n評定等級：【${grade}】\n\n獲得端午限定獎勵：⚡ ${bonusPoints} 分！`);
     }
 }
+
+
+
+
