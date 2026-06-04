@@ -10,7 +10,7 @@ let boatStartTime = 0;
 let boatTimerInterval = null;
 const MAX_STROKES = 30; // 總共需要划30下 (左右各15下)
 
-// 🥚 彩蛋開關：連點5次切換 Debug 模式 (雙效合一版)
+// 🥚 雙效彩蛋開關：連點5次同時切換 龍舟測試 與 開發者面板 (綁定於 LV 標籤)
 let secretTapCount = 0;
 let secretTapTimer = null;
 
@@ -20,60 +20,30 @@ function secretDebugToggle() {
     secretTapTimer = setTimeout(() => { secretTapCount = 0; }, 2000);
 
     if (secretTapCount >= 5) {
-        //DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG; 
-        secretTapCount = 0; // 觸發後立刻歸零
-
-        let currentStatus = DRAGON_BOAT_DEBUG ? "🟢 已開啟" : "🔴 已關閉";
-
-        // 呼叫輸入框，把兩個功能結合在一起
-        //let pass = prompt(`🛠️ 【村長隱藏控制台】\n\n目前龍舟無敵模式：${currentStatus}\n\n👉 進入資料庫：請輸入密碼\n👉 切換龍舟模式：請直接留白並按「確定」`);
-        /*let pass = prompt(`🛠️ 【村長隱藏控制台】\n目前龍舟無敵模式：${currentStatus}\n\n👉 進入資料庫：請輸入密碼\n👉 切換龍舟模式：請輸入 1`);
-
-        if (pass === "mis1209") {
-            // 密碼正確：開啟原本的資料庫面板
-            if (typeof openAdminPanel === "function") {
-                openAdminPanel();
-            } else {
-                alert("⚠️ 系統找不到資料庫面板。");
-            }
-        } 
-        else if (pass === "1") {*/
-            // 留白按確定：切換龍舟模式
-            DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG; 
-            alert(DRAGON_BOAT_DEBUG ? "🛠️ 魔法成功！龍舟測試模式【已開啟】！" : "🔒 魔法成功！龍舟測試模式【已關閉】。");
-            
-            // 立刻叫大腦更新畫面上的按鈕狀態
-            if (typeof updateDragonBoatButtonState === "function") {
-                updateDragonBoatButtonState();
-            }
-        //} 
-        else if (pass !== null) {
-        //else if (pass !== null && pass !== "") {
-            // 輸入錯密碼
-            alert("❌ 密碼或指令錯誤！");
+        secretTapCount = 0; 
+        
+        // 1. 切換龍舟變數
+        if (typeof DRAGON_BOAT_DEBUG !== 'undefined') {
+            DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG;
         }
-        // 如果按「取消」(cmd === null) 則什麼都不做，默默關閉
-
-
-        // 👇 核心新增：去 dev.html 抓出那個隱藏的除錯面板
-        /*
-        const devDebugPanel = document.getElementById('debugPanel');
-
-        if (DRAGON_BOAT_DEBUG) {
-            // 開啟時：面板顯示，龍舟解鎖
-            if (devDebugPanel) devDebugPanel.style.display = 'block';
-            alert("🛠️ 【開發者模式：已開啟】\n您現在擁有龍舟無限特權，且已解鎖底部的「快速測試區」！");
-        } else {
-            // 關閉時：面板隱藏，龍舟上鎖
-            if (devDebugPanel) devDebugPanel.style.display = 'none';
-            alert("🔒 【開發者模式：已關閉】\n已恢復一般玩家的正常限制，測試區已隱藏。");
+        
+        // 2. 切換主程式變數
+        if (typeof debug_mode !== 'undefined') {
+            debug_mode = DRAGON_BOAT_DEBUG; // 讓兩者保持同步
         }
 
-        // 切換後立刻更新按鈕外觀
+        // 3. 顯示或隱藏主畫面的 Debug 面板
+        const dPanel = document.getElementById('debugPanel');
+        if (dPanel) {
+            dPanel.style.display = DRAGON_BOAT_DEBUG ? 'block' : 'none';
+        }
+        
+        // 4. 更新畫面上龍舟按鈕的外觀
         if (typeof updateDragonBoatButtonState === "function") {
             updateDragonBoatButtonState();
         }
-        */
+
+        alert(DRAGON_BOAT_DEBUG ? "🛠️ 魔法成功！【龍舟無敵】與【開發者面板】已雙重開啟！" : "🔒 魔法成功！所有測試模式【已關閉】。");
     }
 }
 

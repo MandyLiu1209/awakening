@@ -408,7 +408,7 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
 
     // 開發者模式開關
-    const debug_mode = false;
+    let debug_mode = false;
     const GAME_VERSION = "v0.3.0_20260516"; // 自動清除舊記憶，套用新裝備系統
     //v0.2.x：將記錄移到資料庫
     //v0.3.x：加入端午節小遊戲
@@ -711,7 +711,7 @@
                 }
                 
                 // 將最新狀態寫入 Firebase 的【Players_Dev】資料庫
-                await db.collection("Players_Main").doc(userId).set({
+                await db.collection("Players_Dev").doc(userId).set({
                     lineName: window.userProfile ? window.userProfile.displayName : "未知",
                     nickname: nickname,
                     role: currentRole,
@@ -1276,7 +1276,7 @@
         if (adminClickCount >= 5) {
             adminClickCount = 0;
             let password = prompt("🔮 偵測到古老管理員共鳴！\n請輸入村長神秘口令：");
-            if (password === "mis1209") { // 💡 您專屬的進入密碼
+            if (password === "Mis1209") { // 💡 您專屬的進入密碼
                 openAdminPanel();
             } else if (password !== null) {
                 alert("❌ 口令錯誤！凡人切勿染指神聖領域！");
