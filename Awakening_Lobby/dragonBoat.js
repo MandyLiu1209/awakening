@@ -27,7 +27,7 @@ function secretDebugToggle() {
 
         // 呼叫輸入框，把兩個功能結合在一起
         //let pass = prompt(`🛠️ 【村長隱藏控制台】\n\n目前龍舟無敵模式：${currentStatus}\n\n👉 進入資料庫：請輸入密碼\n👉 切換龍舟模式：請直接留白並按「確定」`);
-        let pass = prompt(`🛠️ 【村長隱藏控制台】\n目前龍舟無敵模式：${currentStatus}\n\n👉 進入資料庫：請輸入密碼\n👉 切換龍舟模式：請輸入 1`);
+        /*let pass = prompt(`🛠️ 【村長隱藏控制台】\n目前龍舟無敵模式：${currentStatus}\n\n👉 進入資料庫：請輸入密碼\n👉 切換龍舟模式：請輸入 1`);
 
         if (pass === "mis1209") {
             // 密碼正確：開啟原本的資料庫面板
@@ -37,7 +37,7 @@ function secretDebugToggle() {
                 alert("⚠️ 系統找不到資料庫面板。");
             }
         } 
-        else if (pass === "1") {
+        else if (pass === "1") {*/
             // 留白按確定：切換龍舟模式
             DRAGON_BOAT_DEBUG = !DRAGON_BOAT_DEBUG; 
             alert(DRAGON_BOAT_DEBUG ? "🛠️ 魔法成功！龍舟測試模式【已開啟】！" : "🔒 魔法成功！龍舟測試模式【已關閉】。");
@@ -46,9 +46,9 @@ function secretDebugToggle() {
             if (typeof updateDragonBoatButtonState === "function") {
                 updateDragonBoatButtonState();
             }
-        } 
-        //else if (pass !== null) {
-        else if (pass !== null && pass !== "") {
+        //} 
+        else if (pass !== null) {
+        //else if (pass !== null && pass !== "") {
             // 輸入錯密碼
             alert("❌ 密碼或指令錯誤！");
         }
