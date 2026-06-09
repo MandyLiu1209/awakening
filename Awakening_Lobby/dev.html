@@ -1063,6 +1063,7 @@
                 const gasRes = await res.json();
                 
                 if (gasRes.status === "success") {
+                    // 1. 先成功寫入打卡日誌
                     await db.collection("QuestLogs_Dev").add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
                         gameNickname: nickname, 
@@ -1072,11 +1073,43 @@
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
+                    // ====================================================
+                    // 🚀【村長加碼插入：打卡前瞬間雲端對帳機制】
+                    // ====================================================
+                    let latestTotalEnergy = 0;
+                    try {
+                        const userId = context ? context.userId : null;
+                        if (userId) {
+                            // 🔍 使用前端既有的 db 直接讀取最新 Players 資料庫數據
+                            // ⚠️ 註：正式服網頁 (main.html) 請記得將下行的 'Players_Dev' 改為 'Players_Main' 
+                            const playerDoc = await db.collection("Players_Dev").doc(userId).get();
+                            if (playerDoc.exists) {
+                                const serverData = playerDoc.data();
+                                latestTotalEnergy = parseInt(serverData.totalEnergy || 0);
+                                
+                                // 🛡️ 本地記憶同步：萬一您的計分引擎是用網頁本地變數（例如 playerLocalData），在此強行校正為最新值
+                                if (typeof playerLocalData !== 'undefined') {
+                                    playerLocalData.totalEnergy = latestTotalEnergy;
+                                }
+                            }
+                        }
+                    } catch (syncErr) {
+                        console.error("打卡前雲端對帳失敗，改用本地暫存值：", syncErr);
+                        if (typeof playerLocalData !== 'undefined') {
+                            latestTotalEnergy = playerLocalData.totalEnergy || 0;
+                        }
+                    }
+                    // ====================================================
+
+
                     //const energyData = calculateAndAddEnergy();
                     //let alertMsg = energyData.added > 0 
 
                     // 🌟 等待最新的真實驗證結果 (加上 await)
-                    const energyData = await calculateAndAddEnergy();
+                    //const energyData = await calculateAndAddEnergy();
+                    
+                    // 🌟 2. 計算發放分數：傳入剛剛向雲端對帳撈到的「最新分數」latestTotalEnergy
+                    const energyData = await calculateAndAddEnergy(latestTotalEnergy);
                     
                     // 🔒 抓包攔截：如果是作弊，直接沒收並中斷流程
                     if (energyData.cheat) {
