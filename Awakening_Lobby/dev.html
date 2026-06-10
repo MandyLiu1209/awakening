@@ -594,14 +594,13 @@
         }
     }
 
-    // ⚡ 結算能量 (升級版：強制核對世界時間)
+    // ⚡ 結算能量 (原子級原地加分 - 徹底解決分數覆蓋終極版)
     async function calculateAndAddEnergy() {
         let trueToday = new Date();
         let isTimeCheat = false;
 
         try {
-            // 🌐 終極防護：直接向我們自己的伺服器 (GitHub Pages) 詢問真實網路時間
-            // 好處：100% 穩定不斷線，沒有被外部阻擋的問題
+            // 🌐 透過 GitHub Pages 詢問真實網路時間，防範手機竄改時間
             const timeRes = await fetch(window.location.href + "?t=" + Date.now(), { 
                 method: 'HEAD',
                 cache: 'no-store'
@@ -611,34 +610,27 @@
                 const dateHeader = timeRes.headers.get('Date');
                 if (dateHeader) {
                     trueToday = new Date(dateHeader);
-                    
-                    // 🕵️ 抓包判定：如果手機系統時間跟真實伺服器時間相差超過 1 小時，判定為作弊
                     if (Math.abs(Date.now() - trueToday.getTime()) > 60 * 60 * 1000) {
                         isTimeCheat = true;
                     }
                 }
             }
         } catch (err) {
-            //console.log("時間防護機制連線異常，暫用本地時間");
             console.log("時間防護伺服器連線異常", err);
         }
 
         if (isTimeCheat) {
-            return { cheat: true }; // 回傳作弊旗標
+            return { cheat: true }; 
         }
 
-        // 使用新的日曆日期計算法
+        // 使用日曆日期計算法
         const diffDays = getCalendarDiffDays(trueToday);
-
         let taskIndex = Math.floor((diffDays - 1) / 2);
         if (taskIndex > 6) taskIndex = 6; 
         
-        // 最後一關給10分，其餘2分
         let pointsToGive = (taskIndex === 6) ? 10 : 2; 
         let dailyLimit = (taskIndex === 6) ? 30 : 10;
         
-        //let today = new Date().toDateString(); 
-        // 🌟 使用真實時間來當作今日字串！
         let todayStr = trueToday.toDateString(); 
         let currentDayKey = "Day_" + diffDays; 
         
@@ -646,7 +638,7 @@
         let lastDayKey = localStorage.getItem('lastCheckinDayKey');
         let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
         
-        // 🌅 換日判定：日期字串變了 OR 天數 Key 變了
+        // 🌅 換日判定
         if (lastDate !== todayStr || lastDayKey !== currentDayKey) {
             todayEnergy = 0; 
             localStorage.setItem('lastCheckinDate', todayStr);
@@ -660,75 +652,47 @@
             todayEnergy += actualAdd;
             localStorage.setItem('todayEnergy', todayEnergy); 
             
-            */let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
-            total += actualAdd;
-            localStorage.setItem('totalEnergy', total);
-            
-            if (document.getElementById('displayEnergy')) {
-                document.getElementById('displayEnergy').innerText = total;
-            }*/
-
-            // ========================================================
-            // 🌟 修正點 1：先更新關卡分數
-            // ========================================================
-            // 記錄當前任務的累計分數，並檢查是否解鎖裝備
+            // 更新關卡獨立分數
             let taskScoreKey = "taskScore_" + taskIndex;
             let currentTaskScore = parseInt(localStorage.getItem(taskScoreKey)) || 0;
             currentTaskScore += actualAdd;
             localStorage.setItem(taskScoreKey, currentTaskScore);
 
-            // ========================================================
-            // 🌟 修正點 2：先檢查並發放裝備 (寫入本地 localStorage)
-            // ========================================================
+            // 檢查並發放裝備
             checkEquipmentUnlocked(taskIndex, currentTaskScore);
 
             // ========================================================
-            // 🚨【鐵血防禦核心：雲端直接原子加分】🚨
+            // 🚨【鐵血防禦核心：雲端直接原地加分】🚨
             // ========================================================
-
-            // 👇👇👇 請在這裡插入【雲端備份防護網 (正式服專用)】 👇👇👇
             try {
-                // 取得玩家的 LINE ID 作為唯一識別碼 (若抓不到則給予臨時 ID 避免報錯)
-                //const userId = liff.getContext() ? liff.getContext().userId : ("anonymous_" + Date.now());
-                //const nickname = localStorage.getItem('gameNickname') || "未知勇者";
-                
                 const userId = window.userProfile ? window.userProfile.userId : ("anonymous_" + Date.now());
                 const nickname = localStorage.getItem('gameNickname') || "未知勇者";
                 const currentRole = localStorage.getItem('selectedRole') || "未選擇";
-                
-                // 這裡抓到的 unlocked 就會是剛剛 checkEquipmentUnlocked 發放過的最新的裝備清單！
                 const unlocked = JSON.parse(localStorage.getItem('unlockedEquips')) || [];
-
-                // 🌟 新增：把防作弊與天數記憶也抓出來
                 const startDate = localStorage.getItem('startDate') || Date.now();
-                //const todayEnergy = localStorage.getItem('todayEnergy') || 0;
-                const lastCheckinDate = localStorage.getItem('lastCheckinDate') || "";
+                const lastCheckinDateStr = localStorage.getItem('lastCheckinDate') || "";
 
-                // 🌟 新增：把各關卡的獨立分數打包成一個物件
                 let taskScores = {};
                 for (let i = 0; i <= 6; i++) {
                     taskScores["taskScore_" + i] = localStorage.getItem("taskScore_" + i) || 0;
                 }
                 
-                // 將最新狀態寫入 Firebase 的【Players_Dev】資料庫
+                // 🚀 核心原子加分：totalEnergy 欄位使用 increment(actualAdd)
                 await db.collection("Players_Dev").doc(userId).set({
                     lineName: window.userProfile ? window.userProfile.displayName : "未知",
                     nickname: nickname,
                     role: currentRole,
-                    totalEnergy: total,         // 備份總能量
-                    level: (taskIndex + 1),     // 備份當前等級
-                    equips: unlocked,           // 連同解鎖的裝備一起備份！
-
-                    // 🌟 把新增的這三項一起存進雲端！
+                    totalEnergy: firebase.firestore.FieldValue.increment(actualAdd), 
+                    level: (taskIndex + 1),
+                    equips: unlocked,
                     startDate: startDate,
                     todayEnergy: todayEnergy,
-                    lastCheckinDate: lastCheckinDate,
+                    lastCheckinDate: lastCheckinDateStr,
                     taskScores: taskScores,
-
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true }); // 使用 merge: true 確保資料合併，不覆蓋其它屬性
+                }, { merge: true });
 
-                // 🔄【閃電對帳】原地加分成功後，立刻從伺服器現撈最新真分數，刷新手機本地快取與 UI
+                // 🔄【閃電即時對帳】雲端原地加分完畢後，強制從伺服器現撈最新分數更新 UI
                 const freshDoc = await db.collection("Players_Dev").doc(userId).get({ source: 'server' });
                 if (freshDoc.exists) {
                     const freshTotal = parseInt(freshDoc.data().totalEnergy || 0);
@@ -739,8 +703,6 @@
                 }
 
             } catch (err) {
-                // 如果網路突然卡住導致上傳失敗，只在後台記錄，絕對不干擾玩家的打卡畫面
-                //console.log("雲端備份暫時失敗，但不影響本地遊戲進行", err);
                 console.log("雲端連接異常，啟動離線防護計分", err);
                 let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
                 total += actualAdd;
@@ -749,13 +711,10 @@
                     document.getElementById('displayEnergy').innerText = total;
                 }
             }
-
         }
 
-        // 👇 🌟 請在這裡貼上這一行！讓系統算完分數後，順便更新按鈕狀態
+        // 更新按鈕狀態
         updateDragonBoatButtonState();
-        
-        //return { added: actualAdd, current: todayEnergy, limit: dailyLimit };
         return { added: actualAdd, current: todayEnergy, limit: dailyLimit, cheat: false };
     }
 
@@ -1046,6 +1005,10 @@
         showCustomAlert('❌', '傳輸陣連線失敗', '無法與 LINE 試煉伺服器建立安全連線。\n請檢查網路是否正常，或手機的「日期與時間」是否開啟自動同步。\n\n⚠️ 系統已全面鎖定，在恢復正常連線前無法進行任何打卡試煉。');
     });
 
+    // ========================================================================
+    // 👑 14日覺醒守護者核心引擎 - 【submitQuest】與【calculateAndAddEnergy】無誤合體版
+    // ========================================================================
+
     async function submitQuest() {
         const nickname = localStorage.getItem('gameNickname');
         const fileInput = document.getElementById('questImage');
@@ -1081,8 +1044,7 @@
                 const gasRes = await res.json();
                 
                 if (gasRes.status === "success") {
-                    // 1. 先成功寫入打卡日誌
-                    // ⚠️ 註：正式服網頁請將 QuestLogs_Dev 改為 QuestLogs_Main
+                    // 1. 寫入打卡日誌 (測試服)
                     await db.collection("QuestLogs_Dev").add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
                         gameNickname: nickname, 
@@ -1092,38 +1054,18 @@
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    // ====================================================
-                    // 🚀【村長加碼插入：打卡前瞬間雲端對帳機制】
-                    // ====================================================
-                    //const userId = context ? context.userId : null;
-                    //let energyData = { added: 2, current: 2, limit: 10, cheat: false }; // 預設提示結構面罩
-
-                    // 🌟 2. 執行擁有「雲端原地原子加分」的終極引擎
+                    // 2. 執行擁有「雲端原地原子加分」的終極引擎
                     const energyData = await calculateAndAddEnergy();
                     
-                    
-                    
-                    // ====================================================
-
-
-                    //const energyData = calculateAndAddEnergy();
-                    //let alertMsg = energyData.added > 0 
-
-                    // 🌟 等待最新的真實驗證結果 (加上 await)
-                    const energyData = await calculateAndAddEnergy();
-
-                    // 🌟 2. 計算發放分數：傳入剛剛向雲端對帳撈到的「最新分數」latestTotalEnergy
-                    //const energyData = await calculateAndAddEnergy(latestTotalEnergy);
-                    
-                    // 🔒 抓包攔截：如果是作弊，直接沒收並中斷流程
+                    // 🔒 鎖定攔截：如果是作弊，直接中斷
                     if (energyData.cheat) {
                         document.getElementById('loadingModal').style.display = "none";
                         showCustomAlert('🚨', '時空異常', '偵測到裝置時間遭到竄改！\n系統已攔截本次打卡，請將手機時間調回「自動設定」。');
                         return; 
                     }
 
+                    // ✨ 修正點 3：修正 alertMsg 重複宣告的問題
                     let alertMsg = energyData.added > 0
-
                         ? `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})` 
                         : `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
 
@@ -1131,13 +1073,12 @@
                         try {
                             await liff.sendMessages([{
                                 type: "text",
-                                text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`},
-                                {
-                                    type: "image",
-                                    originalContentUrl: gasRes.fileUrl,
-                                    previewImageUrl: gasRes.fileUrl
-                                }
-                            ]);
+                                text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
+                            }, {
+                                type: "image",
+                                originalContentUrl: gasRes.fileUrl,
+                                previewImageUrl: gasRes.fileUrl
+                            }]);
                         } catch (err) {
                             console.log("圖片發送失敗", err);
                             await liff.sendMessages([{
@@ -1150,9 +1091,7 @@
                     document.getElementById('questLog').value = "";
                     document.getElementById('questImage').value = "";
 
-                    // 👇 🌟 請在這裡也貼上這一行！讓玩家看到打卡成功時，後面的按鈕已經發光了
                     updateDragonBoatButtonState();
-
                     showCustomAlert('🎉', '打卡成功！', alertMsg);
                 } else {
                     showCustomAlert('⚠️', '系統繁忙', '後端處理失敗，請稍後再試。');
@@ -1164,6 +1103,7 @@
         };
         reader.readAsDataURL(fileInput.files[0]);
     }
+
 
     async function debugSubmit() {
         const nickname = localStorage.getItem('gameNickname') || "Debug英雄";
