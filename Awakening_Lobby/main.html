@@ -9,6 +9,35 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <style>
+        /* 🌊 極速龍舟專屬：流體動力學划槳動畫 CSS */
+        
+        /* 定義左槳划船循環 (0.3秒的快速物理過程) */
+        @keyframes rowingLeft {
+            0%   { transform: rotate(70deg); }   /* 前探準備姿勢 */
+            15%  { transform: rotate(85deg); }   /* 1. Catch：向前探出吃水 */
+            45%  { transform: rotate(0deg); }  /* 2. Drive：狠狠往後下拉動水流！ */
+            75%  { transform: rotate(20deg); }   /* 3. Recovery：出水彈起 */
+            100% { transform: rotate(70deg); }   /* 回到準備姿勢 */
+        }
+
+        /* 定義右槳划船循環 (對稱) */
+        @keyframes rowingRight {
+            0%   { transform: rotate(-70deg); } /* 前探準備姿勢 */
+            15%  { transform: rotate(-85deg); } /* Catch */
+            45%  { transform: rotate(0deg); }  /* Drive */
+            75%  { transform: rotate(-20deg); } /* Recovery */
+            100% { transform: rotate(-70deg); } /* 回到準備姿勢 */
+        }
+
+        /* 觸發動畫的 CSS 類別 */
+        .animate-rowing-left {
+            animation: rowingLeft 0.3s ease-out forwards; /* 動畫持續 0.3秒，模擬快速點擊手感 */
+        }
+        
+        .animate-rowing-right {
+            animation: rowingRight 0.3s ease-out forwards;
+        }
+
         :root { --main-brown: #8b4513; --accent-orange: #d35400; --bg-cream: #fffaf0; }
         body { font-family: '微軟正黑體', sans-serif; background: #2c1e1a; color: #fff; margin: 0; padding: 10px; display: flex; justify-content: center; }
         .container { background: url('https://www.transparenttextures.com/patterns/paper-fibers.png'), var(--bg-cream); border: 6px solid var(--main-brown); border-radius: 30px; padding: 4vw; max-width: 500px; width: 95%; box-sizing: border-box; margin: 2vh auto; text-align: center; color: #5d4037; position: relative; }
@@ -131,7 +160,7 @@
 <body>
 
 <div class="container" id="mainContainer" style="display: none;">
-    <div class="header-banner">英雄試煉殿堂</div>
+    <div class="header-banner" onclick="countAdminClick()" style="cursor: pointer;">英雄試煉殿堂</div>
 
     <div id="setupSection">
         <div class="input-group">
@@ -148,6 +177,10 @@
     </div>
 
     <div id="checkinSection" class="hidden">
+        <button id="btnDragonBoat" type="button" onclick="openDragonBoatModal()" style="width: 100%; padding: 12px; margin-top: 10px; margin-bottom: 15px; font-size: 16px; background: linear-gradient(135deg, #00838f, #00b8d4); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #006064; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif;">
+            🛶 端午限定：極速龍舟挑戰！<br>(每日一次)
+        </button>
+
         <div class="hero-display">
             <div id="floatingConstellation"></div>
             
@@ -155,7 +188,7 @@
 
             <div class="hero-energy-badge">⚡: <span id="displayEnergy">0</span></div>
             <button class="btn-edit-float" onclick="editProfile()">✏️</button>
-            <div class="hero-info-badge">
+            <div class="hero-info-badge" onclick="if(typeof secretDebugToggle === 'function') secretDebugToggle();">
                 LV<span id="displayLevel">1</span> : <span id="displayNameBadge">載入中...</span>
             </div>
         </div>
@@ -213,11 +246,75 @@
     </div>
 </div>
 
+<div id="dragonBoatModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 500; flex-direction: column; justify-content: center; align-items: center; font-family: '微軟正黑體', sans-serif; touch-action: none;">
+    <div style="background: #e0f7fa; border: 5px solid #006064; border-radius: 20px; width: 90%; max-width: 400px; height: 75vh; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+        
+        <div style="background: #00838f; color: white; padding: 10px; text-align: center; font-size: 22px; font-weight: bold; z-index: 10;">
+            ⏱️ <span id="boatTimer">00.00</span> 秒
+            <button onclick="closeDragonBoat()" style="position: absolute; right: 10px; top: 10px; background: #ff5252; color: white; border: 2px solid white; border-radius: 50%; width: 32px; height: 32px; font-weight: bold; cursor: pointer;">X</button>
+        </div>
+        
+        <div style="flex: 1; position: relative; background: linear-gradient(#b2ebf2, #4dd0e1); border-left: 3px dashed #00838f; border-right: 3px dashed #00838f; margin: 0 20px;">
+            <div style="position: absolute; top: 12%; width: 100%; border-top: 5px dashed #d32f2f; text-align: center; color: #d32f2f; font-weight: bold; font-size: 16px; padding-top: 5px;">🚩 終點線</div>
+
+            <div id="playerBoat" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); transition: bottom 0.1s ease-out; z-index: 5; user-select: none; -webkit-user-select: none; width: 80px; height: 120px;">
+                <div id="boatRockContainer" style="width: 100%; height: 100%; position: relative; transition: transform 0.1s ease-out; display: flex; justify-content: center; align-items: center; transform-origin: center center;">
+                    
+                    <div id="paddleLeftWrapper" style="position: absolute; left: 10px; top: 55px; transform-origin: center 20%; z-index: 3; transform: rotate(70deg);">
+                        <img src="paddle.png" alt="左槳" style="width: 40px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));">
+                        <img id="splashLeft" src="splash.png" alt="水花" style="position: absolute; left: -10px; top: 18px; width: 60px; display: none;">
+                    </div>
+                    
+                    <img src="boat.png" alt="龍舟" style="width: 80px; z-index: 2; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.5));">
+
+                    <div id="paddleRightWrapper" style="position: absolute; right: 10px; top: 55px; transform-origin: center 20%; z-index: 3; transform: rotate(-70deg);">
+                        <img src="paddle.png" alt="右槳" style="width: 40px; filter: drop-shadow(-2px 2px 3px rgba(0,0,0,0.5));">
+                        <img id="splashRight" src="splash.png" alt="水花" style="position: absolute; right: -10px; top: 18px; width: 60px; display: none; transform: scaleX(-1);">
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="stunMsg" style="position: absolute; top: 40%; width: 100%; text-align: center; color: #d32f2f; font-weight: bold; font-size: 28px; display: none; text-shadow: 2px 2px 0px white, -2px -2px 0px white;">❌ 划錯邊啦！</div>
+        </div>
+
+        <div style="height: 120px; background: #006064; display: flex; justify-content: space-around; align-items: center; padding: 0 10px;">
+            <button onclick="paddleBoat('A')" style="width: 45%; height: 80px; background: #ffca28; border: 4px solid #ff8f00; border-radius: 15px; font-size: 20px; font-weight: bold; color: #d84315; box-shadow: 0 6px 0 #ff8f00; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none;">👈 左槳(A)</button>
+            <button onclick="paddleBoat('B')" style="width: 45%; height: 80px; background: #ffca28; border: 4px solid #ff8f00; border-radius: 15px; font-size: 20px; font-weight: bold; color: #d84315; box-shadow: 0 6px 0 #ff8f00; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none;">右槳(B) 👉</button>
+        </div>
+        
+        <div id="boatStartOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 20px; box-sizing: border-box;">
+            <div id="boatCountdownBox" style="display: none; font-size: 90px; font-weight: bold; color: #ffca28; margin-bottom: 20px;">3</div>
+            
+            <div id="boatIntroGroup" style="display: flex; flex-direction: column; align-items: center;">
+                <h2 style="color: #ffca28; margin-bottom: 10px; font-size: 28px;">🛶 龍舟奪標衝刺</h2>
+                <p style="font-size: 15px; line-height: 1.6; margin-bottom: 25px; color: #e0f7fa;">左右按鈕交替連擊，划向終點！<br><span style="color:#ff5252; font-weight:bold;">⚠️ 警告：連續按同一邊會暈眩打轉喔！</span></p>
+                <button onclick="startDragonBoatCountdown()" style="background: #d32f2f; color: white; font-size: 22px; font-weight: bold; padding: 15px 40px; border: 2px solid white; border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer;">🏁 擊鼓出發</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;">
     <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; border: 4px solid #d35400;">
         <div class="spinner"></div>
         <h3 style="color: #8b4513; margin: 10px 0 0 0;">⚡ 能量傳輸中...</h3>
         <p style="color: #d35400; font-size: 14px; margin: 5px 0 0 0;">請稍候，正在將紀錄刻入石碑</p>
+    </div>
+</div>
+
+
+<div id="adminModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 400; justify-content: center; align-items: center; font-family: '微軟正黑體', sans-serif;">
+    <div style="background: #fffdfa; border: 5px double #8b4513; border-radius: 20px; width: 92%; max-width: 450px; padding: 20px; position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); text-align: center;">
+        <button onclick="document.getElementById('adminModal').style.display='none'" style="position: absolute; top: -15px; right: -15px; background: #c0392b; color: white; border: 2px solid #fff; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">X</button>
+        
+        <h2 style="color: #8b4513; margin-top: 0; border-bottom: 3px double #8b4513; padding-bottom: 8px; font-size: 22px;">🔮 村長神聖裁決所 ⚖️</h2>
+        <p style="font-size: 12px; color: #7f8c8d; margin-top: -5px;">※ 扣除能量後，玩家若未達解鎖門檻，神裝將於下次登入自動收回</p>
+        
+        <div id="adminPlayerList" style="max-height: 55vh; overflow-y: auto; padding-right: 5px; margin-top: 15px; border: 1px inset #d2b48c; background: #faf4e8; border-radius: 10px; padding: 10px;">
+            <div style="text-align: center; color: #d35400; font-size: 14px;">📡 正在召喚眾神名冊...</div>
+        </div>
     </div>
 </div>
 
@@ -451,14 +548,13 @@
         }
     }
 
-    // ⚡ 結算能量 (升級版：強制核對世界時間)
+    // ⚡ 結算能量 (原子級原地加分 - 徹底解決分數覆蓋終極版)
     async function calculateAndAddEnergy() {
         let trueToday = new Date();
         let isTimeCheat = false;
 
         try {
-            // 🌐 終極防護：直接向我們自己的伺服器 (GitHub Pages) 詢問真實網路時間
-            // 好處：100% 穩定不斷線，沒有被外部阻擋的問題
+            // 🌐 透過 GitHub Pages 詢問真實網路時間，防範手機竄改時間
             const timeRes = await fetch(window.location.href + "?t=" + Date.now(), { 
                 method: 'HEAD',
                 cache: 'no-store'
@@ -486,7 +582,6 @@
 
         // 使用新的日曆日期計算法
         const diffDays = getCalendarDiffDays(trueToday);
-
         let taskIndex = Math.floor((diffDays - 1) / 2);
         if (taskIndex > 6) taskIndex = 6; 
         
@@ -494,7 +589,6 @@
         let pointsToGive = (taskIndex === 6) ? 10 : 2; 
         let dailyLimit = (taskIndex === 6) ? 30 : 10;
         
-        //let today = new Date().toDateString(); 
         // 🌟 使用真實時間來當作今日字串！
         let todayStr = trueToday.toDateString(); 
         let currentDayKey = "Day_" + diffDays; 
@@ -503,7 +597,7 @@
         let lastDayKey = localStorage.getItem('lastCheckinDayKey');
         let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
         
-        // 🌅 換日判定：日期字串變了 OR 天數 Key 變了
+        // 🌅 換日判定
         if (lastDate !== todayStr || lastDayKey !== currentDayKey) {
             todayEnergy = 0; 
             localStorage.setItem('lastCheckinDate', todayStr);
@@ -517,81 +611,69 @@
             todayEnergy += actualAdd;
             localStorage.setItem('todayEnergy', todayEnergy); 
             
-            let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
-            total += actualAdd;
-            localStorage.setItem('totalEnergy', total);
-            
-            if (document.getElementById('displayEnergy')) {
-                document.getElementById('displayEnergy').innerText = total;
-            }
-
-            // ========================================================
-            // 🌟 修正點 1：先更新關卡分數
-            // ========================================================
-            // 記錄當前任務的累計分數，並檢查是否解鎖裝備
+            // 更新關卡獨立分數
             let taskScoreKey = "taskScore_" + taskIndex;
             let currentTaskScore = parseInt(localStorage.getItem(taskScoreKey)) || 0;
             currentTaskScore += actualAdd;
             localStorage.setItem(taskScoreKey, currentTaskScore);
 
-            // ========================================================
-            // 🌟 修正點 2：先檢查並發放裝備 (寫入本地 localStorage)
-            // ========================================================
+            // 檢查並發放裝備
             checkEquipmentUnlocked(taskIndex, currentTaskScore);
 
             // ========================================================
-            // 🌟 修正點 3：最後才執行雲端備份！(確保打包的是最新狀態)
+            // 🚨【鐵血防禦核心：雲端直接原地加分】🚨
             // ========================================================
-
-            // 👇👇👇 請在這裡插入【雲端備份防護網 (正式服專用)】 👇👇👇
             try {
-                // 取得玩家的 LINE ID 作為唯一識別碼 (若抓不到則給予臨時 ID 避免報錯)
-                //const userId = liff.getContext() ? liff.getContext().userId : ("anonymous_" + Date.now());
-                //const nickname = localStorage.getItem('gameNickname') || "未知勇者";
-                
                 const userId = window.userProfile ? window.userProfile.userId : ("anonymous_" + Date.now());
                 const nickname = localStorage.getItem('gameNickname') || "未知勇者";
                 const currentRole = localStorage.getItem('selectedRole') || "未選擇";
-                
-                // 這裡抓到的 unlocked 就會是剛剛 checkEquipmentUnlocked 發放過的最新的裝備清單！
                 const unlocked = JSON.parse(localStorage.getItem('unlockedEquips')) || [];
-
-                // 🌟 新增：把防作弊與天數記憶也抓出來
                 const startDate = localStorage.getItem('startDate') || Date.now();
-                const todayEnergy = localStorage.getItem('todayEnergy') || 0;
-                const lastCheckinDate = localStorage.getItem('lastCheckinDate') || "";
+                const lastCheckinDateStr = localStorage.getItem('lastCheckinDate') || "";
 
-                // 🌟 新增：把各關卡的獨立分數打包成一個物件
                 let taskScores = {};
                 for (let i = 0; i <= 6; i++) {
                     taskScores["taskScore_" + i] = localStorage.getItem("taskScore_" + i) || 0;
                 }
                 
-                // 將最新狀態寫入 Firebase 的【Players_Dev】資料庫
+                // 🚀 核心原子加分：totalEnergy 欄位使用 increment(actualAdd)
                 await db.collection("Players_Main").doc(userId).set({
                     lineName: window.userProfile ? window.userProfile.displayName : "未知",
                     nickname: nickname,
                     role: currentRole,
-                    totalEnergy: total,         // 備份總能量
-                    level: (taskIndex + 1),     // 備份當前等級
-                    equips: unlocked,           // 連同解鎖的裝備一起備份！
-
-                    // 🌟 把新增的這三項一起存進雲端！
+                    totalEnergy: firebase.firestore.FieldValue.increment(actualAdd), 
+                    level: (taskIndex + 1),
+                    equips: unlocked,
                     startDate: startDate,
                     todayEnergy: todayEnergy,
-                    lastCheckinDate: lastCheckinDate,
+                    lastCheckinDate: lastCheckinDateStr,
                     taskScores: taskScores,
-
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true }); // 使用 merge: true 確保資料合併，不覆蓋其它屬性
-            } catch (err) {
-                // 如果網路突然卡住導致上傳失敗，只在後台記錄，絕對不干擾玩家的打卡畫面
-                console.log("雲端備份暫時失敗，但不影響本地遊戲進行", err);
-            }
+                }, { merge: true });
 
+                // 🔄【閃電即時對帳】雲端原地加分完畢後，強制從伺服器現撈最新分數更新 UI
+                const freshDoc = await db.collection("Players_Main").doc(userId).get({ source: 'server' });
+                if (freshDoc.exists) {
+                    const freshTotal = parseInt(freshDoc.data().totalEnergy || 0);
+                    localStorage.setItem('totalEnergy', freshTotal);
+                    if (document.getElementById('displayEnergy')) {
+                        document.getElementById('displayEnergy').innerText = freshTotal;
+                    }
+                }
+
+            } catch (err) {
+                console.log("雲端連接異常，啟動離線防護計分", err);
+                let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
+                total += actualAdd;
+                localStorage.setItem('totalEnergy', total);
+                if (document.getElementById('displayEnergy')) {
+                    document.getElementById('displayEnergy').innerText = total;
+                }
+            }
         }
-        
-        //return { added: actualAdd, current: todayEnergy, limit: dailyLimit };
+
+        // 更新按鈕狀態
+        updateDragonBoatButtonState();
         return { added: actualAdd, current: todayEnergy, limit: dailyLimit, cheat: false };
     }
 
@@ -810,11 +892,21 @@
                 const userId = window.userProfile ? window.userProfile.userId : null;
                 
                 if (userId) {
-                    // 查詢這名玩家在雲端測試服 (Players_Dev) 的存檔
+                    // 查詢這名玩家在雲端測試服 (Players_Main) 的存檔
                     const doc = await db.collection("Players_Main").doc(userId).get();
                     
                     if (doc.exists) {
                         const cloudData = doc.data();
+
+                        // 👇 核心新增：偵測到村長發布的重置勒令，瞬間執行本機洗白轉生
+                        if (cloudData.role === "RESET") {
+                            localStorage.clear(); 
+                            await db.collection("Players_Main").doc(userId).delete(); 
+                            showCustomAlert('🔄', '命運重組', '村長已協助您重置英雄靈魂。\n系統即將重新引導您進入選角大廳！');
+                            setTimeout(() => { location.reload(); }, 2500);
+                            return; 
+                        }
+
                         console.log("📡 偵測到雲端進度，正在同步至當前裝置...", cloudData);
                         
                         // 用雲端最新數據，強制覆蓋這台手機/電腦的 localStorage 達成雙向同步
@@ -872,6 +964,10 @@
         showCustomAlert('❌', '傳輸陣連線失敗', '無法與 LINE 試煉伺服器建立安全連線。\n請檢查網路是否正常，或手機的「日期與時間」是否開啟自動同步。\n\n⚠️ 系統已全面鎖定，在恢復正常連線前無法進行任何打卡試煉。');
     });
 
+    // ========================================================================
+    // 👑 14日覺醒守護者核心引擎 - 【submitQuest】與【calculateAndAddEnergy】無誤合體版
+    // ========================================================================
+
     async function submitQuest() {
         const nickname = localStorage.getItem('gameNickname');
         const fileInput = document.getElementById('questImage');
@@ -907,7 +1003,8 @@
                 const gasRes = await res.json();
                 
                 if (gasRes.status === "success") {
-                    await db.collection("QuestLogs").add({
+                    // 1. 寫入打卡日誌 (測試服)
+                    await db.collection("QuestLogs_Main").add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
                         gameNickname: nickname, 
                         role: selectedRole,
@@ -916,21 +1013,18 @@
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    //const energyData = calculateAndAddEnergy();
-                    //let alertMsg = energyData.added > 0 
-
-                    // 🌟 等待最新的真實驗證結果 (加上 await)
+                    // 2. 執行擁有「雲端原地原子加分」的終極引擎
                     const energyData = await calculateAndAddEnergy();
                     
-                    // 🔒 抓包攔截：如果是作弊，直接沒收並中斷流程
+                    // 🔒 鎖定攔截：如果是作弊，直接中斷
                     if (energyData.cheat) {
                         document.getElementById('loadingModal').style.display = "none";
                         showCustomAlert('🚨', '時空異常', '偵測到裝置時間遭到竄改！\n系統已攔截本次打卡，請將手機時間調回「自動設定」。');
                         return; 
                     }
 
+                    // ✨ 修正點 3：修正 alertMsg 重複宣告的問題
                     let alertMsg = energyData.added > 0
-
                         ? `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})` 
                         : `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
 
@@ -938,13 +1032,12 @@
                         try {
                             await liff.sendMessages([{
                                 type: "text",
-                                text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`},
-                                {
+                                text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
+                            }, {
                                     type: "image",
                                     originalContentUrl: gasRes.fileUrl,
                                     previewImageUrl: gasRes.fileUrl
-                                }
-                            ]);
+                            }]);
                         } catch (err) {
                             console.log("圖片發送失敗", err);
                             await liff.sendMessages([{
@@ -957,6 +1050,7 @@
                     document.getElementById('questLog').value = "";
                     document.getElementById('questImage').value = "";
 
+                    updateDragonBoatButtonState();
                     showCustomAlert('🎉', '打卡成功！', alertMsg);
                 } else {
                     showCustomAlert('⚠️', '系統繁忙', '後端處理失敗，請稍後再試。');
@@ -968,6 +1062,7 @@
         };
         reader.readAsDataURL(fileInput.files[0]);
     }
+
 
     async function debugSubmit() {
         const nickname = localStorage.getItem('gameNickname') || "Debug英雄";
@@ -994,7 +1089,7 @@
             });
             const gasRes = await res.json();
             if (gasRes.status === "success") {
-                await db.collection("QuestLogs").add({
+                await db.collection("QuestLogs_Main").add({
                     lineName: window.userProfile ? window.userProfile.displayName : "未知",
                     gameNickname: nickname,
                     role: selectedRole,
@@ -1065,8 +1160,8 @@
             const userId = window.userProfile ? window.userProfile.userId : null;
 
             if (userId) {
-                // 這裡以 Players_Dev 測試服為例
-                await db.collection("Players_Dev").doc(userId).set({
+                // 這裡以 Players_Main 測試服為例
+                await db.collection("Players_Main").doc(userId).set({
                     startDate: targetDate,
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
@@ -1103,6 +1198,123 @@
         showCustomAlert('🔮', '系統作弊碼生效', '已強制喚醒所有沉睡的聖物！\n現在可以查看星環的最終型態了。');
     }
 
+    // ==========================================
+    // 🔮 村長隱藏管理後台核心控制
+    // ==========================================
+    let adminClickCount = 0;
+    let adminClickTimeout = null;
+
+    // 1. 連點 5 下標題監聽器
+    function countAdminClick() {
+        adminClickCount++;
+        clearTimeout(adminClickTimeout);
+        
+        if (adminClickCount >= 5) {
+            adminClickCount = 0;
+            let password = prompt("🔮 偵測到古老管理員共鳴！\n請輸入村長神秘口令：");
+            if (password === "Mis1209") { // 💡 您專屬的進入密碼
+                openAdminPanel();
+            } else if (password !== null) {
+                alert("❌ 口令錯誤！凡人切勿染指神聖領域！");
+            }
+        } else {
+            adminClickTimeout = setTimeout(() => { adminClickCount = 0; }, 2000);
+        }
+    }
+
+    // 2. 召喚全服玩家名冊
+    async function openAdminPanel() {
+        document.getElementById('adminModal').style.display = 'flex';
+        const listDiv = document.getElementById('adminPlayerList');
+        listDiv.innerHTML = `<div style="text-align: center; color: #d35400; font-size: 15px; font-weight: bold; padding: 20px;">📡 正在召喚眾神名冊...</div>`;
+        
+        try {
+            const snapshot = await db.collection("Players_Main").get();
+            if (snapshot.empty) {
+                listDiv.innerHTML = `<div style="text-align: center; color: #888;">目前試煉村還沒有任何勇者建檔。</div>`;
+                return;
+            }
+            
+            let htmlContent = "";
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const uId = doc.id;
+                
+                if (data.role === "RESET" || uId.startsWith("anonymous_")) return; // 跳過已重置或匿名的資料
+
+                htmlContent += `
+                <div style="background: #fff; border: 2px solid #e67e22; border-radius: 12px; padding: 12px; margin-bottom: 12px; box-shadow: 0 3px 6px rgba(0,0,0,0.05); text-align: left;">
+                    <div style="font-weight: bold; color: #5d4037; font-size: 15px; display: flex; justify-content: space-between;">
+                        <span>👤 ${data.nickname || '未命名'}</span>
+                    </div>
+                    <div style="font-size: 13px; color: #7f8c8d; margin: 6px 0; border-bottom: 1px dashed #f39c12; padding-bottom: 4px;">
+                        職業: <span style="color: #2980b9; font-weight: bold;">${data.role || '未選擇'}</span> | 
+                        能量: <span id="admin-energy-${uId}" style="color: #e67e22; font-weight: bold;">⚡ ${data.totalEnergy || 0}</span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 6px; margin-top: 8px; align-items: center;">
+                        <input type="number" id="input-energy-${uId}" placeholder="新分數" style="width: 70px; padding: 5px; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 12px; text-align: center;">
+                        <button onclick="adminModifyEnergy('${uId}', '${data.nickname || '勇者'}')" style="background: #e67e22; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">⚖️ 修正</button>
+                        <button onclick="adminResetPlayer('${uId}', '${data.nickname || '勇者'}')" style="background: #95a5a6; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: auto;">🔄 重置</button>
+                    </div>
+                </div>
+                `;
+            });
+            
+            listDiv.innerHTML = htmlContent || `<div style="text-align: center; color: #888;">暫無有效玩家資料。</div>`;
+        } catch (err) {
+            listDiv.innerHTML = `<div style="text-align: center; color: red; padding: 10px;">名冊召喚失敗，請檢查網路。</div>`;
+        }
+    }
+
+    // 3. 執行遠端修正分數
+    async function adminModifyEnergy(userId, nickname) {
+        const inputEl = document.getElementById(`input-energy-${userId}`);
+        const newEnergy = parseInt(inputEl.value);
+        
+        if (isNaN(newEnergy) || newEnergy < 0) {
+            alert("請輸入正確的數字！"); return;
+        }
+        
+        if (confirm(`⚖️ 確定將【${nickname}】的能量修改為 ⚡ ${newEnergy} 嗎？`)) {
+            try {
+                await db.collection("Players_Main").doc(userId).update({ totalEnergy: newEnergy });
+                document.getElementById(`admin-energy-${userId}`).innerText = `⚡ ${newEnergy}`;
+                inputEl.value = "";
+                alert(`✅ 修改成功！重新載入後生效。`);
+            } catch (err) { alert("⚠️ 失敗：" + err); }
+        }
+    }
+
+    // 4. 執行遠端強制轉生
+    async function adminResetPlayer(userId, nickname) {
+        if (confirm(`🔥 確定要強制重置【${nickname}】嗎？\n他下次開啟網頁時將被踢回選角大廳！`)) {
+            try {
+                await db.collection("Players_Main").doc(userId).update({
+                    role: "RESET", totalEnergy: 0, equips: []
+                });
+                alert(`⚡ 已下達轉生勒令！`);
+                openAdminPanel();
+            } catch (err) { alert("⚠️ 失敗：" + err); }
+        }
+    }
+
+    // 👇 🌟 從這裡開始貼上終極大老闆！
+    window.onload = function() {
+        // 1. 處理玩家資料與日常重置
+        if (typeof checkAndResetDailyData === "function") checkAndResetDailyData();
+        if (typeof loadUserData === "function") loadUserData();
+        if (typeof loadPlayerList === "function") loadPlayerList();
+        
+        // 2. 檢查龍舟按鈕要不要發光
+        if (typeof updateDragonBoatButtonState === "function") {
+            updateDragonBoatButtonState();
+        }
+    };
+
 </script>
+
+<script src="dragonBoat.js?v=0609"></script>
+
 </body>
 </html>
