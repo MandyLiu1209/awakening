@@ -595,7 +595,7 @@
     }
 
     // ⚡ 結算能量 (升級版：強制核對世界時間)
-    async function calculateAndAddEnergy(serverTotalEnergy) { // 👈 🚀 關鍵修正 1：開門接收雲端傳入的真分數！
+    async function calculateAndAddEnergy() {
         let trueToday = new Date();
         let isTimeCheat = false;
 
@@ -660,23 +660,13 @@
             todayEnergy += actualAdd;
             localStorage.setItem('todayEnergy', todayEnergy); 
             
-            // 💰 讀取本地原本的總分
-            let total = parseInt(localStorage.getItem('totalEnergy')) || 0;           
-            // ========================================================
-            // 🚨【關鍵修正 2：時空同步核對】
-            // 只要雲端有最新對帳分數（比如村長剛加完的 107 分），一律強制以雲端為準！
-            // ========================================================
-            if (typeof serverTotalEnergy === 'number' && !isNaN(serverTotalEnergy) && serverTotalEnergy > 0) {
-                total = serverTotalEnergy; // 本地記憶瞬間被校正為 107 分！
-            }
-            // ========================================================
-
-            total += actualAdd; // 🚀 107 + 2 完美等於 109 分！
+            */let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
+            total += actualAdd;
             localStorage.setItem('totalEnergy', total);
-
+            
             if (document.getElementById('displayEnergy')) {
                 document.getElementById('displayEnergy').innerText = total;
-            }
+            }*/
 
             // ========================================================
             // 🌟 修正點 1：先更新關卡分數
@@ -693,7 +683,7 @@
             checkEquipmentUnlocked(taskIndex, currentTaskScore);
 
             // ========================================================
-            // 🌟 修正點 3：最後才執行雲端備份！(確保打包的是最新狀態)
+            // 🚨【鐵血防禦核心：雲端直接原子加分】🚨
             // ========================================================
 
             // 👇👇👇 請在這裡插入【雲端備份防護網 (正式服專用)】 👇👇👇
@@ -711,7 +701,7 @@
 
                 // 🌟 新增：把防作弊與天數記憶也抓出來
                 const startDate = localStorage.getItem('startDate') || Date.now();
-                const todayEnergy = localStorage.getItem('todayEnergy') || 0;
+                //const todayEnergy = localStorage.getItem('todayEnergy') || 0;
                 const lastCheckinDate = localStorage.getItem('lastCheckinDate') || "";
 
                 // 🌟 新增：把各關卡的獨立分數打包成一個物件
@@ -737,9 +727,27 @@
 
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true }); // 使用 merge: true 確保資料合併，不覆蓋其它屬性
+
+                // 🔄【閃電對帳】原地加分成功後，立刻從伺服器現撈最新真分數，刷新手機本地快取與 UI
+                const freshDoc = await db.collection("Players_Dev").doc(userId).get({ source: 'server' });
+                if (freshDoc.exists) {
+                    const freshTotal = parseInt(freshDoc.data().totalEnergy || 0);
+                    localStorage.setItem('totalEnergy', freshTotal);
+                    if (document.getElementById('displayEnergy')) {
+                        document.getElementById('displayEnergy').innerText = freshTotal;
+                    }
+                }
+
             } catch (err) {
                 // 如果網路突然卡住導致上傳失敗，只在後台記錄，絕對不干擾玩家的打卡畫面
-                console.log("雲端備份暫時失敗，但不影響本地遊戲進行", err);
+                //console.log("雲端備份暫時失敗，但不影響本地遊戲進行", err);
+                console.log("雲端連接異常，啟動離線防護計分", err);
+                let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
+                total += actualAdd;
+                localStorage.setItem('totalEnergy', total);
+                if (document.getElementById('displayEnergy')) {
+                    document.getElementById('displayEnergy').innerText = total;
+                }
             }
 
         }
@@ -1074,6 +1082,7 @@
                 
                 if (gasRes.status === "success") {
                     // 1. 先成功寫入打卡日誌
+                    // ⚠️ 註：正式服網頁請將 QuestLogs_Dev 改為 QuestLogs_Main
                     await db.collection("QuestLogs_Dev").add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
                         gameNickname: nickname, 
@@ -1086,34 +1095,14 @@
                     // ====================================================
                     // 🚀【村長加碼插入：打卡前瞬間雲端對帳機制】
                     // ====================================================
-                    const userId = context ? context.userId : null;
-                    let energyData = { added: 2, current: 2, limit: 10, cheat: false }; // 預設提示結構面罩
+                    //const userId = context ? context.userId : null;
+                    //let energyData = { added: 2, current: 2, limit: 10, cheat: false }; // 預設提示結構面罩
+
+                    // 🌟 2. 執行擁有「雲端原地原子加分」的終極引擎
+                    const energyData = await calculateAndAddEnergy();
                     
-                    if (userId) {
-                        // 1️⃣ 直接命令雲端：不管你現在幾分（101還是107），立刻在原地「加上 2 分」！
-                        // ⚠️ 註：正式服網頁請記得將 Players_Dev 改為 Players_Main
-                        await db.collection("Players_Dev").doc(userId).update({
-                            totalEnergy: firebase.firestore.FieldValue.increment(2)
-                        });
-
-                        // 2️⃣ 加完分後，強制從伺服器（不看快取）撈出這一秒最準確的新總分，同步到手機畫面上
-                        const playerDoc = await db.collection("Players_Dev").doc(userId).get({ source: 'server' });
-                        if (playerDoc.exists) {
-                            const serverData = playerDoc.data();
-                            const latestTotalEnergy = parseInt(serverData.totalEnergy || 0);
-                            
-                            // 強行校正網頁所有可能卡住的本地分數變數，確保跟雲端 100% 同步
-                            if (typeof playerLocalData !== 'undefined') playerLocalData.totalEnergy = latestTotalEnergy;
-                            if (typeof playerData !== 'undefined') playerData.totalEnergy = latestTotalEnergy;
-                            if (typeof currentUserData !== 'undefined') currentUserData.totalEnergy = latestTotalEnergy;
-                        }
-                    }
-
-                    // 3️⃣ 呼叫次數限制與防作弊校正（維持您原本的限制功能）
-                    if (typeof calculateAndAddEnergy === "function") {
-                        const tempEnergy = await calculateAndAddEnergy();
-                        if (tempEnergy) energyData = tempEnergy;
-                    }
+                    
+                    
                     // ====================================================
 
 
@@ -1121,7 +1110,7 @@
                     //let alertMsg = energyData.added > 0 
 
                     // 🌟 等待最新的真實驗證結果 (加上 await)
-                    //const energyData = await calculateAndAddEnergy();
+                    const energyData = await calculateAndAddEnergy();
 
                     // 🌟 2. 計算發放分數：傳入剛剛向雲端對帳撈到的「最新分數」latestTotalEnergy
                     //const energyData = await calculateAndAddEnergy(latestTotalEnergy);
