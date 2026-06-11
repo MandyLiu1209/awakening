@@ -392,6 +392,10 @@
 
     const MY_LIFF_ID = "2009976493-YLUg1OX8"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
+    // 📡 遊戲伺服器資料庫線路設定 
+    // (未來切換正式服時，只要把這裡改成 "Players_Dev" 與 "QuestLogs_Dev" 即可！)
+    const PLAYER_COLLECTION = "Players_Main";
+    const QUEST_LOG_COLLECTION = "QuestLogs_Main";
 
     // 開發者模式開關
     let debug_mode = false;
@@ -670,7 +674,7 @@
                 }
                 
                 // 🚀 核心原子加分：totalEnergy 欄位使用 increment(actualAdd)
-                await db.collection("Players_Main").doc(userId).set({
+                await db.collection(PLAYER_COLLECTION).doc(userId).set({
                     lineName: window.userProfile ? window.userProfile.displayName : "未知",
                     nickname: nickname,
                     role: currentRole,
@@ -685,7 +689,7 @@
                 }, { merge: true });
 
                 // 🔄【閃電即時對帳】雲端原地加分完畢後，強制從伺服器現撈最新分數更新 UI
-                const freshDoc = await db.collection("Players_Main").doc(userId).get({ source: 'server' });
+                const freshDoc = await db.collection(PLAYER_COLLECTION).doc(userId).get({ source: 'server' });
                 if (freshDoc.exists) {
                     const freshTotal = parseInt(freshDoc.data().totalEnergy || 0);
                     localStorage.setItem('totalEnergy', freshTotal);
@@ -926,7 +930,7 @@
                 
                 if (userId) {
                     // 查詢這名玩家在雲端測試服 (Players_Main) 的存檔
-                    const doc = await db.collection("Players_Main").doc(userId).get();
+                    const doc = await db.collection(PLAYER_COLLECTION).doc(userId).get();
                     
                     if (doc.exists) {
                         const cloudData = doc.data();
@@ -934,7 +938,7 @@
                         // 👇 核心新增：偵測到村長發布的重置勒令，瞬間執行本機洗白轉生
                         if (cloudData.role === "RESET") {
                             localStorage.clear(); 
-                            await db.collection("Players_Main").doc(userId).delete(); 
+                            await db.collection(PLAYER_COLLECTION).doc(userId).delete(); 
                             showCustomAlert('🔄', '命運重組', '村長已協助您重置英雄靈魂。\n系統即將重新引導您進入選角大廳！');
                             setTimeout(() => { location.reload(); }, 2500);
                             return; 
@@ -1037,7 +1041,7 @@
                 
                 if (gasRes.status === "success") {
                     // 1. 寫入打卡日誌 (測試服)
-                    await db.collection("QuestLogs_Main").add({
+                    await db.collection(QUEST_LOG_COLLECTION).add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
                         gameNickname: nickname, 
                         role: selectedRole,
@@ -1122,7 +1126,7 @@
             });
             const gasRes = await res.json();
             if (gasRes.status === "success") {
-                await db.collection("QuestLogs_Main").add({
+                await db.collection(QUEST_LOG_COLLECTION).add({
                     lineName: window.userProfile ? window.userProfile.displayName : "未知",
                     gameNickname: nickname,
                     role: selectedRole,
@@ -1194,7 +1198,7 @@
 
             if (userId) {
                 // 這裡以 Players_Main 測試服為例
-                await db.collection("Players_Main").doc(userId).set({
+                await db.collection(PLAYER_COLLECTION).doc(userId).set({
                     startDate: targetDate,
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
@@ -1262,7 +1266,7 @@
         listDiv.innerHTML = `<div style="text-align: center; color: #d35400; font-size: 15px; font-weight: bold; padding: 20px;">📡 正在召喚眾神名冊...</div>`;
         
         try {
-            const snapshot = await db.collection("Players_Main").get();
+            const snapshot = await db.collection(PLAYER_COLLECTION).get();
             if (snapshot.empty) {
                 listDiv.innerHTML = `<div style="text-align: center; color: #888;">目前試煉村還沒有任何勇者建檔。</div>`;
                 return;
@@ -1311,7 +1315,7 @@
         
         if (confirm(`⚖️ 確定將【${nickname}】的能量修改為 ⚡ ${newEnergy} 嗎？`)) {
             try {
-                await db.collection("Players_Main").doc(userId).update({ totalEnergy: newEnergy });
+                await db.collection(PLAYER_COLLECTION).doc(userId).update({ totalEnergy: newEnergy });
                 document.getElementById(`admin-energy-${userId}`).innerText = `⚡ ${newEnergy}`;
                 inputEl.value = "";
                 alert(`✅ 修改成功！重新載入後生效。`);
@@ -1323,7 +1327,7 @@
     async function adminResetPlayer(userId, nickname) {
         if (confirm(`🔥 確定要強制重置【${nickname}】嗎？\n他下次開啟網頁時將被踢回選角大廳！`)) {
             try {
-                await db.collection("Players_Main").doc(userId).update({
+                await db.collection(PLAYER_COLLECTION).doc(userId).update({
                     role: "RESET", totalEnergy: 0, equips: []
                 });
                 alert(`⚡ 已下達轉生勒令！`);
