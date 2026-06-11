@@ -118,7 +118,7 @@ function updateDragonBoatButtonState() {
             let diff = requiredEnergy - todayEnergy;
             alert(`🔒 能量不足\n\n還差 ⚡ ${diff} 分即可解鎖今日龍舟挑戰！\n快去完成任務與打卡吧！`); 
         };
-        btn.innerHTML = `🔒 達 ${requiredEnergy} 分解鎖`;
+        btn.innerHTML = `🔒 獲 ${requiredEnergy} 分解鎖`;
     }
 }
 

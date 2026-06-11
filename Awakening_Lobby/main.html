@@ -177,9 +177,24 @@
     </div>
 
     <div id="checkinSection" class="hidden">
+        <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 15px;">
+            <button id="btnDragonBoat" type="button" onclick="openDragonBoatModal()" style="flex: 1; padding: 12px 5px; font-size: 15px; background: linear-gradient(135deg, #00838f, #00b8d4); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #006064; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif; line-height: 1.4;">
+                🛶 極速龍舟<br><span style="font-size: 12px;">(每日挑戰)</span>
+            </button>
+
+            <button id="btnLeaderboard" type="button" onclick="openLeaderboard()" style="flex: 1; padding: 12px 5px; font-size: 15px; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #a04000; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif; line-height: 1.4;">
+                🏆 英雄榜<br>
+            </button>
+        </div>
+        <!--
         <button id="btnDragonBoat" type="button" onclick="openDragonBoatModal()" style="width: 100%; padding: 12px; margin-top: 10px; margin-bottom: 15px; font-size: 16px; background: linear-gradient(135deg, #00838f, #00b8d4); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #006064; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif;">
             🛶 端午限定：極速龍舟挑戰！<br>(每日一次)
         </button>
+
+        <button id="btnLeaderboard" type="button" onclick="openLeaderboard()" style="width: 100%; padding: 12px; margin-bottom: 15px; font-size: 16px; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #a04000; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif;">
+            🏆 查看英雄榮耀排行榜
+        </button>
+        -->
 
         <div class="hero-display">
             <div id="floatingConstellation"></div>
@@ -318,6 +333,20 @@
     </div>
 </div>
 
+<div id="leaderboardModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 450; justify-content: center; align-items: center; font-family: '微軟正黑體', sans-serif;">
+    <div style="background: #fffdfa; border: 5px solid #d35400; border-radius: 20px; width: 92%; max-width: 450px; padding: 20px; position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); text-align: center; max-height: 80vh; display: flex; flex-direction: column;">
+        
+        <button onclick="document.getElementById('leaderboardModal').style.display='none'" style="position: absolute; top: -15px; right: -15px; background: #c0392b; color: white; border: 2px solid #fff; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">X</button>
+        
+        <h2 style="color: #8b4513; margin-top: 0; border-bottom: 3px dashed #d35400; padding-bottom: 10px; font-size: 24px;">🏆 榮耀英雄榜</h2>
+        
+        <div id="leaderboardList" style="flex: 1; overflow-y: auto; margin-top: 10px; padding: 8px; background: #faf4e8; border-radius: 10px; border: 1px inset #d2b48c; text-align: left;">
+            <div style="text-align: center; color: #d35400; font-size: 14px; font-weight: bold; padding: 20px;">📡 正在讀取石碑數據...</div>
+        </div>
+        
+    </div>
+</div>
+
 <script>
     // 🌟 絕對防禦：憑空生成彈窗，保證不報錯！
     function showCustomAlert(icon, title, message) {
@@ -365,8 +394,12 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPVKwmP0YZxtdSfoR01QMjomrl8wk55y9W_2nyvO2A-V-ZSymLS_UFhjAQVVcdPOcd/exec";
 
     // 開發者模式開關
-    const debug_mode = false;
-    const GAME_VERSION = "v1.0.0_20260516"; // 自動清除舊記憶，套用新裝備系統
+    let debug_mode = false;
+    const GAME_VERSION = "v1.4.0_20260516"; // 自動清除舊記憶，套用新裝備系統
+    //v0.2.x：將記錄移到資料庫
+    //v0.3.x：加入端午節小遊戲
+    //v0.4.x：加入排行榜
+
 
     if (localStorage.getItem('gameVersion') !== GAME_VERSION) {
         localStorage.clear(); 
@@ -1296,6 +1329,72 @@
                 alert(`⚡ 已下達轉生勒令！`);
                 openAdminPanel();
             } catch (err) { alert("⚠️ 失敗：" + err); }
+        }
+    }
+
+    // ==========================================
+    // 🏆 排行榜核心邏輯
+    // ==========================================
+    async function openLeaderboard() {
+        // 1. 顯示 Modal 與 Loading 狀態
+        document.getElementById('leaderboardModal').style.display = 'flex';
+        const listDiv = document.getElementById('leaderboardList');
+        listDiv.innerHTML = `<div style="text-align: center; color: #d35400; font-size: 15px; font-weight: bold; padding: 20px;">📡 正在讀取石碑數據...</div>`;
+
+        try {
+            // 2. 向 Firebase 請求資料：依據 totalEnergy 降冪排序，抓取前 50 名
+            // 注意：請確保這裡的 Collection 名稱與你當前環境一致 (Players_Dev 或 Players_Main)
+            const snapshot = await db.collection("Players_Dev")
+                                     .orderBy("totalEnergy", "desc")
+                                     .limit(50)
+                                     .get();
+
+            if (snapshot.empty) {
+                listDiv.innerHTML = `<div style="text-align: center; color: #888; padding: 20px;">目前試煉村尚無勇者紀錄。</div>`;
+                return;
+            }
+
+            let htmlContent = "";
+            let rank = 1;
+
+            // 3. 遍歷資料並動態生成 HTML
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const uId = doc.id;
+
+                // 🛡️ 過濾掉被重置的玩家與未實名的除錯帳號（與村長後台邏輯一致）
+                if (data.role === "RESET" || uId.startsWith("anonymous_")) return;
+
+                // 👑 前三名專屬圖示
+                let rankDisplay = `<span style="display: inline-block; width: 30px; text-align: center; font-size: 18px; font-weight: bold; color: #7f8c8d;">${rank}</span>`;
+                if (rank === 1) rankDisplay = `<span style="font-size: 28px;">🥇</span>`;
+                else if (rank === 2) rankDisplay = `<span style="font-size: 28px;">🥈</span>`;
+                else if (rank === 3) rankDisplay = `<span style="font-size: 28px;">🥉</span>`;
+
+                // 🎨 渲染單筆玩家資料
+                htmlContent += `
+                <div style="display: flex; align-items: center; background: #fff; border: 2px solid ${rank <= 3 ? '#e67e22' : '#ecf0f1'}; border-radius: 12px; padding: 12px; margin-bottom: 8px; box-shadow: 0 3px 6px rgba(0,0,0,0.05);">
+                    <div style="margin-right: 15px; width: 35px; text-align: center;">
+                        ${rankDisplay}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: #5d4037; font-size: 16px;">${data.nickname || '未知勇者'}</div>
+                        <div style="font-size: 12px; color: #7f8c8d; margin-top: 4px;">職業: ${data.role || '未選擇'}</div>
+                    </div>
+                    <div style="font-weight: bold; color: #e67e22; font-size: 18px; background: #fdf2e9; padding: 6px 12px; border-radius: 20px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+                        ⚡ ${data.totalEnergy || 0}
+                    </div>
+                </div>
+                `;
+                rank++;
+            });
+
+            // 4. 寫入畫面
+            listDiv.innerHTML = htmlContent || `<div style="text-align: center; color: #888; padding: 20px;">尚無有效的排行資料。</div>`;
+
+        } catch (err) {
+            console.error("讀取排行榜失敗", err);
+            listDiv.innerHTML = `<div style="text-align: center; color: red; padding: 20px;">讀取失敗，請檢查網路連線。</div>`;
         }
     }
 
