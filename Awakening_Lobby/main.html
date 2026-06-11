@@ -1348,7 +1348,7 @@
         try {
             // 2. 向 Firebase 請求資料：依據 totalEnergy 降冪排序，抓取前 50 名
             // 注意：請確保這裡的 Collection 名稱與你當前環境一致 (Players_Dev 或 Players_Main)
-            const snapshot = await db.collection("Players_Dev")
+            const snapshot = await db.collection(PLAYER_COLLECTION)
                                      .orderBy("totalEnergy", "desc")
                                      .limit(50)
                                      .get();
