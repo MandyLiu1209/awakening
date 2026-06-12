@@ -9,24 +9,44 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <style>
-        /* 🌊 極速龍舟專屬：流體動力學划槳動畫 CSS */
+        /* 🛶 龍舟專屬：流體動力學橢圓畫圈划槳動畫 (對齊參考影片效果) */
         
-        /* 定義左槳划船循環 (0.3秒的快速物理過程) */
+        /* 定義左槳完美畫圈循環 (配合 transform-origin: top center) */
         @keyframes rowingLeft {
-            0%   { transform: rotate(30deg); }   /* 前探準備姿勢 */
-            5%  { transform: rotate(25deg); }   /* 1. Catch：向前探出吃水 */
-            40%  { transform: rotate(75deg); }  /* 2. Drive：狠狠往後下拉動水流！ */
-            60%  { transform: rotate(80deg); }   /* 3. Recovery：出水彈起 */
-            100% { transform: rotate(30deg); }   /* 回到準備姿勢 */
+            /* 1. 準備/提槳回槳 (高位向前) */
+            0%   { transform: translate(0px, 0px) rotate(60deg); }   
+            
+            /* 2. 入水前探 (向前伸到最遠，微入水) */
+            15%  { transform: translate(-5px, -5px) rotate(80deg); }  
+            
+            /* 3. 吃水拉水 (槳全入水，狠狠向後拉，並微向外側推開避免碰船身) */
+            20%  { transform: translate(-15px, 0px) rotate(75deg); }   /* 剛入水出力 */
+            50%  { transform: translate(-18px, 15px) rotate(0deg); }    /* 拉水中央，避開船腰 */
+            
+            /* 4. 出水提槳 (在最後方快速提槳彈起，絕不打船尾) */
+            80%  { transform: translate(-8px, 10px) rotate(-20deg); }   /* 原本0deg改到-20deg快速提槳 */
+            
+            /* 5. 快速歸位 (高位回準備姿勢) */
+            100% { transform: translate(0px, 0px) rotate(60deg); }   
         }
 
-        /* 定義右槳划船循環 (對稱) */
+        /* 定義右槳完美畫圈循環 (配合 transform-origin: top center) */
         @keyframes rowingRight {
-            0%   { transform: rotate(-30deg); } /* 前探準備姿勢 */
-            5%  { transform: rotate(-25deg); } /* Catch */
-            40%  { transform: rotate(-75deg); }  /* Drive */
-            60%  { transform: rotate(-80deg); } /* Recovery */
-            100% { transform: rotate(-30deg); } /* 回到準備姿勢 */
+            /* 1. 準備/提槳回槳 (高位向前) */
+            0%   { transform: translate(0px, 0px) rotate(-60deg); }  
+            
+            /* 2. 入水前探 (向前伸到最遠，微入水) */
+            15%  { transform: translate(5px, -5px) rotate(-80deg); } 
+            
+            /* 3. 吃水拉水 (槳全入水，狠狠向後拉，並微向外側推開避免碰船身) */
+            20%  { transform: translate(15px, 0px) rotate(-75deg); }  /* 刚入水出力 */
+            50%  { transform: translate(18px, 15px) rotate(0deg); }    /* 拉水中央，避開船腰 */
+            
+            /* 4. 出水提槳 (在最後方快速提槳彈起，絕不打船尾) */
+            80%  { transform: translate(8px, 10px) rotate(20deg); }   /* 原本0deg改到20deg快速提槳 */
+            
+            /* 5. 快速歸位 (高位回準備姿勢) */
+            100% { transform: translate(0px, 0px) rotate(-60deg); }  
         }
 
         /* 觸發動畫的 CSS 類別 */
