@@ -78,7 +78,7 @@ function updateDragonBoatButtonState() {
         btn.style.filter = 'grayscale(0%) drop-shadow(0px 0px 8px rgba(255, 215, 0, 0.8))';
         btn.style.opacity = '1';
         btn.onclick = openDragonBoatModal;
-        btn.innerHTML = "🐉 進入龍舟 (測試中)";
+        btn.innerHTML = "🐉 進入龍舟T1";
         return;
     }
 
