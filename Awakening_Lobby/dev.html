@@ -9,24 +9,24 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <style>
-        /* 🌊 極速龍舟專屬：細緻橢圓畫圈划槳動畫 (配合 top center 支點) */
+        /* 🌊 極速龍舟專屬：細緻橢圓畫圈划槳動畫 (解凍復活版) */
         
-        /* 定義左槳畫圈循環 (配合 !important 確保軌跡生效) */
+        /* 定義左槳畫圈循環 (拿掉 !important，讓瀏覽器正常讀取) */
         @keyframes rowingLeft {
-            0%   { transform: translate(0px, 0px) rotate(70deg) !important; }       /* 1. 準備：往前探 */
-            25%  { transform: translate(-5px, -3px) rotate(85deg) !important; }    /* 2. 入水：微往「左外側」推開，確保不碰船 */
-            50%  { transform: translate(-5px, 15px) rotate(0deg) !important; }     /* 3. 拉水：保持在外部，狠狠往後拉 */
-            75%  { transform: translate(-2px, 8px) rotate(35deg) !important; }     /* 4. 出水：提槳並慢慢收回靠近船身 */
-            100% { transform: translate(0px, 0px) rotate(70deg) !important; }       /* 5. 歸位：回到準備姿勢 */
+            0%   { transform: translate(0px, 0px) rotate(70deg); }      
+            25%  { transform: translate(-5px, -3px) rotate(85deg); }   
+            50%  { transform: translate(-5px, 15px) rotate(0deg); }    
+            75%  { transform: translate(-2px, 8px) rotate(35deg); }    
+            100% { transform: translate(0px, 0px) rotate(70deg); }      
         }
 
-        /* 定義右槳畫圈循環 (配合 !important 確保軌跡生效) */
+        /* 定義右槳畫圈循環 (拿掉 !important，讓瀏覽器正常讀取) */
         @keyframes rowingRight {
-            0%   { transform: translate(0px, 0px) rotate(-70deg) !important; }      /* 1. 準備：往前探 */
-            25%  { transform: translate(5px, -3px) rotate(-85deg) !important; }    /* 2. 入水：微往「右外側」推開，確保不碰船 */
-            50%  { transform: translate(5px, 15px) rotate(0deg) !important; }       /* 3. 拉水：保持在外部，狠狠往後拉 */
-            75%  { transform: translate(2px, 8px) rotate(-35deg) !important; }      /* 4. 出水：提槳並慢慢收回靠近船身 */
-            100% { transform: translate(0px, 0px) rotate(-70deg) !important; }      /* 5. 歸位：回到準備姿勢 */
+            0%   { transform: translate(0px, 0px) rotate(-70deg); }     
+            25%  { transform: translate(5px, -3px) rotate(-85deg); }   
+            50%  { transform: translate(5px, 15px) rotate(0deg); }      
+            75%  { transform: translate(2px, 8px) rotate(-35deg); }     
+            100% { transform: translate(0px, 0px) rotate(-70deg); }     
         }
 
         /* 觸發動畫的 CSS 類別 */
