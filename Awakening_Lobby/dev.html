@@ -13,20 +13,20 @@
         
         /* 定義左槳划船循環 (0.3秒的快速物理過程) */
         @keyframes rowingLeft {
-            0%   { transform: rotate(70deg); }   /* 前探準備姿勢 */
-            15%  { transform: rotate(85deg); }   /* 1. Catch：向前探出吃水 */
-            45%  { transform: rotate(35deg); }  /* 2. Drive：狠狠往後下拉動水流！ */
-            75%  { transform: rotate(50deg); }   /* 3. Recovery：出水彈起 */
-            100% { transform: rotate(70deg); }   /* 回到準備姿勢 */
+            0%   { transform: rotate(30deg); }   /* 前探準備姿勢 */
+            5%  { transform: rotate(25deg); }   /* 1. Catch：向前探出吃水 */
+            40%  { transform: rotate(75deg); }  /* 2. Drive：狠狠往後下拉動水流！ */
+            60%  { transform: rotate(80deg); }   /* 3. Recovery：出水彈起 */
+            100% { transform: rotate(30deg); }   /* 回到準備姿勢 */
         }
 
         /* 定義右槳划船循環 (對稱) */
         @keyframes rowingRight {
-            0%   { transform: rotate(-70deg); } /* 前探準備姿勢 */
-            15%  { transform: rotate(-85deg); } /* Catch */
-            45%  { transform: rotate(-35deg); }  /* Drive */
-            75%  { transform: rotate(-50deg); } /* Recovery */
-            100% { transform: rotate(-70deg); } /* 回到準備姿勢 */
+            0%   { transform: rotate(-30deg); } /* 前探準備姿勢 */
+            5%  { transform: rotate(-25deg); } /* Catch */
+            40%  { transform: rotate(-75deg); }  /* Drive */
+            60%  { transform: rotate(-80deg); } /* Recovery */
+            100% { transform: rotate(-30deg); } /* 回到準備姿勢 */
         }
 
         /* 觸發動畫的 CSS 類別 */
