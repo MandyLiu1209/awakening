@@ -9,44 +9,42 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <style>
-        /* 🛶 龍舟專屬：流體動力學橢圓畫圈划槳動畫 (對齊參考影片效果) */
+        /* 🛶 龍舟專屬：純角度節奏划槳 (絕對不分離、不打船尾) */
         
-        /* 定義左槳完美畫圈循環 (配合 transform-origin: top center) */
+        /* 左槳 */
         @keyframes rowingLeft {
-            /* 1. 準備/提槳回槳 (高位向前) */
-            0%   { transform: translate(0px, 0px) rotate(60deg); }   
+            /* 1. 準備/提槳回槳 */
+            0%   { transform: rotate(60deg); }   
             
-            /* 2. 入水前探 (向前伸到最遠，微入水) */
-            15%  { transform: translate(-5px, -5px) rotate(80deg); }  
+            /* 2. 入水前探 (往前伸到最遠，動作放慢) */
+            20%  { transform: rotate(85deg); }  
             
-            /* 3. 吃水拉水 (槳全入水，狠狠向後拉，並微向外側推開避免碰船身) */
-            20%  { transform: translate(-15px, 0px) rotate(75deg); }   /* 剛入水出力 */
-            50%  { transform: translate(-18px, 15px) rotate(0deg); }    /* 拉水中央，避開船腰 */
+            /* 3. 吃水拉水 (用力往後拉！到 30 度就停，絕對不碰船尾) */
+            55%  { transform: rotate(30deg); }   
             
-            /* 4. 出水提槳 (在最後方快速提槳彈起，絕不打船尾) */
-            80%  { transform: translate(-8px, 10px) rotate(-20deg); }   /* 原本0deg改到-20deg快速提槳 */
+            /* 4. 出水提槳 (快速彈起) */
+            80%  { transform: rotate(45deg); }   
             
-            /* 5. 快速歸位 (高位回準備姿勢) */
-            100% { transform: translate(0px, 0px) rotate(60deg); }   
+            /* 5. 快速歸位 */
+            100% { transform: rotate(60deg); }   
         }
 
-        /* 定義右槳完美畫圈循環 (配合 transform-origin: top center) */
+        /* 右槳 */
         @keyframes rowingRight {
-            /* 1. 準備/提槳回槳 (高位向前) */
-            0%   { transform: translate(0px, 0px) rotate(-60deg); }  
+            /* 1. 準備/提槳回槳 */
+            0%   { transform: rotate(-60deg); }  
             
-            /* 2. 入水前探 (向前伸到最遠，微入水) */
-            15%  { transform: translate(5px, -5px) rotate(-80deg); } 
+            /* 2. 入水前探 (往前伸到最遠，動作放慢) */
+            20%  { transform: rotate(-85deg); } 
             
-            /* 3. 吃水拉水 (槳全入水，狠狠向後拉，並微向外側推開避免碰船身) */
-            20%  { transform: translate(15px, 0px) rotate(-75deg); }  /* 刚入水出力 */
-            50%  { transform: translate(18px, 15px) rotate(0deg); }    /* 拉水中央，避開船腰 */
+            /* 3. 吃水拉水 (用力往後拉！到 -30 度就停，絕對不碰船尾) */
+            55%  { transform: rotate(-30deg); }  
             
-            /* 4. 出水提槳 (在最後方快速提槳彈起，絕不打船尾) */
-            80%  { transform: translate(8px, 10px) rotate(20deg); }   /* 原本0deg改到20deg快速提槳 */
+            /* 4. 出水提槳 (快速彈起) */
+            80%  { transform: rotate(-45deg); }   
             
-            /* 5. 快速歸位 (高位回準備姿勢) */
-            100% { transform: translate(0px, 0px) rotate(-60deg); }  
+            /* 5. 快速歸位 */
+            100% { transform: rotate(-60deg); }  
         }
 
         /* 觸發動畫的 CSS 類別 */
@@ -295,16 +293,16 @@
             <div id="playerBoat" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); transition: bottom 0.1s ease-out; z-index: 5; user-select: none; -webkit-user-select: none; width: 80px; height: 120px;">
                 <div id="boatRockContainer" style="width: 100%; height: 100%; position: relative; transition: transform 0.1s ease-out; display: flex; justify-content: center; align-items: center; transform-origin: center center;">
                     
-                    <div id="paddleLeftWrapper" style="position: absolute; left: 10px; top: 55px; transform-origin: center 20%; z-index: 3; transform: rotate(70deg);">
+                    <div id="paddleLeftWrapper" style="position: absolute; left: 10px; top: 55px; transform-origin: center top; z-index: 3; transform: rotate(70deg);">
                         <img src="paddle.png" alt="左槳" style="width: 40px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));">
                         <img id="splashLeft" src="splash.png" alt="水花" style="position: absolute; left: -10px; top: 18px; width: 60px; display: none;">
                     </div>
                     
                     <img src="boat.png" alt="龍舟" style="width: 80px; z-index: 2; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.5));">
 
-                    <div id="paddleRightWrapper" style="position: absolute; right: 10px; top: 55px; transform-origin: center 20%; z-index: 3; transform: rotate(-70deg);">
-                        <img src="paddle.png" alt="右槳" style="width: 40px; filter: drop-shadow(-2px 2px 3px rgba(0,0,0,0.5));">
-                        <img id="splashRight" src="splash.png" alt="水花" style="position: absolute; right: -10px; top: 18px; width: 60px; display: none; transform: scaleX(-1);">
+                    <div id="paddleRightWrapper" style="position: absolute; right: 10px; top: 55px; transform-origin: center top; z-index: 3; transform: rotate(-70deg);">
+                        <img src="paddle.png" alt="右槳" style="width: 40px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));">
+                        <img id="splashRight" src="splash.png" alt="水花" style="position: absolute; right: -10px; top: 18px; width: 60px; display: none;">
                     </div>
 
                 </div>
