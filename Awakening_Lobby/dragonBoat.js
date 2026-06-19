@@ -65,7 +65,7 @@ function getRequiredEnergyForDay(day) {
         13: 22,  //8, //22,  // 
         14: 25,  //10 //25,  // 
     };
-    return day; //thresholds[day]; || 2; 
+    return thresholds[day]; // || 2; 
 }
 
 // 🌟 核心新增：自動更新龍舟按鈕狀態 (反灰/亮起)
