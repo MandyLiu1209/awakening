@@ -183,7 +183,7 @@
             </button>
 
             <button id="btnLeaderboard" type="button" onclick="openLeaderboard()" style="flex: 1; padding: 12px 5px; font-size: 15px; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif; line-height: 1.4;">
-                🏆 英雄榜 v1<br>
+                🏆 英雄榜<br>
             </button>
         </div>
         <!--
@@ -565,7 +565,6 @@
                 }
             }
         } catch (err) {
-            //console.log("時間防護機制連線異常，暫用本地時間");
             console.log("時間防護伺服器連線異常", err);
         }
 
@@ -581,8 +580,8 @@
         // 最後一關給10分，其餘2分
         let pointsToGive = (taskIndex === 6) ? 10 : 2; 
 
-        // 🎯 修正點 1：將每日上限從分數改為「次數固定 5 次」
-        let dailyLimit = 5； //(taskIndex === 6) ? 30 : 5; //打卡最多5次
+        // 🎯 修正點 1：將每日上限改為「次數固定 5 次」(已修復全形分號)
+        let dailyLimit = 5; 
         
         // 🌟 使用真實時間來當作今日字串！
         let todayStr = trueToday.toDateString(); 
@@ -590,17 +589,16 @@
         
         let lastDate = localStorage.getItem('lastCheckinDate');
         let lastDayKey = localStorage.getItem('lastCheckinDayKey');
-        //let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
 
-        // 🎯 修正點 2：讀取「今日打卡次數」代替今日分數
+        // 🎯 修正點 2：讀取「今日打卡次數」
         let todayCheckins = parseInt(localStorage.getItem('todayCheckins')) || 0;
         
         // 🌅 換日判定
         if (lastDate !== todayStr || lastDayKey !== currentDayKey) {
-            todayEnergy = 0; 
+            todayCheckins = 0; // 🎯 修復點：換日是把次數歸零
             localStorage.setItem('lastCheckinDate', todayStr);
             localStorage.setItem('lastCheckinDayKey', currentDayKey);
-            localStorage.setItem('todayEnergy', 0); 
+            localStorage.setItem('todayCheckins', 0); 
         }
 
         // 🎯 修正點 3：無論第幾次打卡，次數都先 +1 並存回手機
@@ -611,11 +609,7 @@
 
         // 🎯 修正點 4：檢查是否在 5 次以內，是的話才給分並上傳資料庫
         if (todayCheckins <= dailyLimit) {
-        //if (todayEnergy < dailyLimit) {
-            actualAdd = pointsToGive; //Math.min(dailyLimit - todayEnergy, pointsToGive);
-
-            //todayEnergy += actualAdd;
-            //localStorage.setItem('todayEnergy', todayEnergy); 
+            actualAdd = pointsToGive; 
             
             // 更新關卡獨立分數
             let taskScoreKey = "taskScore_" + taskIndex;
@@ -623,8 +617,10 @@
             currentTaskScore += actualAdd;
             localStorage.setItem(taskScoreKey, currentTaskScore);
 
-            // 檢查並發放裝備
-            checkEquipmentUnlocked(taskIndex, currentTaskScore);
+            // 檢查並發放裝備 (增加安全判定)
+            if (typeof checkEquipmentUnlocked === 'function') {
+                checkEquipmentUnlocked(taskIndex, currentTaskScore);
+            }
 
             // ========================================================
             // 🚨【鐵血防禦核心：雲端直接原地加分】🚨
@@ -652,7 +648,6 @@
                     level: (taskIndex + 1),
                     equips: unlocked,
                     startDate: startDate,
-                    //todayEnergy: todayEnergy,
                     lastCheckinDate: lastCheckinDateStr,
                     taskScores: taskScores,
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
@@ -677,16 +672,18 @@
                     document.getElementById('displayEnergy').innerText = total;
                 }
             }
-        }else {
+        } else {
             // 如果超過 5 次，actualAdd 保持為 0，且跳過資料庫加分操作
             actualAdd = 0;
         }
 
-        // 更新按鈕狀態
-        updateDragonBoatButtonState();
+        // 更新按鈕狀態 (增加安全判定)
+        if (typeof updateDragonBoatButtonState === 'function') {
+            updateDragonBoatButtonState();
+        }
 
         // 🎯 修正點 6：將 current 回傳為「打卡次數 (todayCheckins)」
-        return { added: actualAdd, current: todayEnergy, limit: dailyLimit, cheat: false };
+        return { added: actualAdd, current: todayCheckins, limit: dailyLimit, cheat: false };
     }
 
     // ==========================================
@@ -982,6 +979,8 @@
 
     async function submitQuest() {
         const nickname = localStorage.getItem('gameNickname');
+        // 🎯 修正點 1：安全地抓取玩家的職業，防止找不到變數而當機
+        const selectedRole = localStorage.getItem('selectedRole') || '未選擇'; 
         const fileInput = document.getElementById('questImage');
         const logInput = document.getElementById('questLog');
         const log = logInput.value.trim();
@@ -1019,7 +1018,7 @@
                     await db.collection(QUEST_LOG_COLLECTION).add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
                         gameNickname: nickname, 
-                        role: selectedRole,
+                        role: selectedRole, // 🎯 現在這裡絕對安全了！
                         log: log, 
                         imageUrl: gasRes.fileUrl,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -1035,15 +1034,13 @@
                         return; 
                     }
 
-                    // ✨ 修正點 3：修正 alertMsg 重複宣告的問題
-
+                    // 🎯 修正點 2：補齊雙階梯獎勵的完整熱血文字（+3 與 +8）
                     let alertMsg = "";
                     if (energyData.added > 0) {
-                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次)`; 
+                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次)`; //\n👀 等待村長審核：一般任務 +3 分，困難任務「完美達標」狂加 +5 分！`; 
                     } else {
-                        alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」+5 分！`;
+                        alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」狂加 +5 分！`;
                     }
-
 
                     if (liff.isInClient() && liff.getContext().type !== "none") {
                         try {
@@ -1067,7 +1064,9 @@
                     document.getElementById('questLog').value = "";
                     document.getElementById('questImage').value = "";
 
-                    updateDragonBoatButtonState();
+                    if (typeof updateDragonBoatButtonState === 'function') {
+                        updateDragonBoatButtonState();
+                    }
                     showCustomAlert('🎉', '打卡成功！', alertMsg);
                 } else {
                     showCustomAlert('⚠️', '系統繁忙', '後端處理失敗，請稍後再試。');
