@@ -1035,15 +1035,15 @@
                         return; 
                     }
 
-                    // ✨ 修正點 3：修正 alertMsg 重複宣告的問題
-
+                    // 🌟🌟🌟 村長修改起點 9：最新雙階梯加分提示文字 🌟🌟🌟
+                    // 取代了原本舊的 alertMsg 三元運算子寫法
                     let alertMsg = "";
                     if (energyData.added > 0) {
-                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次)`; 
+                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次)\n👀 等待村長審核：一般任務 +3 分，困難任務「完美達標」狂加 +8 分！`;
                     } else {
-                        alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」+5 分！`;
+                        alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」狂加 +8 分！`;
                     }
-
+                    // 🌟🌟🌟 村長修改終點 9 🌟🌟🌟
 
                     if (liff.isInClient() && liff.getContext().type !== "none") {
                         try {
