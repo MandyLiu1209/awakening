@@ -183,7 +183,7 @@
             </button>
 
             <button id="btnLeaderboard" type="button" onclick="openLeaderboard()" style="flex: 1; padding: 12px 5px; font-size: 15px; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif; line-height: 1.4;">
-                🏆 英雄榜<br>
+                🏆 英雄榜 v1<br>
             </button>
         </div>
         <!--
@@ -581,10 +581,8 @@
         // 最後一關給10分，其餘2分
         let pointsToGive = (taskIndex === 6) ? 10 : 2; 
 
-        // 🌟🌟🌟 村長修改起點 1：將每日上限改為固定的「次數」 🌟🌟🌟
-        // 註解掉原本的：let dailyLimit = (taskIndex === 6) ? 30 : 5;
-        let dailyLimit = 5; 
-        // 🌟🌟🌟 村長修改終點 1 🌟🌟🌟
+        // 🎯 修正點 1：將每日上限從分數改為「次數固定 5 次」
+        let dailyLimit = 5； //(taskIndex === 6) ? 30 : 5; //打卡最多5次
         
         // 🌟 使用真實時間來當作今日字串！
         let todayStr = trueToday.toDateString(); 
@@ -592,35 +590,32 @@
         
         let lastDate = localStorage.getItem('lastCheckinDate');
         let lastDayKey = localStorage.getItem('lastCheckinDayKey');
+        //let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
 
-        // 🌟🌟🌟 村長修改起點 2：讀取「今日打卡次數」代替今日分數 🌟🌟🌟
-        // 註解掉原本的：let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
+        // 🎯 修正點 2：讀取「今日打卡次數」代替今日分數
         let todayCheckins = parseInt(localStorage.getItem('todayCheckins')) || 0;
-        // 🌟🌟🌟 村長修改終點 2 🌟🌟🌟
         
         // 🌅 換日判定
         if (lastDate !== todayStr || lastDayKey !== currentDayKey) {
-            // 🌟🌟🌟 村長修改起點 3：換日時清空的是「次數」 🌟🌟🌟
-            todayCheckins = 0; 
+            todayEnergy = 0; 
             localStorage.setItem('lastCheckinDate', todayStr);
             localStorage.setItem('lastCheckinDayKey', currentDayKey);
-            localStorage.setItem('todayCheckins', 0); 
-            // 🌟🌟🌟 村長修改終點 3 🌟🌟🌟
+            localStorage.setItem('todayEnergy', 0); 
         }
-        
-        // 🌟🌟🌟 村長修改起點 4：不管第幾次，次數都先 +1 並存回手機 🌟🌟🌟
+
+        // 🎯 修正點 3：無論第幾次打卡，次數都先 +1 並存回手機
         todayCheckins += 1;
         localStorage.setItem('todayCheckins', todayCheckins);
-        // 🌟🌟🌟 村長修改終點 4 🌟🌟🌟
-
+        
         let actualAdd = 0;
 
-        // 🌟🌟🌟 村長修改起點 5：檢查是否在 5 次以內，是的話才給分 🌟🌟🌟
-        // 註解掉原本的：if (todayEnergy < dailyLimit) { ... }
+        // 🎯 修正點 4：檢查是否在 5 次以內，是的話才給分並上傳資料庫
         if (todayCheckins <= dailyLimit) {
-            actualAdd = pointsToGive;
-            // 原本的 todayEnergy += actualAdd; 已經不需要了
-        // 🌟🌟🌟 村長修改終點 5 🌟🌟🌟
+        //if (todayEnergy < dailyLimit) {
+            actualAdd = pointsToGive; //Math.min(dailyLimit - todayEnergy, pointsToGive);
+
+            //todayEnergy += actualAdd;
+            //localStorage.setItem('todayEnergy', todayEnergy); 
             
             // 更新關卡獨立分數
             let taskScoreKey = "taskScore_" + taskIndex;
@@ -653,12 +648,11 @@
                     nickname: nickname,
                     role: currentRole,
                     totalEnergy: firebase.firestore.FieldValue.increment(actualAdd), 
-                    // 🌟🌟🌟 村長修改起點 6：寫入 Firebase 的欄位改成 todayCheckins 🌟🌟🌟
-                    todayCheckins: todayCheckins, 
-                    // 🌟🌟🌟 村長修改終點 6 🌟🌟🌟
+                    todayCheckins: todayCheckins,
                     level: (taskIndex + 1),
                     equips: unlocked,
                     startDate: startDate,
+                    //todayEnergy: todayEnergy,
                     lastCheckinDate: lastCheckinDateStr,
                     taskScores: taskScores,
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
@@ -683,18 +677,16 @@
                     document.getElementById('displayEnergy').innerText = total;
                 }
             }
-        // 🌟🌟🌟 村長修改起點 7：超過 5 次時的處理 🌟🌟🌟
-        } else {
-            actualAdd = 0; // 超過5次不給基礎分，也不會去呼叫資料庫加分
+        }else {
+            // 如果超過 5 次，actualAdd 保持為 0，且跳過資料庫加分操作
+            actualAdd = 0;
         }
-        // 🌟🌟🌟 村長修改終點 7 🌟🌟🌟
 
         // 更新按鈕狀態
         updateDragonBoatButtonState();
 
-        // 🌟🌟🌟 村長修改起點 8：將 current 回傳為「打卡次數」 🌟🌟🌟
-        return { added: actualAdd, current: todayCheckins, limit: dailyLimit, cheat: false };
-        // 🌟🌟🌟 村長修改終點 8 🌟🌟🌟
+        // 🎯 修正點 6：將 current 回傳為「打卡次數 (todayCheckins)」
+        return { added: actualAdd, current: todayEnergy, limit: dailyLimit, cheat: false };
     }
 
     // ==========================================
@@ -1043,15 +1035,15 @@
                         return; 
                     }
 
-                    // 🌟🌟🌟 村長修改起點 9：最新雙階梯加分提示文字 🌟🌟🌟
-                    // 取代了原本舊的 alertMsg 三元運算子寫法
+                    // ✨ 修正點 3：修正 alertMsg 重複宣告的問題
+
                     let alertMsg = "";
                     if (energyData.added > 0) {
-                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次)\n👀 等待村長審核：一般任務 +3 分，困難任務「完美達標」狂加 +8 分！`;
+                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次)`; 
                     } else {
-                        alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」狂加 +8 分！`;
+                        alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」+5 分！`;
                     }
-                    // 🌟🌟🌟 村長修改終點 9 🌟🌟🌟
+
 
                     if (liff.isInClient() && liff.getContext().type !== "none") {
                         try {
