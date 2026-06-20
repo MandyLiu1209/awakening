@@ -82,9 +82,16 @@ function updateDragonBoatButtonState() {
         return;
     }
 
-    // 2. 檢查今天是否已經玩過了
+    // 🌟 必須先抓取「當前遊戲天數」，才能進行時光機判斷
+    let currentDay = 1;
+    if (typeof getCalendarDiffDays === "function") {
+        currentDay = getCalendarDiffDays();
+    }
+
+    // 2. 檢查今天是否已經玩過了 (🎯 修正：綁定「真實日期+遊戲天數」，讓時光機能順利解鎖)
     const playedDate = localStorage.getItem('dragonBoatPlayedDate');
-    const todayStr = new Date().toDateString();
+    const todayStr = new Date().toDateString() + "_Day_" + currentDay;
+    
     if (playedDate === todayStr) {
         btn.style.filter = 'grayscale(100%)';
         btn.style.opacity = '0.5';
@@ -97,11 +104,6 @@ function updateDragonBoatButtonState() {
     let baseEnergy = parseInt(localStorage.getItem('totalEnergy')) || 0;
     let bonusScore = parseInt(localStorage.getItem('bonusPoints')) || 0;
     let currentTotalEnergy = baseEnergy + bonusScore;
-    
-    let currentDay = 1;
-    if (typeof getCalendarDiffDays === "function") {
-        currentDay = getCalendarDiffDays();
-    }
     
     let requiredEnergy = getRequiredEnergyForDay(currentDay);
 
@@ -126,15 +128,16 @@ function updateDragonBoatButtonState() {
 function checkBoatEligibility() {
     if (DRAGON_BOAT_DEBUG) return true; 
 
-    // 🌟 讓進場檢查也看「總和」能量
-    let baseEnergy = parseInt(localStorage.getItem('totalEnergy')) || 0;
-    let bonusScore = parseInt(localStorage.getItem('bonusPoints')) || 0;
-    let currentTotalEnergy = baseEnergy + bonusScore;
-
+    // 🌟 先抓取當前遊戲天數
     let currentDay = 1;
     if (typeof getCalendarDiffDays === "function") {
         currentDay = getCalendarDiffDays();
     }
+
+    // 🌟 讓進場檢查也看「總和」能量
+    let baseEnergy = parseInt(localStorage.getItem('totalEnergy')) || 0;
+    let bonusScore = parseInt(localStorage.getItem('bonusPoints')) || 0;
+    let currentTotalEnergy = baseEnergy + bonusScore;
     
     let requiredEnergy = getRequiredEnergyForDay(currentDay);
 
@@ -147,9 +150,10 @@ function checkBoatEligibility() {
         return false;
     }
 
-    // 👇 上次漏掉的就是這段「今日已完賽」的檢查與放行許可！
+    // 🎯 修正：進場攔截同樣也要使用「真實日期+遊戲天數」的驗證
     const playedDate = localStorage.getItem('dragonBoatPlayedDate');
-    const todayStr = new Date().toDateString();
+    const todayStr = new Date().toDateString() + "_Day_" + currentDay;
+    
     if (playedDate === todayStr) {
         if (typeof showCustomAlert === "function") {
             showCustomAlert('🛶', '今日已完賽', '勇者，您今天已經參與過端午龍舟賽了！\n請好好休息，明天再來奪標！');
@@ -158,7 +162,7 @@ function checkBoatEligibility() {
         }
         return false;
     }
-    return true; // 🔑 拿到鑰匙，正式放行！
+    return true; 
 }
 
 function openDragonBoatModal() {
@@ -325,7 +329,13 @@ async function finishDragonBoat() {
     else if (timeTaken <= 25.0) { bonusPoints = 1; grade = "參加獎"; }
     else { bonusPoints = 0; grade = "挑戰失敗 😭"; } // 超過 25 秒
 
-    localStorage.setItem('dragonBoatPlayedDate', new Date().toDateString());
+    // 🎯 修正點 3：儲存完賽紀錄時，也加上「遊戲天數」
+    let currentDay = 1;
+    if (typeof getCalendarDiffDays === "function") {
+        currentDay = getCalendarDiffDays();
+    }
+    localStorage.setItem('dragonBoatPlayedDate', new Date().toDateString() + "_Day_" + currentDay);
+    
 
     let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
     total += bonusPoints;
@@ -339,7 +349,10 @@ async function finishDragonBoat() {
     try {
         const userId = window.userProfile ? window.userProfile.userId : ("anonymous_" + Date.now());
         if (typeof db !== "undefined") {
-            await db.collection("Players_Dev").doc(userId).set({
+            // 🎯 修正：讓龍舟引擎跟隨主程式的正式資料庫路徑
+            const targetCollection = (typeof PLAYER_COLLECTION !== 'undefined') ? PLAYER_COLLECTION : 'Players_Main_v1';
+
+            await db.collection(targetCollection).doc(userId).set({
                 totalEnergy: total
             }, { merge: true });
         }
