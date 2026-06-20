@@ -105,7 +105,7 @@ function updateDragonBoatButtonState() {
     
     let requiredEnergy = getRequiredEnergyForDay(currentDay);
 
-    if (todayEnergy >= requiredEnergy) {
+    if (currentTotalEnergy >= requiredEnergy) {
         // 🎉 達標：按鈕亮起，綁定開啟遊戲功能
         btn.style.filter = 'grayscale(0%) drop-shadow(0px 0px 8px rgba(255, 215, 0, 0.8))'; // 加上黃色發光特效
         btn.style.opacity = '1';
@@ -129,7 +129,7 @@ function checkBoatEligibility() {
 
     let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
     let bonusScore = parseInt(localStorage.getItem('bonusPoints')) || 0;
-    let todayEnergy = baseEnergy + bonusScore;
+    let currentTotalEnergy = baseEnergy + bonusScore;
     
     let currentDay = 1;
     if (typeof getCalendarDiffDays === "function") {
@@ -138,11 +138,11 @@ function checkBoatEligibility() {
     
     let requiredEnergy = getRequiredEnergyForDay(currentDay);
 
-    if (todayEnergy < requiredEnergy) {
+    if (currentTotalEnergy < requiredEnergy) {
         if (typeof showCustomAlert === "function") {
-            showCustomAlert('🔒', '能量不足', `勇者，今日需累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前今日能量：⚡ ${todayEnergy} 分\n快去完成任務與打卡吧！`);
+            showCustomAlert('🔒', '能量不足', `勇者，今日需累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前今日能量：⚡ ${currentTotalEnergy} 分\n快去完成任務與打卡吧！`);
         } else {
-            alert(`🔒 能量不足\n\n勇者，今日需累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前今日能量：⚡ ${todayEnergy} 分\n快去完成任務與打卡吧！`);
+            alert(`🔒 能量不足\n\n勇者，今日需累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前今日能量：⚡ ${currentTotalEnergy} 分\n快去完成任務與打卡吧！`);
         }
         return false;
     }
