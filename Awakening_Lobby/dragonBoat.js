@@ -68,6 +68,23 @@ function getRequiredEnergyForDay(day) {
     return thresholds[day]; // || 2; 
 }
 
+// 🌟 最終精準版：直接讀取「今日打卡」與「今日雲端加分撲滿」
+function getTodayEnergy() {
+    let currentDay = typeof getCalendarDiffDays === "function" ? getCalendarDiffDays() : 1;
+    let todayStr = new Date().toDateString();
+    
+    // 1. 計算今日打卡分數 (今日打卡次數 * 當天單場分數)
+    let lastCheckinDate = localStorage.getItem('lastCheckinDate');
+    let todayCheckins = (lastCheckinDate === todayStr) ? (parseInt(localStorage.getItem('todayCheckins')) || 0) : 0;
+    let ptsPerCheckin = (currentDay >= 14) ? 10 : 2; 
+    let todayBase = todayCheckins * ptsPerCheckin;
+    
+    // 2. 🎯 直接讀取雲端記帳分：完全不怕換手機或重整，資料庫記得死死的！
+    let todayBonus = parseInt(localStorage.getItem("bonusPoints_Day_" + currentDay)) || 0;
+    
+    return todayBase + todayBonus; 
+}
+
 // 🌟 核心新增：自動更新龍舟按鈕狀態 (反灰/亮起)
 function updateDragonBoatButtonState() {
     const btn = document.getElementById('btnDragonBoat'); 
@@ -100,14 +117,11 @@ function updateDragonBoatButtonState() {
         return;
     }
 
-    // 3. 檢查能量是否達標 (總能量 + 村長加分)
-    let baseEnergy = parseInt(localStorage.getItem('totalEnergy')) || 0;
-    let bonusScore = parseInt(localStorage.getItem('bonusPoints')) || 0;
-    let currentTotalEnergy = baseEnergy + bonusScore;
-    
+    // 🎯 修正核心：改用我們寫好的「今日專屬能量」計算機！
+    let todayRealEnergy = getTodayEnergy();
     let requiredEnergy = getRequiredEnergyForDay(currentDay);
 
-    if (currentTotalEnergy >= requiredEnergy) {
+    if (todayRealEnergy >= requiredEnergy) {
         // 🎉 達標：按鈕亮起，綁定開啟遊戲功能
         btn.style.filter = 'grayscale(0%) drop-shadow(0px 0px 8px rgba(255, 215, 0, 0.8))'; 
         btn.style.opacity = '1';
@@ -118,7 +132,7 @@ function updateDragonBoatButtonState() {
         btn.style.filter = 'grayscale(100%)';
         btn.style.opacity = '0.6';
         btn.onclick = () => { 
-            let diff = requiredEnergy - currentTotalEnergy;
+            let diff = requiredEnergy - todayRealEnergy;
             alert(`🔒 能量不足\n\n還差 ⚡ ${diff} 分即可解鎖今日龍舟挑戰！\n快去完成任務與打卡吧！`); 
         };
         btn.innerHTML = `🔒 獲 ${requiredEnergy} 分解鎖`;
@@ -134,18 +148,15 @@ function checkBoatEligibility() {
         currentDay = getCalendarDiffDays();
     }
 
-    // 🌟 讓進場檢查也看「總和」能量
-    let baseEnergy = parseInt(localStorage.getItem('totalEnergy')) || 0;
-    let bonusScore = parseInt(localStorage.getItem('bonusPoints')) || 0;
-    let currentTotalEnergy = baseEnergy + bonusScore;
-    
+    // 🎯 修正核心：進場防呆也必須看「今日專屬能量」！
+    let todayRealEnergy = getTodayEnergy();
     let requiredEnergy = getRequiredEnergyForDay(currentDay);
 
-    if (currentTotalEnergy < requiredEnergy) {
+    if (todayRealEnergy < requiredEnergy) {
         if (typeof showCustomAlert === "function") {
-            showCustomAlert('🔒', '能量不足', `勇者，需要累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前總能量：⚡ ${currentTotalEnergy} 分\n快去完成任務與打卡吧！`);
+            showCustomAlert('🔒', '能量不足', `勇者，需要累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前總能量：⚡ ${todayRealEnergy} 分\n快去完成任務與打卡吧！`);
         } else {
-            alert(`🔒 能量不足\n\n勇者，需要累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前總能量：⚡ ${currentTotalEnergy} 分\n快去完成任務與打卡吧！`);
+            alert(`🔒 能量不足\n\n勇者，需要累積滿 ${requiredEnergy} 分才能挑戰龍舟！\n\n目前總能量：⚡ ${todayRealEnergy} 分\n快去完成任務與打卡吧！`);
         }
         return false;
     }
@@ -156,9 +167,9 @@ function checkBoatEligibility() {
     
     if (playedDate === todayStr) {
         if (typeof showCustomAlert === "function") {
-            showCustomAlert('🛶', '今日已完賽', '勇者，您今天已經參與過端午龍舟賽了！\n請好好休息，明天再來奪標！');
+            showCustomAlert('🛶', '今日已完賽', '今天已參與過端午龍舟賽！\n請好好休息，明天再來奪標！');
         } else {
-            alert('🛶 今日已完賽\n\n勇者，您今天已經參與過端午龍舟賽了！\n請好好休息，明天再來奪標！');
+            alert('🛶 今日已完賽\n\n今天已參與過端午龍舟賽！\n請好好休息，明天再來奪標！');
         }
         return false;
     }
@@ -335,7 +346,7 @@ async function finishDragonBoat() {
         currentDay = getCalendarDiffDays();
     }
     localStorage.setItem('dragonBoatPlayedDate', new Date().toDateString() + "_Day_" + currentDay);
-    
+
 
     let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
     total += bonusPoints;
