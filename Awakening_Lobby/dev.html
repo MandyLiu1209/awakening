@@ -9,42 +9,24 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <style>
-        /* 🛶 龍舟專屬：純角度節奏划槳 (絕對不分離、不打船尾) */
+        /* 🌊 極速龍舟專屬：流體動力學划槳動畫 CSS */
         
-        /* 左槳 */
+        /* 定義左槳划船循環 (0.3秒的快速物理過程) */
         @keyframes rowingLeft {
-            /* 1. 準備/提槳回槳 */
-            0%   { transform: rotate(60deg); }   
-            
-            /* 2. 入水前探 (往前伸到最遠，動作放慢) */
-            20%  { transform: rotate(85deg); }  
-            
-            /* 3. 吃水拉水 (用力往後拉！到 30 度就停，絕對不碰船尾) */
-            55%  { transform: rotate(30deg); }   
-            
-            /* 4. 出水提槳 (快速彈起) */
-            80%  { transform: rotate(45deg); }   
-            
-            /* 5. 快速歸位 */
-            100% { transform: rotate(60deg); }   
+            0%   { transform: rotate(70deg); }   /* 前探準備姿勢 */
+            15%  { transform: rotate(85deg); }   /* 1. Catch：向前探出吃水 */
+            45%  { transform: rotate(0deg); }  /* 2. Drive：狠狠往後下拉動水流！ */
+            75%  { transform: rotate(20deg); }   /* 3. Recovery：出水彈起 */
+            100% { transform: rotate(70deg); }   /* 回到準備姿勢 */
         }
 
-        /* 右槳 */
+        /* 定義右槳划船循環 (對稱) */
         @keyframes rowingRight {
-            /* 1. 準備/提槳回槳 */
-            0%   { transform: rotate(-60deg); }  
-            
-            /* 2. 入水前探 (往前伸到最遠，動作放慢) */
-            20%  { transform: rotate(-85deg); } 
-            
-            /* 3. 吃水拉水 (用力往後拉！到 -30 度就停，絕對不碰船尾) */
-            55%  { transform: rotate(-30deg); }  
-            
-            /* 4. 出水提槳 (快速彈起) */
-            80%  { transform: rotate(-45deg); }   
-            
-            /* 5. 快速歸位 */
-            100% { transform: rotate(-60deg); }  
+            0%   { transform: rotate(-70deg); } /* 前探準備姿勢 */
+            15%  { transform: rotate(-85deg); } /* Catch */
+            45%  { transform: rotate(0deg); }  /* Drive */
+            75%  { transform: rotate(-20deg); } /* Recovery */
+            100% { transform: rotate(-70deg); } /* 回到準備姿勢 */
         }
 
         /* 觸發動畫的 CSS 類別 */
@@ -62,7 +44,7 @@
         .header-banner { background: var(--main-brown); color: #fdf5e6; padding: 12px; border-radius: 50px; margin-bottom: 15px; font-weight: bold; font-size: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 
         /* 角色呈現區 */
-        .hero-display { position: relative; width: 100%; max-height: 45vh; aspect-ratio: 3/4; margin-bottom: 15px; background: #e0e0e0; border-radius: 20px; overflow: hidden; border: 3px solid #d2b48c; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
+        .hero-display { position: relative; width: 100%; max-height: 45vh; aspect-ratio: 3/4; margin-bottom: 15px; background: #e0e0e0; border-radius: 20px; overflow: visible; border: 3px solid #d2b48c; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
         .hero-img { width: 90%; height: 90%; object-fit: contain; position: absolute; top: 5%; left: 5%; z-index: 1; }
         .btn-edit-float { position: absolute; top: 12px; right: 12px; font-size: 18px; background: rgba(255, 255, 255, 0.9); border: 2px solid #d2b48c; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border:none; cursor: pointer;}
         .hero-info-badge { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(139, 69, 19, 0.85); color: white; padding: 8px 30px; border-radius: 20px; text-align: center; z-index: 5; backdrop-filter: blur(5px); white-space: nowrap; font-size: 16px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); }
@@ -157,7 +139,7 @@
         /* 分佈在英雄圖周圍的環形位置 */
         /* 我們將 top 的百分比變小 (往上移)，將 left/right 的百分比更向兩側調整 (往外移) */
         
-        .orb-pos-0 { top: 8%; left: 50%; animation-delay: 0s !important; }     
+        .orb-pos-0 { top: 6%; left: 50%; animation-delay: 0s !important; }     
         /* 正上 (徽章) - 大幅移高 */
         .orb-pos-1 { top: 22%; left: 82%; animation-delay: -1.5s !important;}
         /* 右上 (護盾) - 移高、移寬 */
@@ -196,12 +178,12 @@
 
     <div id="checkinSection" class="hidden">
         <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 15px;">
-            <button id="btnDragonBoat" type="button" onclick="openDragonBoatModal()" style="flex: 1; padding: 12px 5px; font-size: 15px; background: linear-gradient(135deg, #00838f, #00b8d4); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #006064; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif; line-height: 1.4;">
+            <button id="btnDragonBoat" type="button" onclick="openDragonBoatModal()" style="flex: 1; padding: 12px 5px; font-size: 15px; background: linear-gradient(135deg, #00838f, #00b8d4); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif; line-height: 1.4;">
                 🛶 極速龍舟<br><span style="font-size: 12px;">(每日挑戰)</span>
             </button>
 
-            <button id="btnLeaderboard" type="button" onclick="openLeaderboard()" style="flex: 1; padding: 12px 5px; font-size: 15px; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #a04000; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif; line-height: 1.4;">
-                🏆 英雄榜 4<br>
+            <button id="btnLeaderboard" type="button" onclick="openLeaderboard()" style="flex: 1; padding: 12px 5px; font-size: 15px; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif; line-height: 1.4;">
+                🏆 英雄榜<br>
             </button>
         </div>
         <!--
@@ -293,16 +275,16 @@
             <div id="playerBoat" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); transition: bottom 0.1s ease-out; z-index: 5; user-select: none; -webkit-user-select: none; width: 80px; height: 120px;">
                 <div id="boatRockContainer" style="width: 100%; height: 100%; position: relative; transition: transform 0.1s ease-out; display: flex; justify-content: center; align-items: center; transform-origin: center center;">
                     
-                    <div id="paddleLeftWrapper" style="position: absolute; left: 15px; top: 60px; transform-origin: center top; z-index: 3; transform: rotate(85deg);">
+                    <div id="paddleLeftWrapper" style="position: absolute; left: 10px; top: 55px; transform-origin: center 20%; z-index: 3; transform: rotate(70deg);">
                         <img src="paddle.png" alt="左槳" style="width: 40px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));">
                         <img id="splashLeft" src="splash.png" alt="水花" style="position: absolute; left: -10px; top: 18px; width: 60px; display: none;">
                     </div>
                     
                     <img src="boat.png" alt="龍舟" style="width: 80px; z-index: 2; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.5));">
 
-                    <div id="paddleRightWrapper" style="position: absolute; right: 15px; top: 60px; transform-origin: center top; z-index: 3; transform: rotate(-85deg);">
-                        <img src="paddle.png" alt="右槳" style="width: 40px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));">
-                        <img id="splashRight" src="splash.png" alt="水花" style="position: absolute; right: -10px; top: 18px; width: 60px; display: none;">
+                    <div id="paddleRightWrapper" style="position: absolute; right: 10px; top: 55px; transform-origin: center 20%; z-index: 3; transform: rotate(-70deg);">
+                        <img src="paddle.png" alt="右槳" style="width: 40px; filter: drop-shadow(-2px 2px 3px rgba(0,0,0,0.5));">
+                        <img id="splashRight" src="splash.png" alt="水花" style="position: absolute; right: -10px; top: 18px; width: 60px; display: none; transform: scaleX(-1);">
                     </div>
 
                 </div>
@@ -463,7 +445,7 @@
             title: "🔋 能量三神器的共鳴", 
             desc: "拍下你的「神級裝備組合」<br>(雪克、芒果茶、每日精選)",
             equipName: equipRegistry[0].name, // 🎁 任務 1 裝備
-            reqPoints: 4 //10                 // ⚡ 解鎖條件：該任務期間累計 10 分
+            reqPoints: 4 //12                 // ⚡ 解鎖條件：該任務期間累計 10 分
         }, 
         { 
             title: "💧 水之精靈的祝福", 
@@ -475,7 +457,7 @@
             title: "🍲 翡翠與白玉的相遇", 
             desc: "拍下今天的第一餐「植能大餐」<br>(綠色蔬菜=翡翠，豆腐=白玉，山中珍寶=菇菇家族)",
             equipName: equipRegistry[2].name, // 🎁 任務 3 裝備
-            reqPoints: 4 //15                  // ⚡ 解鎖條件：該任務期間累計 15 分
+            reqPoints: 4 //14                  // ⚡ 解鎖條件：該任務期間累計 15 分
         }, 
         { 
             title: "🧺 合作鍊金術士", 
@@ -487,13 +469,13 @@
             title: "🥊 擊退嘴饞大魔王", 
             desc: "運動拍照～",
             equipName: equipRegistry[4].name, // 🎁 任務 5 裝備
-            reqPoints: 4 //17                  // ⚡ 解鎖條件：該任務期間累計 17 分
+            reqPoints: 4 //16                  // ⚡ 解鎖條件：該任務期間累計 17 分
         }, 
         { 
             title: "🪽 輕盈感知的覺醒", 
             desc: "自拍~~~(不量體重，用心感受！)<br>分享一個這 10 多天來的「體感變化」<br>(例如：精神變好、褲頭變鬆、皮膚變亮)",
             equipName: equipRegistry[5].name, // 🎁 任務 6 裝備
-            reqPoints: 4 //17                  // ⚡ 解鎖條件：該任務期間累計 17 分
+            reqPoints: 4 //16                  // ⚡ 解鎖條件：該任務期間累計 17 分
         }, 
         { 
             title: "🏰 榮耀戰神殿堂", 
@@ -548,8 +530,10 @@
             const nameEl = document.getElementById('displayNameBadge');
             if(nameEl) nameEl.innerText = savedNick;
             
+            // 👇 修改：畫面顯示的能量 = 打卡分 + 村長加分
             const total = parseInt(localStorage.getItem('totalEnergy')) || 0;
-            document.getElementById('displayEnergy').innerText = total;
+            const bonus = parseInt(localStorage.getItem('bonusPoints')) || 0;
+            document.getElementById('displayEnergy').innerText = total + bonus;
 
             updateTask(); 
             // 👇 新增這行：讓玩家一打開畫面就能看到自己的裝備
@@ -598,7 +582,9 @@
         
         // 最後一關給10分，其餘2分
         let pointsToGive = (taskIndex === 6) ? 10 : 2; 
-        let dailyLimit = (taskIndex === 6) ? 30 : 5;
+
+        // 🎯 修正點 1：將每日上限改為「次數固定 5 次」(已修復全形分號)
+        let dailyLimit = 5; 
         
         // 🌟 使用真實時間來當作今日字串！
         let todayStr = trueToday.toDateString(); 
@@ -606,21 +592,27 @@
         
         let lastDate = localStorage.getItem('lastCheckinDate');
         let lastDayKey = localStorage.getItem('lastCheckinDayKey');
-        let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
+
+        // 🎯 修正點 2：讀取「今日打卡次數」
+        let todayCheckins = parseInt(localStorage.getItem('todayCheckins')) || 0;
         
         // 🌅 換日判定
         if (lastDate !== todayStr || lastDayKey !== currentDayKey) {
-            todayEnergy = 0; 
+            todayCheckins = 0; // 🎯 修復點：換日是把次數歸零
             localStorage.setItem('lastCheckinDate', todayStr);
             localStorage.setItem('lastCheckinDayKey', currentDayKey);
-            localStorage.setItem('todayEnergy', 0); 
+            localStorage.setItem('todayCheckins', 0); 
         }
+
+        // 🎯 修正點 3：無論第幾次打卡，次數都先 +1 並存回手機
+        todayCheckins += 1;
+        localStorage.setItem('todayCheckins', todayCheckins);
         
         let actualAdd = 0;
-        if (todayEnergy < dailyLimit) {
-            actualAdd = Math.min(dailyLimit - todayEnergy, pointsToGive);
-            todayEnergy += actualAdd;
-            localStorage.setItem('todayEnergy', todayEnergy); 
+
+        // 🎯 修正點 4：檢查是否在 5 次以內，是的話才給分並上傳資料庫
+        if (todayCheckins <= dailyLimit) {
+            actualAdd = pointsToGive; 
             
             // 更新關卡獨立分數
             let taskScoreKey = "taskScore_" + taskIndex;
@@ -628,8 +620,10 @@
             currentTaskScore += actualAdd;
             localStorage.setItem(taskScoreKey, currentTaskScore);
 
-            // 檢查並發放裝備
-            checkEquipmentUnlocked(taskIndex, currentTaskScore);
+            // 檢查並發放裝備 (增加安全判定)
+            if (typeof checkEquipmentUnlocked === 'function') {
+                checkEquipmentUnlocked(taskIndex, currentTaskScore);
+            }
 
             // ========================================================
             // 🚨【鐵血防禦核心：雲端直接原地加分】🚨
@@ -653,10 +647,10 @@
                     nickname: nickname,
                     role: currentRole,
                     totalEnergy: firebase.firestore.FieldValue.increment(actualAdd), 
+                    todayCheckins: todayCheckins,
                     level: (taskIndex + 1),
                     equips: unlocked,
                     startDate: startDate,
-                    todayEnergy: todayEnergy,
                     lastCheckinDate: lastCheckinDateStr,
                     taskScores: taskScores,
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
@@ -666,9 +660,17 @@
                 const freshDoc = await db.collection(PLAYER_COLLECTION).doc(userId).get({ source: 'server' });
                 if (freshDoc.exists) {
                     const freshTotal = parseInt(freshDoc.data().totalEnergy || 0);
+                    const freshBonus = parseInt(freshDoc.data().bonusPoints || 0); // 👇 新增撈取村長加分
                     localStorage.setItem('totalEnergy', freshTotal);
+                    let cDay = getCalendarDiffDays();
+                    if (freshDoc.data()["bonusPoints_Day_" + cDay] !== undefined) {
+                        localStorage.setItem("bonusPoints_Day_" + cDay, freshDoc.data()["bonusPoints_Day_" + cDay]);
+                    }
+
+                    localStorage.setItem('bonusPoints', freshBonus); // 👇 新增存入手機
+
                     if (document.getElementById('displayEnergy')) {
-                        document.getElementById('displayEnergy').innerText = freshTotal;
+                        document.getElementById('displayEnergy').innerText = freshTotal + freshBonus; // 👇 顯示兩者加總
                     }
                 }
 
@@ -681,11 +683,18 @@
                     document.getElementById('displayEnergy').innerText = total;
                 }
             }
+        } else {
+            // 如果超過 5 次，actualAdd 保持為 0，且跳過資料庫加分操作
+            actualAdd = 0;
         }
 
-        // 更新按鈕狀態
+        // 更新按鈕狀態 (增加安全判定)
+        if (typeof updateDragonBoatButtonState === 'function') {
         updateDragonBoatButtonState();
-        return { added: actualAdd, current: todayEnergy, limit: dailyLimit, cheat: false };
+        }
+
+        // 🎯 修正點 6：將 current 回傳為「打卡次數 (todayCheckins)」
+        return { added: actualAdd, current: todayCheckins, limit: dailyLimit, cheat: false };
     }
 
     // ==========================================
@@ -924,6 +933,8 @@
                         if (cloudData.nickname) localStorage.setItem('gameNickname', cloudData.nickname);
                         if (cloudData.role) localStorage.setItem('selectedRole', cloudData.role);
                         if (cloudData.totalEnergy !== undefined) localStorage.setItem('totalEnergy', cloudData.totalEnergy);
+                        // 👇 新增：同步村長的審核加分
+                        if (cloudData.bonusPoints !== undefined) localStorage.setItem('bonusPoints', cloudData.bonusPoints);
                         
                         // 同步累積解鎖的裝備泡泡進度
                         if (cloudData.equips) {
@@ -934,6 +945,13 @@
                         if (cloudData.startDate) localStorage.setItem('startDate', cloudData.startDate);
                         if (cloudData.todayEnergy !== undefined) localStorage.setItem('todayEnergy', cloudData.todayEnergy);
                         if (cloudData.lastCheckinDate) localStorage.setItem('lastCheckinDate', cloudData.lastCheckinDate);
+
+                        // 👇 新增：遍歷並同步雲端 1~14 天的每日村長加分到手機中
+                        for (let d = 1; d <= 14; d++) {
+                            if (cloudData["bonusPoints_Day_" + d] !== undefined) {
+                                localStorage.setItem("bonusPoints_Day_" + d, cloudData["bonusPoints_Day_" + d]);
+                            }
+                        }
                         
                         // 🌟 新增：各關卡獨立分數覆蓋
                         if (cloudData.taskScores) {
@@ -981,6 +999,8 @@
 
     async function submitQuest() {
         const nickname = localStorage.getItem('gameNickname');
+        // 🎯 修正點 1：安全地抓取玩家的職業，防止找不到變數而當機
+        const selectedRole = localStorage.getItem('selectedRole') || '未選擇'; 
         const fileInput = document.getElementById('questImage');
         const logInput = document.getElementById('questLog');
         const log = logInput.value.trim();
@@ -1018,7 +1038,7 @@
                     await db.collection(QUEST_LOG_COLLECTION).add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
                         gameNickname: nickname, 
-                        role: selectedRole,
+                        role: selectedRole, // 🎯 現在這裡絕對安全了！
                         log: log, 
                         imageUrl: gasRes.fileUrl,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -1034,19 +1054,13 @@
                         return; 
                     }
 
-                    // ✨ 修正點 3：修正 alertMsg 重複宣告的問題
-                    /*let alertMsg = energyData.added > 0
-                        ? `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})` 
-                        : `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
-                        */
-
+                    // 🎯 修正點 2：補齊雙階梯獎勵的完整熱血文字（+3 與 +5）
                     let alertMsg = "";
                     if (energyData.added > 0) {
-                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次)\n👀 等待村長審核：一般任務 +3 分，困難任務「完美達標」+5 分！`;
+                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次)`; //\n👀 等待村長審核：一般任務 +3 分，困難任務「完美達標」+5 分！`; 
                     } else {
                         alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」+5 分！`;
                     }
-
 
                     if (liff.isInClient() && liff.getContext().type !== "none") {
                         try {
@@ -1070,7 +1084,9 @@
                     document.getElementById('questLog').value = "";
                     document.getElementById('questImage').value = "";
 
+                    if (typeof updateDragonBoatButtonState === 'function') {
                     updateDragonBoatButtonState();
+                    }
                     showCustomAlert('🎉', '打卡成功！', alertMsg);
                 } else {
                     showCustomAlert('⚠️', '系統繁忙', '後端處理失敗，請稍後再試。');
@@ -1242,7 +1258,7 @@
         }
     }
 
-    // 2. 召喚全服玩家名冊
+    //// 2. 召喚全服玩家名冊
     async function openAdminPanel() {
         document.getElementById('adminModal').style.display = 'flex';
         const listDiv = document.getElementById('adminPlayerList');
@@ -1287,7 +1303,7 @@
         }
     }
 
-    // 3. 執行遠端修正分數
+    //// 3. 執行遠端修正分數
     async function adminModifyEnergy(userId, nickname) {
         const inputEl = document.getElementById(`input-energy-${userId}`);
         const newEnergy = parseInt(inputEl.value);
@@ -1369,7 +1385,7 @@
                         <div style="font-size: 12px; color: #7f8c8d; margin-top: 4px;">職業: ${data.role || '未選擇'}</div>
                     </div>
                     <div style="font-weight: bold; color: #e67e22; font-size: 18px; background: #fdf2e9; padding: 6px 12px; border-radius: 20px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
-                        ⚡ ${data.totalEnergy || 0}
+                        ⚡ ${(data.totalEnergy || 0) + (data.bonusPoints || 0)}
                     </div>
                 </div>
                 `;

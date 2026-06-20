@@ -1053,12 +1053,12 @@
                         return; 
                     }
 
-                    // 🎯 修正點 2：補齊雙階梯獎勵的完整熱血文字（+3 與 +8）
+                    // 🎯 修正點 2：補齊雙階梯獎勵的完整熱血文字（+3 與 +5）
                     let alertMsg = "";
                     if (energyData.added > 0) {
-                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次)`; //\n👀 等待村長審核：一般任務 +3 分，困難任務「完美達標」狂加 +5 分！`; 
+                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次)`; //\n👀 等待村長審核：一般任務 +3 分，困難任務「完美達標」+5 分！`; 
                     } else {
-                        alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」狂加 +5 分！`;
+                        alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」+5 分！`;
                     }
 
                     if (liff.isInClient() && liff.getContext().type !== "none") {
@@ -1195,7 +1195,7 @@
             const userId = window.userProfile ? window.userProfile.userId : null;
 
             if (userId) {
-                // 這裡以 Players_Main 測試服為例
+                // 這裡以 Players_Main 正式服為例
                 await db.collection(PLAYER_COLLECTION).doc(userId).set({
                     startDate: targetDate,
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
