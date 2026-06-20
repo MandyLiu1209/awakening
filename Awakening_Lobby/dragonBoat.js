@@ -95,6 +95,8 @@ function updateDragonBoatButtonState() {
 
     // 3. 檢查能量是否達標
     let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
+    let bonusScore = parseInt(localStorage.getItem('bonusPoints')) || 0;
+    let todayEnergy = baseEnergy + bonusScore; // 將兩者相加作為解鎖標準
     
     let currentDay = 1;
     if (typeof getCalendarDiffDays === "function") {
@@ -126,6 +128,9 @@ function checkBoatEligibility() {
     if (DRAGON_BOAT_DEBUG) return true; 
 
     let todayEnergy = parseInt(localStorage.getItem('todayEnergy')) || 0;
+    let bonusScore = parseInt(localStorage.getItem('bonusPoints')) || 0;
+    let todayEnergy = baseEnergy + bonusScore;
+    
     let currentDay = 1;
     if (typeof getCalendarDiffDays === "function") {
         currentDay = getCalendarDiffDays();
@@ -326,7 +331,8 @@ async function finishDragonBoat() {
     localStorage.setItem('totalEnergy', total);
     
     if (document.getElementById('displayEnergy')) {
-        document.getElementById('displayEnergy').innerText = total;
+        let currentBonus = parseInt(localStorage.getItem('bonusPoints')) || 0;
+        document.getElementById('displayEnergy').innerText = total + currentBonus;
     }
 
     try {
