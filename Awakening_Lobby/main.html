@@ -648,10 +648,11 @@
                     nickname: nickname,
                     role: currentRole,
                     totalEnergy: firebase.firestore.FieldValue.increment(actualAdd), 
+                    todayCheckins: todayCheckins,
                     level: (taskIndex + 1),
                     equips: unlocked,
                     startDate: startDate,
-                    todayEnergy: todayEnergy,
+                    //todayEnergy: todayEnergy,
                     lastCheckinDate: lastCheckinDateStr,
                     taskScores: taskScores,
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
@@ -682,11 +683,7 @@
         }
 
         // 更新按鈕狀態
-        //updateDragonBoatButtonState();
-        // 更新按鈕狀態
-        if (typeof updateDragonBoatButtonState === 'function') {
-            updateDragonBoatButtonState();
-        }
+        updateDragonBoatButtonState();
 
         // 🎯 修正點 6：將 current 回傳為「打卡次數 (todayCheckins)」
         return { added: actualAdd, current: todayEnergy, limit: dailyLimit, cheat: false };
@@ -1039,16 +1036,10 @@
                     }
 
                     // ✨ 修正點 3：修正 alertMsg 重複宣告的問題
-                    /*let alertMsg = energyData.added > 0
-                        ? `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})` 
-                        : `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
-
-                        \n👀 等待村長審核：一般任務 +3 分，困難任務「完美達標」+5 分！`;
-                        */
 
                     let alertMsg = "";
                     if (energyData.added > 0) {
-                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次); 
+                        alertMsg = `⚡ 獲得 ${energyData.added} 點基礎能量！\n(今日打卡進度: ${energyData.current}/${energyData.limit} 次)`; 
                     } else {
                         alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」+5 分！`;
                     }
