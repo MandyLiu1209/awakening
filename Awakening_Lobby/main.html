@@ -1033,11 +1033,14 @@
                 const gasRes = await res.json();
                 
                 if (gasRes.status === "success") {
+                    const currentDay = getCalendarDiffDays(); // 🌟 1. 取得當前天數
+
                     // 1. 寫入打卡日誌 (測試服)
                     await db.collection(QUEST_LOG_COLLECTION).add({
                         lineName: window.userProfile ? window.userProfile.displayName : "未知",
                         gameNickname: nickname, 
                         role: selectedRole, // 🎯 現在這裡絕對安全了！
+                        day: currentDay,        // 🌟 2. 寫入資料庫
                         log: log, 
                         imageUrl: gasRes.fileUrl,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -1065,7 +1068,8 @@
                         try {
                             await liff.sendMessages([{
                                 type: "text",
-                                text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
+                                // 🌟 3. 精準替換標題為 【Dx 試煉回報】
+                                text: `【D${currentDay} 試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
                             }, {
                                     type: "image",
                                     originalContentUrl: gasRes.fileUrl,
@@ -1075,7 +1079,8 @@
                             console.log("圖片發送失敗", err);
                             await liff.sendMessages([{
                                 type: "text",
-                                text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}\n\n📸 成果照片連結：\n${gasRes.fileUrl}`
+                                // 🌟 4. 備用純文字訊息也一併精準替換
+                                text: `【D${currentDay} 試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}\n\n📸 成果照片連結：\n${gasRes.fileUrl}`
                             }]);
                         }
                     }
@@ -1124,10 +1129,13 @@
             });
             const gasRes = await res.json();
             if (gasRes.status === "success") {
+                const currentDay = getCalendarDiffDays(); // 🌟 1. 取得當前天數
+
                 await db.collection(QUEST_LOG_COLLECTION).add({
                     lineName: window.userProfile ? window.userProfile.displayName : "未知",
                     gameNickname: nickname,
                     role: selectedRole,
+                    day: currentDay,        // 🌟 2. 寫入天數
                     log: log,
                     imageUrl: gasRes.fileUrl,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -1152,8 +1160,10 @@
                     : `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
 
                 if (broadcastMode === 'player' && liff.isInClient() && liff.getContext().type !== "none") {
+
+                    // 🌟 3. 精準替換標題為 【Dx 試煉回報】
                     await liff.sendMessages([
-                        { type: "text", text: `【試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}` },
+                        { type: "text", text: `【D${currentDay} 試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}` },
                         { type: "image", originalContentUrl: gasRes.fileUrl, previewImageUrl: gasRes.fileUrl }
                     ]);
                 }
