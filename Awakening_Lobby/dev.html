@@ -947,7 +947,7 @@
                         if (cloudData.lastCheckinDate) localStorage.setItem('lastCheckinDate', cloudData.lastCheckinDate);
 
                         // 👇 新增：遍歷並同步雲端 1~14 天的每日村長加分到手機中
-                        for (let d = 1; d <= 14; d++) {
+                        for (let d = 1; d <= 15; d++) {
                             if (cloudData["bonusPoints_Day_" + d] !== undefined) {
                                 localStorage.setItem("bonusPoints_Day_" + d, cloudData["bonusPoints_Day_" + d]);
                             }
