@@ -1424,9 +1424,29 @@
         }
     };
 
+    function debugCheckScore() {
+        let today = getCalendarDiffDays();
+        let base = localStorage.getItem('totalEnergy') || 0;
+        let bonusToday = localStorage.getItem('bonusPoints_Day_' + today) || 0;
+        let bonusTotal = localStorage.getItem('bonusPoints') || 0;
+        
+        let msg = `【分數診斷系統】\n` +
+                  `今日天數: DAY ${today}\n` +
+                  `基礎能量(totalEnergy): ${base}\n` +
+                  `今日村長加分(bonusPoints_Day_${today}): ${bonusToday}\n` +
+                  `總加分(bonusPoints): ${bonusTotal}\n` +
+                  `最終顯示能量: ${parseInt(base) + parseInt(bonusToday)}`;
+        alert(msg);
+        console.log(msg);
+    }
+
 </script>
 
-<script src="dragonBoat.js?v=0629_v2"></script>
+<button onclick="debugCheckScore()" style="width:100%; padding:15px; background:#e67e22; color:white; border:none; margin-top:20px;">
+    檢視今日分數診斷
+</button>
+
+<script src="dragonBoat.js?v=20260630_v1"></script>
 
 </body>
 </html>
