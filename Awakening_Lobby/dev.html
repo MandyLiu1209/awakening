@@ -531,9 +531,26 @@
             if(nameEl) nameEl.innerText = savedNick;
             
             // 👇 修改：畫面顯示的能量 = 打卡分 + 村長加分
-            const total = parseInt(localStorage.getItem('totalEnergy')) || 0;
-            const bonus = parseInt(localStorage.getItem('bonusPoints')) || 0;
-            document.getElementById('displayEnergy').innerText = total + bonus;
+           // ----------------------------------------------------
+            // 🌟 [修改開始]：正確讀取「當日加分」並與總分合併
+            // ----------------------------------------------------
+            const base = parseInt(localStorage.getItem('totalEnergy')) || 0;
+            const totalBonus = parseInt(localStorage.getItem('bonusPoints')) || 0; // 歷史累積加分
+            
+            // 取得今日加分撲滿名稱 (例如 bonusPoints_Day_8)
+            let today = getCalendarDiffDays();
+            const todayBonus = parseInt(localStorage.getItem('bonusPoints_Day_' + today)) || 0;
+            
+            // 最終顯示能量 = 基礎分 + 歷史累積加分 + 今日加分
+            let finalEnergy = base + totalBonus + todayBonus;
+            
+            const energyEl = document.getElementById('displayEnergy');
+            if (energyEl) {
+                energyEl.innerText = finalEnergy;
+            }
+            
+            // 4. 偵錯用：如果有少分，請按那個按鈕看 Console 輸出
+            console.log("最終計分診斷: 基礎=" + base + ", 總加分=" + totalBonus + ", 顯示總能量=" + finalEnergy);
 
             updateTask(); 
             // 👇 新增這行：讓玩家一打開畫面就能看到自己的裝備
