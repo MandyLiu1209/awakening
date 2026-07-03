@@ -707,7 +707,7 @@
 
         // 更新按鈕狀態 (增加安全判定)
         if (typeof updateDragonBoatButtonState === 'function') {
-        updateDragonBoatButtonState();
+            updateDragonBoatButtonState();
         }
 
         // 🎯 修正點 6：將 current 回傳為「打卡次數 (todayCheckins)」
@@ -1107,7 +1107,7 @@
                     document.getElementById('questImage').value = "";
 
                     if (typeof updateDragonBoatButtonState === 'function') {
-                    updateDragonBoatButtonState();
+                        updateDragonBoatButtonState();
                     }
                     showCustomAlert('🎉', '打卡成功！', alertMsg);
                 } else {
