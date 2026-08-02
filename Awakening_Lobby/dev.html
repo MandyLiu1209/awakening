@@ -178,8 +178,26 @@
 
     <div id="checkinSection" class="hidden">
         <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 15px;">
+            <!--
             <button id="btnDragonBoat" type="button" onclick="openDragonBoatModal()" style="flex: 1; padding: 12px 5px; font-size: 15px; background: linear-gradient(135deg, #00838f, #00b8d4); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif; line-height: 1.4;">
                 🛶 極速龍舟<br><span style="font-size: 12px;">(每日挑戰)</span>
+            </button>
+            -->
+
+            <button id="energyCatchBtn" onclick="launchMiniGame()" style="
+              display: none; /* 預設隱藏，打卡達標或解鎖條件成立後顯示 */
+              background: linear-gradient(135deg, #4CAF50, #2E7D32);
+              color: white;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 25px;
+              font-size: 16px;
+              font-weight: bold;
+              box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+              cursor: pointer;
+              margin: 10px auto;
+            ">
+              🌾 採集健康能量 (小遊戲)
             </button>
 
             <button id="btnLeaderboard" type="button" onclick="openLeaderboard()" style="flex: 1; padding: 12px 5px; font-size: 15px; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif; line-height: 1.4;">
@@ -445,37 +463,37 @@
             title: "🔋 能量三神器的共鳴", 
             desc: "拍下你的「神級裝備組合」<br>(雪克、芒果茶、每日精選)",
             equipName: equipRegistry[0].name, // 🎁 任務 1 裝備
-            reqPoints: 4 //12                 // ⚡ 解鎖條件：該任務期間累計 10 分
+            reqPoints: 4 //12                 // ⚡ 解鎖條件：打卡4次
         }, 
         { 
             title: "💧 水之精靈的祝福", 
             desc: "拍下你特調的「魔法藥水」<br>(蘆薈汁/纖維粉/消化酵素/鳳梨酵素)，<br>或標記刻度的大水壺，留言喝的水量",
             equipName: equipRegistry[1].name, // 🎁 任務 2 裝備
-            reqPoints: 4 //12                 // ⚡ 解鎖條件：該任務期間累計 12 分
+            reqPoints: 4 //12                 // ⚡ 解鎖條件：打卡4次
         }, 
         { 
             title: "🍲 翡翠與白玉的相遇", 
             desc: "拍下今天的第一餐「植能大餐」<br>(綠色蔬菜=翡翠，豆腐=白玉，山中珍寶=菇菇家族)",
             equipName: equipRegistry[2].name, // 🎁 任務 3 裝備
-            reqPoints: 4 //14                  // ⚡ 解鎖條件：該任務期間累計 15 分
+            reqPoints: 4 //14                  // ⚡ 解鎖條件：打卡4次
         }, 
         { 
             title: "🧺 合作鍊金術士", 
             desc: "找一位勇士(家人、朋友)一起前往 <br> 符合第二階段飲食的「外食餐廳」拍照上傳Line群",
             equipName: equipRegistry[3].name, // 🎁 任務 4 裝備 (D 7-8天)
-            reqPoints: 4 //14                 // ⚡ 解鎖條件：該任務期間累計 16 分
+            reqPoints: 4 //14                 // ⚡ 解鎖條件：打卡4次
         }, 
         { 
             title: "🥊 擊退嘴饞大魔王", 
             desc: "運動拍照～",
             equipName: equipRegistry[4].name, // 🎁 任務 5 裝備
-            reqPoints: 4 //16                  // ⚡ 解鎖條件：該任務期間累計 17 分
+            reqPoints: 4 //16                  // ⚡ 解鎖條件：打卡4次
         }, 
         { 
             title: "🪽 輕盈感知的覺醒", 
             desc: "自拍~~~(不量體重，用心感受！)<br>分享一個這 10 多天來的「體感變化」<br>(例如：精神變好、褲頭變鬆、皮膚變亮)",
             equipName: equipRegistry[5].name, // 🎁 任務 6 裝備
-            reqPoints: 4 //16                  // ⚡ 解鎖條件：該任務期間累計 17 分
+            reqPoints: 4 //16                  // ⚡ 解鎖條件：打卡4次
         }, 
         { 
             title: "🏰 榮耀戰神殿堂", 
@@ -1121,6 +1139,37 @@
         reader.readAsDataURL(fileInput.files[0]);
     }
 
+    // ==========================================
+    // 🎮 啟動小遊戲：健康能量大採集
+    // ==========================================
+    function launchMiniGame() {
+      console.log("🚀 啟動小遊戲：健康能量大採集");
+
+      // 呼叫獨立模組 EnergyCatchGame
+      EnergyCatchGame.start(function(finalScore) {
+        console.log("🏆 玩家獲勝得分:", finalScore);
+
+        if (finalScore > 0) {
+          // 1. 使用原子級加分更新 Firebase 資料庫
+          db.collection("Players_Dev").doc(userUid).update({
+            totalEnergy: firebase.firestore.FieldValue.increment(finalScore)
+          }).then(() => {
+            // 2. 顯示成功提示
+            alert(`🎉 太棒了！採集成功，獲得 ${finalScore} 點能量！`);
+            
+            // 3. 重新刷頁面上的能量數據 (若有 function 更新畫面)
+            if (typeof renderPlayerUI === 'function') {
+              renderPlayerUI();
+            }
+          }).catch((error) => {
+            console.error("更新能量失敗:", error);
+          });
+        } else {
+          alert("採集結束，這次沒有拿到能量，下次繼續加油！");
+        }
+      });
+    }
+
 
     async function debugSubmit() {
         const nickname = localStorage.getItem('gameNickname') || "Debug英雄";
@@ -1463,7 +1512,12 @@
     檢視今日分數診斷
 </button>
 
+<!-- 健康能量大採集/接金幣 -->
+<script src="energyCatch.js"></script>
+
+<!-- 龍舟小遊戲
 <script src="dragonBoat.js?v=20260630_v2"></script>
+-->
 
 </body>
 </html>
