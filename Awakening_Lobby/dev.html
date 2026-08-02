@@ -184,20 +184,14 @@
             </button>
             -->
 
-            <button id="energyCatchBtn" onclick="launchMiniGame()" style="
-              display: none; /* 預設隱藏，打卡達標或解鎖條件成立後顯示 */
-              background: linear-gradient(135deg, #4CAF50, #2E7D32);
-              color: white;
-              border: none;
-              padding: 12px 24px;
-              border-radius: 25px;
-              font-size: 16px;
-              font-weight: bold;
-              box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-              cursor: pointer;
-              margin: 10px auto;
+            <button id="energyCatchBtn" type="button" onclick="launchMiniGame()" style="flex: 1; padding: 12px 5px; font-size: 15px; 
+                background: linear-gradient(135deg, #4CAF50, #2E7D32); 
+                color: white; border: none; border-radius: 15px; 
+                font-weight: bold; cursor: pointer; box-shadow: none; 
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.3); 
+                font-family: '微軟正黑體', sans-serif; line-height: 1.4;
             ">
-              🌾 採集健康能量 (小遊戲)
+                🌾 採集健康能量<br><span style="font-size: 12px;">(小遊戲)</span>
             </button>
 
             <button id="btnLeaderboard" type="button" onclick="openLeaderboard()" style="flex: 1; padding: 12px 5px; font-size: 15px; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-family: '微軟正黑體', sans-serif; line-height: 1.4;">
@@ -1143,29 +1137,40 @@
     // 🎮 啟動小遊戲：健康能量大採集
     // ==========================================
     function launchMiniGame() {
-      console.log("🚀 啟動小遊戲：健康能量大採集");
+      console.log("🚀 點擊啟動：健康能量大採集小遊戲");
 
-      // 呼叫獨立模組 EnergyCatchGame
+      // 正確抓取當前玩家 ID
+      const userId = window.userProfile ? window.userProfile.userId : null;
+
       EnergyCatchGame.start(function(finalScore) {
-        console.log("🏆 玩家獲勝得分:", finalScore);
+        console.log("🏆 小遊戲結束，玩家獲得採集能量:", finalScore);
 
         if (finalScore > 0) {
-          // 1. 使用原子級加分更新 Firebase 資料庫
-          db.collection("Players_Dev").doc(userUid).update({
-            totalEnergy: firebase.firestore.FieldValue.increment(finalScore)
-          }).then(() => {
-            // 2. 顯示成功提示
-            alert(`🎉 太棒了！採集成功，獲得 ${finalScore} 點能量！`);
-            
-            // 3. 重新刷頁面上的能量數據 (若有 function 更新畫面)
-            if (typeof renderPlayerUI === 'function') {
-              renderPlayerUI();
+          if (userId) {
+            // 1. 使用原子級加分更新 Players_Dev 資料庫
+            db.collection(PLAYER_COLLECTION).doc(userId).update({
+              totalEnergy: firebase.firestore.FieldValue.increment(finalScore)
+            }).then(() => {
+              showCustomAlert('🎉', '採集成功！', `太棒了！為您的總能量額外注入 +${finalScore} 點！`);
+              
+              // 2. 重新刷新頁面上的能量數據
+              checkMemory();
+            }).catch((err) => {
+              console.error("❌ 能量寫入失敗:", err);
+              showCustomAlert('❌', '紀錄失敗', '能量寫入失敗，請檢查網路連線！');
+            });
+          } else {
+            // 離線 / 測試狀態下的本地處置
+            let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
+            total += finalScore;
+            localStorage.setItem('totalEnergy', total);
+            if (document.getElementById('displayEnergy')) {
+              document.getElementById('displayEnergy').innerText = total;
             }
-          }).catch((error) => {
-            console.error("更新能量失敗:", error);
-          });
+            showCustomAlert('🎉', '採集成功！', `(離線模式) 成功獲得 +${finalScore} 點能量！`);
+          }
         } else {
-          alert("採集結束，這次沒有拿到能量，下次繼續加油！");
+          showCustomAlert('🌾', '採集結束', '這次沒有採集到能量，下次繼續加油！');
         }
       });
     }
