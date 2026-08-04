@@ -1134,40 +1134,47 @@
     }
 
     // ==========================================
-    // 🎮 啟動小遊戲：健康能量大採集
+    // 🎮 啟動小遊戲：健康能量大採集 (全方位防呆版)
     // ==========================================
     function launchMiniGame() {
       console.log("🚀 點擊啟動：健康能量大採集小遊戲");
 
-      // 正確抓取當前玩家 ID
-      const userId = window.userProfile ? window.userProfile.userId : null;
+      // 🌟 1. 三重防護抓取使用者 ID (解決 userProfile 為空問題)
+      let userId = null;
+      if (window.userProfile && window.userProfile.userId) {
+        userId = window.userProfile.userId;
+      } else if (typeof currentUserUid !== 'undefined' && currentUserUid) {
+        userId = currentUserUid;
+      } else if (liff.isLoggedIn && liff.getContext && liff.getContext()) {
+        userId = liff.getContext().userId;
+      }
 
       EnergyCatchGame.start(function(finalScore) {
         console.log("🏆 小遊戲結束，玩家獲得採集能量:", finalScore);
 
         if (finalScore > 0) {
           if (userId) {
-            // 1. 使用原子級加分更新 Players_Dev 資料庫
+            // 2. 確定有 ID，以原子級加分寫回 Firebase
             db.collection(PLAYER_COLLECTION).doc(userId).update({
               totalEnergy: firebase.firestore.FieldValue.increment(finalScore)
             }).then(() => {
               showCustomAlert('🎉', '採集成功！', `太棒了！為您的總能量額外注入 +${finalScore} 點！`);
               
-              // 2. 重新刷新頁面上的能量數據
+              // 3. 重新刷頁面上的能量數據
               checkMemory();
             }).catch((err) => {
               console.error("❌ 能量寫入失敗:", err);
-              showCustomAlert('❌', '紀錄失敗', '能量寫入失敗，請檢查網路連線！');
+              showCustomAlert('❌', '紀錄失敗', '能量寫入失敗，請檢查網路連线或權限！');
             });
           } else {
-            // 離線 / 測試狀態下的本地處置
+            // 4. 萬一完全抓不到 ID (純電腦離線測試)，自動保底寫入本地記憶體，不讓玩家卡住
             let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
             total += finalScore;
             localStorage.setItem('totalEnergy', total);
             if (document.getElementById('displayEnergy')) {
               document.getElementById('displayEnergy').innerText = total;
             }
-            showCustomAlert('🎉', '採集成功！', `(離線模式) 成功獲得 +${finalScore} 點能量！`);
+            showCustomAlert('🎉', '採集成功！', `(離線測試) 成功獲得 +${finalScore} 點能量！`);
           }
         } else {
           showCustomAlert('🌾', '採集結束', '這次沒有採集到能量，下次繼續加油！');
