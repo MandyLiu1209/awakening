@@ -1,6 +1,7 @@
 /**
- * 🎮 健康能量大採集 - 獨立小遊戲模組 (v2.0 升級版)
- * 包含：3秒倒數、防遮擋高籃子、漂浮分數特效、階梯式能量轉換
+ * 🎮 健康能量大採集 - 獨立小遊戲模組 (v2.2 豆腐與炸彈版)
+ * 包含：3秒倒數、加深籃子深度、漂浮分數特效、階梯式能量轉換
+ * 物品：💧水滴(+3)、🥦蔬菜(+2)、🧊豆腐(+5)、🍔漢堡(-3)、💣炸彈(-5)
  */
 
 const EnergyCatchGame = (function () {
@@ -15,21 +16,22 @@ const EnergyCatchGame = (function () {
   let isGameOver = false;
   let isCountingDown = false; // 是否處於倒數狀態
 
-  // 籃子 (Player Basket)
+  // 🧺 籃子 (Player Basket) - 寬度維持 75，深度 65 防手指遮擋
   const basket = {
     x: 0,
     y: 0,
     width: 75,
-    height: 35,
+    height: 65,
     color: '#4CAF50'
   };
 
-  // 掉落物品類型
+  // 掉落物品類型與分數設定
   const itemTypes = [
-    { type: 'water', label: '💧', score: 2, speed: 3.5, radius: 18 },
-    { type: 'veggie', label: '🥦', score: 3, speed: 4.0, radius: 18 },
-    { type: 'gold', label: '🪙', score: 5, speed: 5.0, radius: 16 },
-    { type: 'burger', label: '🍔', score: -3, speed: 3.8, radius: 20 }
+    { type: 'water', label: '💧', score: 3, speed: 3.5, radius: 18 },
+    { type: 'veggie', label: '🥦', score: 2, speed: 4.0, radius: 18 },
+    { type: 'tofu', label: '🧊', score: 5, speed: 4.8, radius: 18 },   // 🧊 豆腐 +5分
+    { type: 'burger', label: '🍔', score: -3, speed: 3.8, radius: 20 }, // 🍔 漢堡 -3分
+    { type: 'bomb', label: '💣', score: -5, speed: 4.2, radius: 20 }   // 💣 炸彈 -5分
   ];
 
   let items = [];
@@ -88,8 +90,8 @@ const EnergyCatchGame = (function () {
             </div>
           </div>
 
-          <p style="font-size: 14px; color: #795548; margin: 8px 0 0 0;">
-            👈 左右滑動控制籃子 🚀 收集 💧🥦🪙 避開 🍔
+          <p style="font-size: 12px; color: #795548; margin: 8px 0 0 0;">
+            👈 左右滑動控制籃子 🚀 收集 💧🥦🧊 避開 🍔💣
           </p>
         </div>
       </div>
@@ -100,7 +102,7 @@ const EnergyCatchGame = (function () {
     canvas = document.getElementById('energyCatchCanvas');
     ctx = canvas.getContext('2d');
 
-    // 籃子靠底部（距離底部 15px），但因為高度增為 65px，上方籃口大幅伸長
+    // 籃子位置
     basket.x = (canvas.width - basket.width) / 2;
     basket.y = canvas.height - basket.height - 15;
 
@@ -151,17 +153,18 @@ const EnergyCatchGame = (function () {
   }
 
   /**
-   * 掉落物品
+   * 掉落物品（機率配置）
    */
   function spawnItem() {
     if (isGameOver || isCountingDown) return;
 
     const rand = Math.random();
     let selectedType;
-    if (rand < 0.4) selectedType = itemTypes[0];      // 💧 +2
-    else if (rand < 0.7) selectedType = itemTypes[1]; // 🥦 +3
-    else if (rand < 0.85) selectedType = itemTypes[2];// 🪙 +5
-    else selectedType = itemTypes[3];                 // 🍔 -3
+    if (rand < 0.35) selectedType = itemTypes[0];      // 💧 水滴 +3 (35%)
+    else if (rand < 0.65) selectedType = itemTypes[1]; // 🥦 蔬菜 +2 (30%)
+    else if (rand < 0.80) selectedType = itemTypes[2]; // 🧊 豆腐 +5 (15%)
+    else if (rand < 0.90) selectedType = itemTypes[3]; // 🍔 漢堡 -3 (10%)
+    else selectedType = itemTypes[4];                 // 💣 炸彈 -5 (10%)
 
     items.push({
       ...selectedType,
@@ -197,13 +200,19 @@ const EnergyCatchGame = (function () {
     ctx.beginPath();
     ctx.roundRect(basket.x, basket.y, basket.width, basket.height, 10);
     ctx.fill();
+
+    // 籃口邊緣視覺強化線
+    ctx.fillStyle = '#81C784';
+    ctx.fillRect(basket.x, basket.y, basket.width, 6);
+
+    // 籃子文字標籤
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 12px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('🧺 能量籃', basket.x + basket.width / 2, basket.y + 22);
 
     if (!isCountingDown) {
-      // 2. 物品更新與繪製
+      // 2. 物品更新與碰撞偵測
       for (let i = items.length - 1; i >= 0; i--) {
         let item = items[i];
         item.y += item.speed;
@@ -213,18 +222,18 @@ const EnergyCatchGame = (function () {
         ctx.textBaseline = 'middle';
         ctx.fillText(item.label, item.x, item.y);
 
-        // 碰撞偵測
+        // 碰撞偵測 (判定頂端籃口處)
         if (
           item.y + item.radius >= basket.y &&
-          item.y - item.radius <= basket.y + basket.height &&
-          item.x >= basket.x - 10 &&
-          item.x <= basket.x + basket.width + 10
+          item.y - item.radius <= basket.y + 25 &&
+          item.x >= basket.x - 8 &&
+          item.x <= basket.x + basket.width + 8
         ) {
           score = Math.max(0, score + item.score);
           const scoreEl = document.getElementById('ecScore');
           if (scoreEl) scoreEl.innerText = score;
 
-          // 顯示漂浮文字特效 (+2, +3, +5 或 -3)
+          // 顯示漂浮文字特效
           const textStr = item.score > 0 ? `+${item.score}` : `${item.score}`;
           const textColor = item.score > 0 ? '#2E7D32' : '#D32F2F';
           addFloatingText(textStr, item.x, basket.y - 10, textColor);
@@ -241,8 +250,8 @@ const EnergyCatchGame = (function () {
       // 3. 繪製漂浮特效
       for (let i = floatingTexts.length - 1; i >= 0; i--) {
         let ft = floatingTexts[i];
-        ft.y -= 1.5; // 向上飄動
-        ft.alpha -= 0.03; // 漸隱
+        ft.y -= 1.5;
+        ft.alpha -= 0.03;
 
         ctx.save();
         ctx.globalAlpha = Math.max(0, ft.alpha);
@@ -286,7 +295,6 @@ const EnergyCatchGame = (function () {
     clearInterval(timerIntervalId);
     cancelAnimationFrame(animFrameId);
 
-    // 依分數對照計算最終能量值
     const finalEnergyGain = calculateEnergyGain(score);
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
@@ -327,11 +335,10 @@ const EnergyCatchGame = (function () {
     onGameCompleteCallback = onComplete;
 
     initUI();
-    update(); // 啟動畫面渲染
+    update();
 
-    // 啟動 3 秒倒數，結束後才啟動出怪與計時
     startCountdown(() => {
-      spawnIntervalId = setInterval(spawnItem, 550);
+      spawnIntervalId = setInterval(spawnItem, 520);
       startTimer();
     });
   }
@@ -340,4 +347,3 @@ const EnergyCatchGame = (function () {
     start: start
   };
 })();
-
