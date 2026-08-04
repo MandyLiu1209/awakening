@@ -20,8 +20,8 @@ const EnergyCatchGame = (function () {
   const basket = {
     x: 0,
     y: 0,
-    width: 75,
-    height: 65,
+    width: 70,
+    height: 30,
     color: '#4CAF50'
   };
 
