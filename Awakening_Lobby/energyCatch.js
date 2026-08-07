@@ -27,8 +27,8 @@ const EnergyCatchGame = (function () {
 
   // 掉落物品類型與分數設定
   const itemTypes = [
-    { type: 'water', label: '💧', score: 3, speed: 3.5, radius: 18 },
-    { type: 'veggie', label: '🥦', score: 2, speed: 4.0, radius: 18 },
+    { type: 'water', label: '💧', score: 3, speed: 3.5, radius: 18 },  // 💧 水滴 +3分
+    { type: 'veggie', label: '🥦', score: 2, speed: 4.0, radius: 18 }, // 🥦 蔬菜 +2分
     { type: 'tofu', label: '🧊', score: 5, speed: 4.8, radius: 18 },   // 🧊 豆腐 +5分
     { type: 'burger', label: '🍔', score: -3, speed: 3.8, radius: 20 }, // 🍔 漢堡 -3分
     { type: 'bomb', label: '💣', score: -5, speed: 4.2, radius: 20 }   // 💣 炸彈 -5分
@@ -68,25 +68,27 @@ const EnergyCatchGame = (function () {
           border-radius: 16px; padding: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
           text-align: center; border: 3px solid #FFB74D;
         ">
+          <!-- 頂部資訊欄 -->
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: bold; color: #5D4037;">
             <span style="font-size: 16px;">⏳ 時間: <span id="ecTimer" style="color:#E65100;">20</span>s</span>
             <span style="font-size: 18px; color: #2E7D32;">✨ 得分: <span id="ecScore">0</span></span>
           </div>
 
+          <!-- Canvas 畫面 -->
           <div style="position: relative;">
             <canvas id="energyCatchCanvas" width="340" height="420" style="
               background: linear-gradient(to bottom, #E8F5E9, #C8E6C9);
               border-radius: 12px; border: 2px solid #81C784; width: 100%; height: auto; display: block;
             "></canvas>
             
+            <!-- 倒數計時遮罩 (對齊龍舟樣式) -->
             <div id="ecCountdownOverlay" style="
               position: absolute; top:0; left:0; width:100%; height:100%;
-              background: rgba(0,0,0,0.4); border-radius: 12px;
+              background: rgba(0,0,0,0.5); border-radius: 12px;
               display: flex; flex-direction: column; align-items: center; justify-content: center;
-              color: #FFF; font-size: 64px; font-weight: bold; text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+              color: #FFD54F; font-size: 80px; font-weight: bold; text-shadow: 3px 3px 10px rgba(0,0,0,0.8);
             ">
               <div id="ecCountdownText">3</div>
-              <div style="font-size: 16px; margin-top: 10px; font-weight: normal; color: #FFE082;">準備採集健康能量！</div>
             </div>
           </div>
 
@@ -142,7 +144,7 @@ const EnergyCatchGame = (function () {
       if (count > 0) {
         if (countEl) countEl.innerText = count;
       } else if (count === 0) {
-        if (countEl) countEl.innerText = "GO!";
+        if (countEl) countEl.innerText = "🏁 GO!";
       } else {
         clearInterval(timer);
         if (overlay) overlay.style.display = "none";
@@ -297,30 +299,14 @@ const EnergyCatchGame = (function () {
 
     const finalEnergyGain = calculateEnergyGain(score);
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 🎯 對齊龍舟體驗：遊戲結束立即關閉遊戲 Modal，交由主程式彈窗
+    const modal = document.getElementById('energyCatchModal');
+    if (modal) modal.remove();
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 24px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('🎉 採集完成！', canvas.width / 2, canvas.height / 2 - 40);
-
-    ctx.font = '16px Arial';
-    ctx.fillStyle = '#FFF8EA';
-    ctx.fillText(`遊戲得分：${score} 分`, canvas.width / 2, canvas.height / 2 - 5);
-
-    ctx.font = 'bold 22px Arial';
-    ctx.fillStyle = '#FFD54F';
-    ctx.fillText(`⚡ 換算獲得 +${finalEnergyGain} 能量`, canvas.width / 2, canvas.height / 2 + 35);
-
-    setTimeout(() => {
-      const modal = document.getElementById('energyCatchModal');
-      if (modal) modal.remove();
-
-      if (typeof onGameCompleteCallback === 'function') {
-        onGameCompleteCallback(finalEnergyGain);
-      }
-    }, 2400);
+    // 將得分與換算能量傳回主程式 launchMiniGame 接手處理
+    if (typeof onGameCompleteCallback === 'function') {
+      onGameCompleteCallback(score, finalEnergyGain);
+    }
   }
 
   /**
@@ -347,3 +333,4 @@ const EnergyCatchGame = (function () {
     start: start
   };
 })();
+

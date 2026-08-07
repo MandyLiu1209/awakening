@@ -1145,39 +1145,65 @@
         userId = window.userProfile.userId;
       } else if (typeof currentUserUid !== 'undefined' && currentUserUid) {
         userId = currentUserUid;
-      } else if (liff.isLoggedIn && liff.getContext && liff.getContext()) {
+      } else if (typeof liff !== 'undefined' && liff.isLoggedIn && liff.isLoggedIn() && liff.getContext()) {
         userId = liff.getContext().userId;
       }
 
-      EnergyCatchGame.start(function(finalScore) {
-        console.log("🏆 小遊戲結束，玩家獲得採集能量:", finalScore);
+      // ----------------------------------------------------
+      // 🌟 [修改] 接受遊戲拋出的 (得分 finalScore, 換算能量 finalEnergyGain)
+      // ----------------------------------------------------
+      EnergyCatchGame.start(function(finalScore, finalEnergyGain) {
+        console.log(`🏆 小遊戲結束，得分: ${finalScore}，獲得能量: ${finalEnergyGain}`);
 
-        if (finalScore > 0) {
+        // ----------------------------------------------------
+        // 🌟 [新增] 對齊龍舟等第評定文字邏輯
+        // ----------------------------------------------------
+        let rankTitle = "【採集新手】";
+        if (finalScore >= 80) rankTitle = "【能量大師】";
+        else if (finalScore >= 50) rankTitle = "【採集達人】";
+        else if (finalScore >= 30) rankTitle = "【高級高手】";
+        else if (finalScore >= 10) rankTitle = "【初級選手】";
+
+        // ----------------------------------------------------
+        // 🌟 [新增] 排版對齊龍舟彈窗內文（包含得分、評定等級、獲得能量）
+        // ----------------------------------------------------
+        const alertMessage = `採集得分：${finalScore} 分\n評定等級：${rankTitle}\n\n獲得健康能量獎勵：⚡ ${finalEnergyGain} 點！`;
+
+        if (finalEnergyGain > 0) {
           if (userId) {
-            // 2. 確定有 ID，以原子級加分寫回 Firebase
+            // ----------------------------------------------------
+            // 🌟 [修改] 以原子級 increment 將獲得能量寫入 Firebase
+            // ----------------------------------------------------
             db.collection(PLAYER_COLLECTION).doc(userId).update({
-              totalEnergy: firebase.firestore.FieldValue.increment(finalScore)
+              totalEnergy: firebase.firestore.FieldValue.increment(finalEnergyGain)
             }).then(() => {
-              showCustomAlert('🎉', '採集成功！', `太棒了！為您的總能量額外注入 +${finalScore} 點！`);
+              // ----------------------------------------------------
+              // 🌟 [修改] 觸發系統標準對話框 (🏆 採集成功！)
+              // ----------------------------------------------------
+              showCustomAlert('🏆', '採集成功！', alertMessage);
               
-              // 3. 重新刷頁面上的能量數據
+              // ----------------------------------------------------
+              // 🌟 [新增] 點擊確定後刷新 UI，主畫面的能量條 (⚡ badge) 會即時更新
+              // ----------------------------------------------------
               checkMemory();
             }).catch((err) => {
               console.error("❌ 能量寫入失敗:", err);
-              showCustomAlert('❌', '紀錄失敗', '能量寫入失敗，請檢查網路連线或權限！');
+              showCustomAlert('❌', '紀錄失敗', '能量寫入失敗，請檢查網路連線！');
             });
           } else {
-            // 4. 萬一完全抓不到 ID (純電腦離線測試)，自動保底寫入本地記憶體，不讓玩家卡住
+            // ----------------------------------------------------
+            // 🌟 [新增] 離線/無帳號測試保底機制
+            // ----------------------------------------------------
             let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
-            total += finalScore;
+            total += finalEnergyGain;
             localStorage.setItem('totalEnergy', total);
             if (document.getElementById('displayEnergy')) {
               document.getElementById('displayEnergy').innerText = total;
             }
-            showCustomAlert('🎉', '採集成功！', `(離線測試) 成功獲得 +${finalScore} 點能量！`);
+            showCustomAlert('🏆', '採集成功！', `(測試模式)\n${alertMessage}`);
           }
         } else {
-          showCustomAlert('🌾', '採集結束', '這次沒有採集到能量，下次繼續加油！');
+          showCustomAlert('🌾', '採集結束', `採集得分：${finalScore} 分\n這次沒有採集到足夠能量，下次繼續加油！`);
         }
       });
     }
