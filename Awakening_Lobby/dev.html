@@ -273,6 +273,7 @@
     </div>
 </div>
 
+<!--
 <div id="dragonBoatModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 500; flex-direction: column; justify-content: center; align-items: center; font-family: '微軟正黑體', sans-serif; touch-action: none;">
     <div style="background: #e0f7fa; border: 5px solid #006064; border-radius: 20px; width: 90%; max-width: 400px; height: 75vh; position: relative; overflow: hidden; display: flex; flex-direction: column;">
         
@@ -321,6 +322,7 @@
         </div>
     </div>
 </div>
+-->
 
 
 <div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;">
@@ -417,6 +419,7 @@
     //v0.4.x：加入排行榜
 
 
+    /*
     if (localStorage.getItem('gameVersion') !== GAME_VERSION) {
         localStorage.clear(); 
         localStorage.setItem('gameVersion', GAME_VERSION); 
@@ -424,6 +427,7 @@
     }
 
     const TARGET_GROUP_ID = "C7dded8161beb84827984ec5f84aeb741"; 
+    */
 
     const firebaseConfig = {
         apiKey: "AIzaSyBXHnWHRLUTvb08RdifKKigbNIyBH_34JU",
@@ -569,7 +573,48 @@
             renderEquipment();
             // 👇 新增這行：讓漂浮魔法球在初始化時出現
             renderFloatingOrbs();
+
+            /* 🌟 [新增] 載入資料後，即時判斷並更新小遊戲按鈕狀態 */
+            updateGameButtonState();
         }
+    }
+
+    /* 🌟 [新增] 小遊戲動態狀態控制 (檢查能量是否達標 13 分，未達標則反灰) */
+    function updateGameButtonState() {
+      const btn = document.getElementById('energyCatchBtn');
+      if (!btn) return;
+
+      // 1. 若處於 DEBUG 測試模式，直接強制開鎖
+      if (typeof debug_mode !== 'undefined' && debug_mode) {
+        btn.style.filter = 'grayscale(0%)';
+        btn.style.opacity = '1';
+        btn.onclick = launchMiniGame;
+        btn.innerHTML = '🌾 採集健康能量<br><span style="font-size: 12px;">(測試中)</span>';
+        return;
+      }
+
+      // 2. 計算今日專屬能量與門檻
+      const currentDay = typeof getCalendarDiffDays === 'function' ? getCalendarDiffDays() : 1;
+      const base = parseInt(localStorage.getItem('totalEnergy')) || 0;
+      const bonusToday = parseInt(localStorage.getItem('bonusPoints_Day_' + currentDay)) || 0;
+      const currentEnergy = base + bonusToday;
+      const reqEnergy = 13; // 解鎖門檻
+
+      if (currentEnergy >= reqEnergy) {
+        // 🟢 達標解鎖
+        btn.style.filter = 'grayscale(0%) drop-shadow(0px 0px 8px rgba(76, 175, 80, 0.8))';
+        btn.style.opacity = '1';
+        btn.onclick = launchMiniGame;
+        btn.innerHTML = '🌾 採集健康能量<br><span style="font-size: 12px;">(小遊戲)</span>';
+      } else {
+        // 🔴 未達標反灰鎖定
+        btn.style.filter = 'grayscale(100%)';
+        btn.style.opacity = '0.5';
+        btn.onclick = function() {
+          showCustomAlert('🔒', '門檻未達標', `採集小遊戲需要今日能量達 ${reqEnergy} 點才能解鎖！\n目前能量：⚡ ${currentEnergy} 點，請先完成任務打卡！`);
+        };
+        btn.innerHTML = `🔒 能量不足<br><span style="font-size: 12px;">(${currentEnergy}/${reqEnergy} 點)</span>`;
+      }
     }
 
     // ⚡ 結算能量 (原子級原地加分 - 徹底解決分數覆蓋終極版)
@@ -717,10 +762,10 @@
             actualAdd = 0;
         }
 
-        // 更新按鈕狀態 (增加安全判定)
-        if (typeof updateDragonBoatButtonState === 'function') {
-            updateDragonBoatButtonState();
-        }
+        // 更新按鈕狀態 (增加安全判定) 打卡加分後更新小遊戲按鈕狀態
+        //if (typeof updateDragonBoatButtonState === 'function') {
+            updateGameButtonState();
+        //}
 
         // 🎯 修正點 6：將 current 回傳為「打卡次數 (todayCheckins)」
         return { added: actualAdd, current: todayCheckins, limit: dailyLimit, cheat: false };
@@ -1118,9 +1163,9 @@
                     document.getElementById('questLog').value = "";
                     document.getElementById('questImage').value = "";
 
-                    if (typeof updateDragonBoatButtonState === 'function') {
-                        updateDragonBoatButtonState();
-                    }
+                    //if (typeof updateDragonBoatButtonState === 'function') {
+                        updateGameButtonState();
+                    //}
                     showCustomAlert('🎉', '打卡成功！', alertMsg);
                 } else {
                     showCustomAlert('⚠️', '系統繁忙', '後端處理失敗，請稍後再試。');
@@ -1159,10 +1204,10 @@
         // 🌟 [新增] 對齊龍舟等第評定文字邏輯
         // ----------------------------------------------------
         let rankTitle = "【採集新手】";
-        if (finalScore >= 80) rankTitle = "【能量大師】";
-        else if (finalScore >= 50) rankTitle = "【採集達人】";
-        else if (finalScore >= 30) rankTitle = "【高級高手】";
-        else if (finalScore >= 10) rankTitle = "【初級選手】";
+        if (finalScore >= 90) rankTitle = "【能量大師】";
+        else if (finalScore >= 70) rankTitle = "【採集達人】";
+        else if (finalScore >= 50) rankTitle = "【高級高手】";
+        else if (finalScore >= 20) rankTitle = "【初級選手】";
 
         // ----------------------------------------------------
         // 🌟 [新增] 排版對齊龍舟彈窗內文（包含得分、評定等級、獲得能量）
@@ -1186,6 +1231,7 @@
               // 🌟 [新增] 點擊確定後刷新 UI，主畫面的能量條 (⚡ badge) 會即時更新
               // ----------------------------------------------------
               checkMemory();
+              updateGameButtonState();
             }).catch((err) => {
               console.error("❌ 能量寫入失敗:", err);
               showCustomAlert('❌', '紀錄失敗', '能量寫入失敗，請檢查網路連線！');
@@ -1362,8 +1408,18 @@
         if (adminClickCount >= 5) {
             adminClickCount = 0;
             let password = prompt("🔮 偵測到古老管理員共鳴！\n請輸入村長神秘口令：");
-            if (password === "Mis1209") { // 💡 您專屬的進入密碼
+            if (password === "Mis1209") {
+                debug_mode = !debug_mode;
+
+                const debugPanel = document.getElementById('debugPanel');
+                if (debugPanel) {
+                    debugPanel.style.display = debug_mode ? 'block' : 'none';
+                }
+
+                updateGameButtonState();
                 openAdminPanel();
+
+                alert(debug_mode ? "🛠️ 測試模式已開啟！【除錯面板】已出現在畫面下方。" : "🔒 測試模式【已關閉】。");
             } else if (password !== null) {
                 alert("❌ 口令錯誤！凡人切勿染指神聖領域！");
             }
@@ -1523,9 +1579,10 @@
         if (typeof loadPlayerList === "function") loadPlayerList();
         
         // 2. 檢查龍舟按鈕要不要發光
-        if (typeof updateDragonBoatButtonState === "function") {
-            updateDragonBoatButtonState();
-        }
+        //if (typeof updateDragonBoatButtonState === "function") {
+            //updateDragonBoatButtonState();
+            updateGameButtonState();
+        //}
     };
 
     function debugCheckScore() {

@@ -144,6 +144,7 @@ const EnergyCatchGame = (function () {
       if (count > 0) {
         if (countEl) countEl.innerText = count;
       } else if (count === 0) {
+        /* 倒數完畢顯示 🏁 GO! */
         if (countEl) countEl.innerText = "🏁 GO!";
       } else {
         clearInterval(timer);
@@ -290,6 +291,7 @@ const EnergyCatchGame = (function () {
 
   /**
    * 結算畫面
+   * 結算對齊龍舟體驗：時間到立刻關閉 Modal 視窗，傳回 (分數, 能量值) 給主程式 */
    */
   function endGame() {
     isGameOver = true;
