@@ -451,7 +451,7 @@ const EnergyCatchGame = (function () {
 
   /**
    * 結算畫面
-   * 結算對齊龍舟體驗：時間到立刻關閉 Modal 視窗，傳回 (分數, 能量值) 給主程式 */
+   * 結算對齊龍舟體驗：時間到立刻關閉 Modal 視窗，傳回 (分數, 能量值) 給主程式 
    */
   function endGame() {
     isGameOver = true;
@@ -484,7 +484,7 @@ const EnergyCatchGame = (function () {
   function start(onComplete) {
     /* 🌟 [新增] 啟動前進行資格驗證，未達門檻不開啟 */
     if (!checkGameEligibility()) return;
-    
+
     score = 0;
     timeLeft = 20;
     isGameOver = false;
