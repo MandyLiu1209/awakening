@@ -160,7 +160,8 @@
 <body>
 
 <div class="container" id="mainContainer" style="display: none;">
-    <div class="header-banner" onclick="countAdminClick()" style="cursor: pointer;">英雄試煉殿堂</div>
+    /* 🌟 [修改] 標題區點擊綁定 secretDebugToggle 彩蛋開關 */
+    <div class="header-banner" onclick="secretDebugToggle()" style="cursor: pointer;">英雄試煉殿堂</div>
 
     <div id="setupSection">
         <div class="input-group">
@@ -183,13 +184,13 @@
                 🛶 極速龍舟<br><span style="font-size: 12px;">(每日挑戰)</span>
             </button>
             -->
-
+             /* 🌟 [修改] 小遊戲按鈕，與英雄榜平鋪並排 */
             <button id="energyCatchBtn" type="button" onclick="launchMiniGame()" style="flex: 1; padding: 12px 5px; font-size: 15px; 
                 background: linear-gradient(135deg, #4CAF50, #2E7D32); 
                 color: white; border: none; border-radius: 15px; 
                 font-weight: bold; cursor: pointer; box-shadow: none; 
                 text-shadow: 1px 1px 2px rgba(0,0,0,0.3); 
-                font-family: '微軟正黑體', sans-serif; line-height: 1.4;
+                font-family: '微軟正黑體', sans-serif; line-height: 1.4; transition: all 0.3s ease;
             ">
                 🌾 採集健康能量<br><span style="font-size: 12px;">(小遊戲)</span>
             </button>
@@ -210,12 +211,10 @@
 
         <div class="hero-display">
             <div id="floatingConstellation"></div>
-            
             <img id="mainHeroImg" class="hero-img" src="role1_null.jpg">
-
             <div class="hero-energy-badge">⚡: <span id="displayEnergy">0</span></div>
             <button class="btn-edit-float" onclick="editProfile()">✏️</button>
-            <div class="hero-info-badge" onclick="if(typeof secretDebugToggle === 'function') secretDebugToggle();">
+            <div class="hero-info-badge" onclick="secretDebugToggle()">
                 LV<span id="displayLevel">1</span> : <span id="displayNameBadge">載入中...</span>
             </div>
         </div>
@@ -333,14 +332,11 @@
     </div>
 </div>
 
-
 <div id="adminModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 400; justify-content: center; align-items: center; font-family: '微軟正黑體', sans-serif;">
     <div style="background: #fffdfa; border: 5px double #8b4513; border-radius: 20px; width: 92%; max-width: 450px; padding: 20px; position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); text-align: center;">
         <button onclick="document.getElementById('adminModal').style.display='none'" style="position: absolute; top: -15px; right: -15px; background: #c0392b; color: white; border: 2px solid #fff; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">X</button>
-        
         <h2 style="color: #8b4513; margin-top: 0; border-bottom: 3px double #8b4513; padding-bottom: 8px; font-size: 22px;">🔮 村長神聖裁決所 ⚖️</h2>
         <p style="font-size: 12px; color: #7f8c8d; margin-top: -5px;">※ 扣除能量後，玩家若未達解鎖門檻，神裝將於下次登入自動收回</p>
-        
         <div id="adminPlayerList" style="max-height: 55vh; overflow-y: auto; padding-right: 5px; margin-top: 15px; border: 1px inset #d2b48c; background: #faf4e8; border-radius: 10px; padding: 10px;">
             <div style="text-align: center; color: #d35400; font-size: 14px;">📡 正在召喚眾神名冊...</div>
         </div>
@@ -349,15 +345,11 @@
 
 <div id="leaderboardModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 450; justify-content: center; align-items: center; font-family: '微軟正黑體', sans-serif;">
     <div style="background: #fffdfa; border: 5px solid #d35400; border-radius: 20px; width: 92%; max-width: 450px; padding: 20px; position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); text-align: center; max-height: 80vh; display: flex; flex-direction: column;">
-        
         <button onclick="document.getElementById('leaderboardModal').style.display='none'" style="position: absolute; top: -15px; right: -15px; background: #c0392b; color: white; border: 2px solid #fff; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">X</button>
-        
         <h2 style="color: #8b4513; margin-top: 0; border-bottom: 3px dashed #d35400; padding-bottom: 10px; font-size: 24px;">🏆 榮耀英雄榜</h2>
-        
         <div id="leaderboardList" style="flex: 1; overflow-y: auto; margin-top: 10px; padding: 8px; background: #faf4e8; border-radius: 10px; border: 1px inset #d2b48c; text-align: left;">
             <div style="text-align: center; color: #d35400; font-size: 14px; font-weight: bold; padding: 20px;">📡 正在讀取石碑數據...</div>
         </div>
-        
     </div>
 </div>
 
@@ -574,7 +566,8 @@
             // 👇 新增這行：讓漂浮魔法球在初始化時出現
             renderFloatingOrbs();
 
-            /* 🌟 [新增] 載入資料後，即時判斷並更新小遊戲按鈕狀態 */
+            /* 🌟 [新增] 載入資料後，即時呼叫 energyCatch.js 內的 updateGameButtonState 更新按鈕狀態 */
+            if (typeof updateGameButtonState === "function") {
             updateGameButtonState();
         }
     }
@@ -633,11 +626,7 @@
                 const dateHeader = timeRes.headers.get('Date');
                 if (dateHeader) {
                     trueToday = new Date(dateHeader);
-                    
-                    // 🕵️ 抓包判定：如果手機系統時間跟真實伺服器時間相差超過 1 小時，判定為作弊
-                    if (Math.abs(Date.now() - trueToday.getTime()) > 60 * 60 * 1000) {
-                        isTimeCheat = true;
-                    }
+                    if (Math.abs(Date.now() - trueToday.getTime()) > 60 * 60 * 1000) isTimeCheat = true;
                 }
             }
         } catch (err) {
@@ -762,10 +751,10 @@
             actualAdd = 0;
         }
 
-        // 更新按鈕狀態 (增加安全判定) 打卡加分後更新小遊戲按鈕狀態
-        //if (typeof updateDragonBoatButtonState === 'function') {
+        /* 🌟 [新增] 打卡完即時更新小遊戲按鈕狀態 */
+        if (typeof updateGameButtonState === "function") {
             updateGameButtonState();
-        //}
+        }
 
         // 🎯 修正點 6：將 current 回傳為「打卡次數 (todayCheckins)」
         return { added: actualAdd, current: todayCheckins, limit: dailyLimit, cheat: false };
@@ -856,10 +845,8 @@
                     showCustomAlert('🔒', '未知的聖物', lockMsg);
                 }
             };
-            
             iconArea.appendChild(eqDiv);
         });
-
     }
 
     // ==========================================
@@ -1163,9 +1150,9 @@
                     document.getElementById('questLog').value = "";
                     document.getElementById('questImage').value = "";
 
-                    //if (typeof updateDragonBoatButtonState === 'function') {
+                    if (typeof updateGameButtonState === "function") {
                         updateGameButtonState();
-                    //}
+                    }
                     showCustomAlert('🎉', '打卡成功！', alertMsg);
                 } else {
                     showCustomAlert('⚠️', '系統繁忙', '後端處理失敗，請稍後再試。');
@@ -1231,7 +1218,9 @@
               // 🌟 [新增] 點擊確定後刷新 UI，主畫面的能量條 (⚡ badge) 會即時更新
               // ----------------------------------------------------
               checkMemory();
-              updateGameButtonState();
+              if (typeof updateGameButtonState === "function") {
+                updateGameButtonState();
+              }
             }).catch((err) => {
               console.error("❌ 能量寫入失敗:", err);
               showCustomAlert('❌', '紀錄失敗', '能量寫入失敗，請檢查網路連線！');
@@ -1306,7 +1295,6 @@
                 }
 
                 let alertMsg = energyData.added > 0
-                
                     ? `紀錄已載入石碑！\n⚡ 獲得 ${energyData.added} 點能量\n(今日進度: ${energyData.current}/${energyData.limit})` 
                     : `紀錄已載入石碑！\n(今日能量已達上限 ${energyData.limit}/${energyData.limit})`;
 
@@ -1578,11 +1566,10 @@
         if (typeof loadUserData === "function") loadUserData();
         if (typeof loadPlayerList === "function") loadPlayerList();
         
-        // 2. 檢查龍舟按鈕要不要發光
-        //if (typeof updateDragonBoatButtonState === "function") {
-            //updateDragonBoatButtonState();
+        /* 🌟 [新增] 載入頁面時自動觸發小遊戲按鈕狀態更新 */
+        if (typeof updateGameButtonState === "function") {
             updateGameButtonState();
-        //}
+        }
     };
 
     function debugCheckScore() {
@@ -1609,7 +1596,7 @@
 </button>
 -->
 
-<!-- 健康能量大採集/接金幣 -->
+<!-- 健康能量大採集小遊戲模組/接金幣 -->
 <script src="energyCatch.js"></script>
 
 <!-- 龍舟小遊戲

@@ -4,6 +4,166 @@
  * 物品：💧水滴(+3)、🥦蔬菜(+2)、🧊豆腐(+5)、🍔漢堡(-3)、💣炸彈(-5)
  */
 
+let ENERGY_CATCH_DEBUG = false; // 💡 測試模式開關：連點 5 下 LV 標籤或標題開啟
+
+/* 🌟 [新增] 雙效彩蛋開關：連點 5 次切換測試模式與開發者面板 */
+let secretTapCount = 0;
+let secretTapTimer = null;
+
+function secretDebugToggle() {
+    secretTapCount++;
+    if (secretTapTimer) clearTimeout(secretTapTimer);
+    secretTapTimer = setTimeout(() => { secretTapCount = 0; }, 2000);
+
+    if (secretTapCount >= 5) {
+        secretTapCount = 0; 
+        
+        if (typeof ENERGY_CATCH_DEBUG !== 'undefined') {
+            ENERGY_CATCH_DEBUG = !ENERGY_CATCH_DEBUG;
+        }
+        if (typeof debug_mode !== 'undefined') {
+            debug_mode = ENERGY_CATCH_DEBUG; 
+        }
+
+        const dPanel = document.getElementById('debugPanel');
+        if (dPanel) {
+            dPanel.style.display = ENERGY_CATCH_DEBUG ? 'block' : 'none';
+        }
+        
+        if (typeof updateGameButtonState === "function") {
+            updateGameButtonState();
+        }
+
+        alert(ENERGY_CATCH_DEBUG ? "🛠️ 魔法成功！【採集無敵】與【開發者面板】已雙重開啟！" : "🔒 魔法成功！所有測試模式【已關閉】。");
+    }
+}
+
+/* 🌟 [新增] 設定每天小遊戲的解鎖門檻分數對照表 (1~14 天) */
+function getRequiredEnergyForDay(day) {
+    const thresholds = {
+        1: 2, //10,  // 第 1 天需要 10 分才能玩
+        2: 2, //10,  // 第 2 天需要 10 分
+        3: 2, //10,  // 第 3 天需要 10 分
+        4: 2, //10,  // 第 4 天需要 10 分
+        5: 4, //13,  // 第 5 天需要 13 分
+        6: 4, //13,  // 第 6 天需要 13 分
+        7: 4, //13,  // 第 7 天需要 13 分
+        8: 4, //13,  // 第 8 天需要 13 分
+        9: 4, //13,  // 第 9 天需要 13 分
+        10: 4, //13, // 第 10 天需要 13 分
+        11: 6, //16, // 第 11 天需要 16 分
+        12: 6, //16, // 第 12 天需要 16 分
+        13: 6, //16, // 第 13 天需要 16 分
+        14: 15, //55  // 第 14 天需要 55 分 (最後一天打卡給10分)
+    };
+    return thresholds[day] || 10; 
+}
+
+/* 🌟 [新增] 直接讀取「今日打卡」與「今日雲端加分撲滿」計算今日專屬能量 */
+function getTodayEnergy() {
+    let currentDay = typeof getCalendarDiffDays === "function" ? getCalendarDiffDays() : 1;
+    let todayStr = new Date().toDateString();
+    
+    // 1. 計算今日打卡分數 (今日打卡次數 * 當天單場分數)
+    let lastCheckinDate = localStorage.getItem('lastCheckinDate');
+    let todayCheckins = (lastCheckinDate === todayStr) ? (parseInt(localStorage.getItem('todayCheckins')) || 0) : 0;
+    let ptsPerCheckin = (currentDay >= 14) ? 10 : 2; 
+    let todayBase = todayCheckins * ptsPerCheckin;
+    
+    // 2. 讀取雲端記帳分
+    let todayBonus = parseInt(localStorage.getItem("bonusPoints_Day_" + currentDay)) || 0;
+    
+    return todayBase + todayBonus; 
+}
+
+/* 🌟 [新增] 自動更新小遊戲按鈕狀態 (反灰/亮起) */
+function updateGameButtonState() {
+    const btn = document.getElementById('energyCatchBtn'); 
+    if (!btn) return;
+
+    // 1. 如果是 DEBUG 模式，直接全亮並解鎖
+    if (typeof ENERGY_CATCH_DEBUG !== 'undefined' && ENERGY_CATCH_DEBUG) {
+        btn.style.filter = 'grayscale(0%) drop-shadow(0px 0px 8px rgba(76, 175, 80, 0.8))';
+        btn.style.opacity = '1';
+        btn.onclick = launchMiniGame;
+        btn.innerHTML = "🌾 進入採集(測試中)";
+        return;
+    }
+
+    let currentDay = 1;
+    if (typeof getCalendarDiffDays === "function") {
+        currentDay = getCalendarDiffDays();
+    }
+
+    // 2. 檢查今天是否已經玩過了
+    const playedDate = localStorage.getItem('energyCatchPlayedDate');
+    const todayStr = new Date().toDateString() + "_Day_" + currentDay;
+    
+    if (playedDate === todayStr) {
+        btn.style.filter = 'grayscale(100%)';
+        btn.style.opacity = '0.5';
+        btn.onclick = () => { alert("🌾 您今日已採集完畢，請明天再來挑戰！"); };
+        btn.innerHTML = "✅ 今日已完賽";
+        return;
+    }
+
+    // 3. 計算今日專屬能量與門檻比較
+    let todayRealEnergy = getTodayEnergy();
+    let requiredEnergy = getRequiredEnergyForDay(currentDay);
+
+    if (todayRealEnergy >= requiredEnergy) {
+        // 🎉 達標：按鈕亮起，綁定點擊功能
+        btn.style.filter = 'grayscale(0%) drop-shadow(0px 0px 8px rgba(76, 175, 80, 0.8))'; 
+        btn.style.opacity = '1';
+        btn.onclick = launchMiniGame;
+        btn.innerHTML = "🌾 開始採集挑戰！";
+    } else {
+        // 🔒 未達標：按鈕反灰鎖定
+        btn.style.filter = 'grayscale(100%)';
+        btn.style.opacity = '0.6';
+        btn.onclick = () => { 
+            let diff = requiredEnergy - todayRealEnergy;
+            alert(`🔒 能量不足\n\n還差 ⚡ ${diff} 分即可解鎖今日能量採集！\n快去完成任務與打卡吧！`); 
+        };
+        btn.innerHTML = `🔒 獲 ${requiredEnergy} 分解鎖`;
+    }
+}
+
+/* 🌟 [新增] 進場資格防呆驗證 */
+function checkGameEligibility() {
+    if (ENERGY_CATCH_DEBUG) return true; 
+
+    let currentDay = 1;
+    if (typeof getCalendarDiffDays === "function") {
+        currentDay = getCalendarDiffDays();
+    }
+
+    let todayRealEnergy = getTodayEnergy();
+    let requiredEnergy = getRequiredEnergyForDay(currentDay);
+
+    if (todayRealEnergy < requiredEnergy) {
+        if (typeof showCustomAlert === "function") {
+            showCustomAlert('🔒', '能量不足', `勇者，需要累積滿 ${requiredEnergy} 分才能挑戰採集！\n\n目前今日能量：⚡ ${todayRealEnergy} 分\n快去完成任務與打卡吧！`);
+        } else {
+            alert(`🔒 能量不足\n\n勇者，需要累積滿 ${requiredEnergy} 分才能挑戰採集！\n\n目前今日能量：⚡ ${todayRealEnergy} 分\n快去完成任務與打卡吧！`);
+        }
+        return false;
+    }
+
+    const playedDate = localStorage.getItem('energyCatchPlayedDate');
+    const todayStr = new Date().toDateString() + "_Day_" + currentDay;
+    
+    if (playedDate === todayStr) {
+        if (typeof showCustomAlert === "function") {
+            showCustomAlert('🌾', '今日已完賽', '今天已參與過能量採集！\n請好好休息，明天再來！');
+        } else {
+            alert('🌾 今日已完賽\n\n今天已參與過能量採集！\n請好好休息，明天再來！');
+        }
+        return false;
+    }
+    return true; 
+}
+
 const EnergyCatchGame = (function () {
   // 遊戲私有變數
   let canvas, ctx;
@@ -42,11 +202,11 @@ const EnergyCatchGame = (function () {
    * 將遊戲得分依規則轉換為最終能量值
    */
   function calculateEnergyGain(finalScore) {
-    if (finalScore < 10) return 1;
-    if (finalScore < 20) return 3;
-    if (finalScore < 40) return 5;
-    if (finalScore < 50) return 8;
-    return 10; // finalScore >= 50
+    if (finalScore < 20) return 1;
+    if (finalScore < 50) return 3;
+    if (finalScore < 70) return 5;
+    if (finalScore < 90) return 8;
+    return 10; // finalScore >= 90
   }
 
   /**
@@ -301,6 +461,13 @@ const EnergyCatchGame = (function () {
 
     const finalEnergyGain = calculateEnergyGain(score);
 
+    // 🌟 [新增] 紀錄今日完賽天數，防重複遊玩
+    let currentDay = 1;
+    if (typeof getCalendarDiffDays === "function") {
+        currentDay = getCalendarDiffDays();
+    }
+    localStorage.setItem('energyCatchPlayedDate', new Date().toDateString() + "_Day_" + currentDay);
+
     // 🎯 對齊龍舟體驗：遊戲結束立即關閉遊戲 Modal，交由主程式彈窗
     const modal = document.getElementById('energyCatchModal');
     if (modal) modal.remove();
@@ -315,6 +482,9 @@ const EnergyCatchGame = (function () {
    * 對外啟動函數
    */
   function start(onComplete) {
+    /* 🌟 [新增] 啟動前進行資格驗證，未達門檻不開啟 */
+    if (!checkGameEligibility()) return;
+    
     score = 0;
     timeLeft = 20;
     isGameOver = false;
