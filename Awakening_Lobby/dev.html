@@ -1127,6 +1127,12 @@
                         alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」+5 分！`;
                     }
 
+                    /* 🌟 [新增/修改] 打卡完成後，立刻叫 checkMemory 與 updateGameButtonState 刷新按鈕文字與門檻數字！ */
+                    checkMemory();
+                    if (typeof updateGameButtonState === "function") {
+                        updateGameButtonState();
+                    }
+
                     if (liff.isInClient() && liff.getContext().type !== "none") {
                         try {
                             await liff.sendMessages([{
@@ -1203,43 +1209,50 @@
         const alertMessage = `採集得分：${finalScore} 分\n評定等級：${rankTitle}\n\n獲得健康能量獎勵：⚡ ${finalEnergyGain} 點！`;
 
         if (finalEnergyGain > 0) {
-          if (userId) {
-            // ----------------------------------------------------
-            // 🌟 [修改] 以原子級 increment 將獲得能量寫入 Firebase
-            // ----------------------------------------------------
-            db.collection(PLAYER_COLLECTION).doc(userId).update({
-              totalEnergy: firebase.firestore.FieldValue.increment(finalEnergyGain)
-            }).then(() => {
-              // ----------------------------------------------------
-              // 🌟 [修改] 觸發系統標準對話框 (🏆 採集成功！)
-              // ----------------------------------------------------
-              showCustomAlert('🏆', '採集成功！', alertMessage);
-              
-              // ----------------------------------------------------
-              // 🌟 [新增] 點擊確定後刷新 UI，主畫面的能量條 (⚡ badge) 會即時更新
-              // ----------------------------------------------------
-              checkMemory();
-              if (typeof updateGameButtonState === "function") {
-                updateGameButtonState();
-              }
-            }).catch((err) => {
-              console.error("❌ 能量寫入失敗:", err);
-              showCustomAlert('❌', '紀錄失敗', '能量寫入失敗，請檢查網路連線！');
-            });
-          } else {
-            // ----------------------------------------------------
-            // 🌟 [新增] 離線/無帳號測試保底機制
-            // ----------------------------------------------------
+            /* 🌟 [新增/修改] 無論雲端或離線，先立即在手機本地加上這筆能量，確保 checkMemory 撈到最新分數！ */
             let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
             total += finalEnergyGain;
             localStorage.setItem('totalEnergy', total);
-            if (document.getElementById('displayEnergy')) {
-              document.getElementById('displayEnergy').innerText = total;
-            }
-            showCustomAlert('🏆', '採集成功！', `(測試模式)\n${alertMessage}`);
-          }
+            
+            if (userId) {
+                // ----------------------------------------------------
+                // 🌟 [修改] 以原子級 increment 將獲得能量寫入 Firebase
+                // ----------------------------------------------------
+                db.collection(PLAYER_COLLECTION).doc(userId).update({
+                  totalEnergy: firebase.firestore.FieldValue.increment(finalEnergyGain)
+                }).then(() => {
+                  // ----------------------------------------------------
+                  // 🌟 [修改] 觸發系統標準對話框 (🏆 採集成功！)
+                  // ----------------------------------------------------
+                  showCustomAlert('🏆', '採集成功！', alertMessage);
+                  
+                  // ----------------------------------------------------
+                  // 🌟 [新增] 點擊確定後刷新 UI，主畫面的能量條 (⚡ badge) 會即時更新
+                  // ----------------------------------------------------
+                  checkMemory();
+                  if (typeof updateGameButtonState === "function") {
+                    updateGameButtonState();
+                  }
+                }).catch((err) => {
+                  console.error("❌ 能量寫入失敗:", err);
+                  showCustomAlert('❌', '紀錄失敗', '能量寫入失敗，請檢查網路連線！');
+                });
+            } else {
+                // ----------------------------------------------------
+                // 🌟 [新增] 離線/無帳號測試保底機制
+                // ----------------------------------------------------
+                //let total = parseInt(localStorage.getItem('totalEnergy')) || 0;
+                //total += finalEnergyGain;
+                //localStorage.setItem('totalEnergy', total);
+
+                if (document.getElementById('displayEnergy')) {
+                  document.getElementById('displayEnergy').innerText = total;
+                }
+                showCustomAlert('🏆', '採集成功！', `(測試模式)\n${alertMessage}`);
+                checkMemory();
+              }
         } else {
-          showCustomAlert('🌾', '採集結束', `採集得分：${finalScore} 分\n這次沒有採集到足夠能量，下次繼續加油！`);
+            showCustomAlert('🌾', '採集結束', `採集得分：${finalScore} 分\n這次沒有採集到足夠能量，下次繼續加油！`);
         }
       });
     }
