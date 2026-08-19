@@ -66,13 +66,21 @@ function getTodayEnergy() {
     
     // 1. 計算今日打卡分數 (今日打卡次數 * 當天單場分數)
     let lastCheckinDate = localStorage.getItem('lastCheckinDate');
-    let todayCheckins = (lastCheckinDate === todayStr) ? (parseInt(localStorage.getItem('todayCheckins')) || 0) : 0;
+    let lastDayKey = localStorage.getItem('lastCheckinDayKey');
+    let currentDayKey = "Day_" + currentDay;
+
+    let todayCheckins = (lastCheckinDate === todayStr && lastDayKey === currentDayKey) 
+                        ? (parseInt(localStorage.getItem('todayCheckins')) || 0) 
+                        : 0;
+
+    // 2. 當日單次打卡得分 (前 13 天每次 2 分，第 14 天每次 10 分)
     let ptsPerCheckin = (currentDay >= 14) ? 10 : 2; 
-    let todayBase = todayCheckins * ptsPerCheckin;
+    let todayBase = todayCheckins * ptsPerCheckin; // 今日純打卡得分
     
-    // 2. 讀取雲端記帳分
+    // 3. 讀取當天專屬的村長加分 (例如 bonusPoints_Day_1)
     let todayBonus = parseInt(localStorage.getItem("bonusPoints_Day_" + currentDay)) || 0;
     
+    // 4. 回傳當天真正的總分 (打卡 + 審核)
     return todayBase + todayBonus; 
 }
 

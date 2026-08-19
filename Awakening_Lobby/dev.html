@@ -526,6 +526,7 @@
         if(lvEl) lvEl.innerText = currentLevel;
     }
 
+    /* 🌟 [修改] checkMemory：左上角顯示「歷史累積總能量」，小遊戲解鎖交給 energyCatch.js 依「當日」判斷 */
     function checkMemory() {
         const savedNick = localStorage.getItem('gameNickname');
         const savedRole = localStorage.getItem('selectedRole');
@@ -538,19 +539,16 @@
             const nameEl = document.getElementById('displayNameBadge');
             if(nameEl) nameEl.innerText = savedNick;
             
-            // 👇 修改：畫面顯示的能量 = 打卡分 + 村長加分
-           // ----------------------------------------------------
-            // 🌟 [修改開始]：正確讀取「當日加分」並與總分合併
-            // ----------------------------------------------------
+            // 🌟 1. 左上角顯示能量 = 打卡累積總分 + 審核長累積總加分 (已包含今日加分)
             const base = parseInt(localStorage.getItem('totalEnergy')) || 0;
             const totalBonus = parseInt(localStorage.getItem('bonusPoints')) || 0; // 歷史累積加分
             
             // 取得今日加分撲滿名稱 (例如 bonusPoints_Day_8)
-            let today = getCalendarDiffDays();
-            const todayBonus = parseInt(localStorage.getItem('bonusPoints_Day_' + today)) || 0;
+            //let today = getCalendarDiffDays();
+            //const todayBonus = parseInt(localStorage.getItem('bonusPoints_Day_' + today)) || 0;
             
             // 最終顯示能量 = 基礎分 + 歷史累積加分 + 今日加分
-            let finalEnergy = base + totalBonus + todayBonus;
+            let finalEnergy = base + totalBonus; //base + totalBonus + todayBonus;
             
             const energyEl = document.getElementById('displayEnergy');
             if (energyEl) {
@@ -566,7 +564,7 @@
             // 👇 新增這行：讓漂浮魔法球在初始化時出現
             renderFloatingOrbs();
 
-            /* 🌟 [新增] 載入資料後，即時呼叫 energyCatch.js 內的 updateGameButtonState 更新按鈕狀態 */
+            // 🌟 2. 小遊戲按鈕解鎖：交由 energyCatch.js 內的 getTodayEnergy 純算當天分數
             if (typeof updateGameButtonState === "function") {
                 updateGameButtonState();
             }
