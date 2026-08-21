@@ -1133,17 +1133,25 @@
 
                     if (liff.isInClient() && liff.getContext().type !== "none") {
                         try {
+                            // 🌟 確保圖片網址為 HTTPS 且符合 LINE 要求
+                            let safeImageUrl = gasRes.fileUrl;
+                            if (safeImageUrl && safeImageUrl.startsWith('http://')) {
+                                safeImageUrl = safeImageUrl.replace('http://', 'https://');
+                            }
+
                             await liff.sendMessages([{
                                 type: "text",
                                 // 🌟 3. 精準替換標題為 【Dx 試煉回報】
                                 text: `【D${currentDay} 試煉回報】\n我完成了打卡！💦\n英雄：${nickname}\n\n📝 心得：\n${log}`
                             }, {
                                 type: "image",
-                                originalContentUrl: gasRes.fileUrl,
-                                previewImageUrl: gasRes.fileUrl
+                                originalContentUrl: safeImageUrl,
+                                previewImageUrl: safeImageUrl
                             }]);
                         } catch (err) {
-                            console.log("圖片發送失敗", err);
+                            console.log("圖片發送失敗，自動降級為純文字發送:", err);
+                            
+                            // 降級發送純文字訊息，避免中斷打卡流程
                             await liff.sendMessages([{
                                 type: "text",
                                 // 🌟 4. 備用純文字訊息也一併精準替換
