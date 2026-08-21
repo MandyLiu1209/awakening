@@ -92,10 +92,8 @@ function updateGameButtonState() {
         return;
     }
 
-    let currentDay = 1;
-    if (typeof getCalendarDiffDays === "function") {
-        currentDay = getCalendarDiffDays();
-    }
+
+    let currentDay = typeof getCalendarDiffDays === "function" ? getCalendarDiffDays() : 1;
 
     // 2. 檢查今天是否已經玩過了
     const playedDate = localStorage.getItem('energyCatchPlayedDate');
@@ -112,22 +110,30 @@ function updateGameButtonState() {
     // 3. 計算今日專屬能量與門檻比較
     let todayRealEnergy = getTodayEnergy();
     let requiredEnergy = getRequiredEnergyForDay(currentDay);
+    let diff = requiredEnergy - todayRealEnergy; // 👈 計算出還差幾分
 
     if (todayRealEnergy >= requiredEnergy) {
         // 🎉 達標：按鈕亮起，綁定點擊功能
         btn.style.filter = 'grayscale(0%) drop-shadow(0px 0px 8px rgba(76, 175, 80, 0.8))'; 
         btn.style.opacity = '1';
         btn.onclick = launchMiniGame;
-        btn.innerHTML = "🌾 開始採集挑戰！";
+        btn.innerHTML = "🌾 開始挑戰！";
     } else {
         // 🔒 未達標：按鈕反灰鎖定
         btn.style.filter = 'grayscale(100%)';
         btn.style.opacity = '0.6';
         btn.onclick = () => { 
-            let diff = requiredEnergy - todayRealEnergy;
-            alert(`🔒 能量不足\n\n還差 ⚡ ${diff} 分即可解鎖今日能量採集！\n快去完成任務與打卡吧！`); 
+            //let diff = requiredEnergy - todayRealEnergy;
+            //alert(`🔒 能量不足\n\n還差 ⚡ ${diff} 分即可解鎖今日能量採集！\n快去完成任務與打卡吧！`); 
+
+            if (typeof showCustomAlert === "function") {
+                showCustomAlert('🔒', '能量不足', `還差 ⚡ ${diff} 分即可解鎖今日能量採集！\n目前今日能量：${todayRealEnergy} / ${requiredEnergy} 分\n快去完成任務與打卡吧！`);
+            } else {
+                alert(`🔒 能量不足\n\n還差 ⚡ ${diff} 分即可解鎖今日能量採集！\n目前今日能量：${todayRealEnergy} / ${requiredEnergy} 分\n快去完成任務與打卡吧！`);
+            }
         };
-        btn.innerHTML = `🔒 獲 ${requiredEnergy} 分解鎖`;
+        //btn.innerHTML = `🔒 獲 ${requiredEnergy} 分解鎖`;
+        btn.innerHTML = `🔒 獲 ${diff} 分解鎖<br><span style="font-size: 12px;">(${todayRealEnergy}/${requiredEnergy} 點)</span>`;
     }
 }
 
