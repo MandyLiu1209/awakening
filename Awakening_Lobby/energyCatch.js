@@ -83,7 +83,7 @@ function getTodayEnergy() {
     // 🌟 [新增防呆相容]：若當天撲滿為 0，但總加分 (bonusPoints) 有值，取當前總加分作為保底
     if (todayBonus === 0) {
         let totalBonus = parseInt(localStorage.getItem("bonusPoints")) || 0;
-        if (totalBonus > 0 && currentDay === 1) {
+        if (totalBonus > 0) {
             todayBonus = totalBonus;
         }
     }
