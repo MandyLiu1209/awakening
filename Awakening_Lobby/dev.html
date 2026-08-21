@@ -1322,9 +1322,13 @@
         // 1. 更改本地記憶體
         localStorage.setItem('startDate', targetDate);
 
+        /* 🌟 [新增] 時光機跳轉天數時，將今日打卡次數與完賽紀錄重置，模擬全新一天的開始 */
+        localStorage.setItem('todayCheckins', 0);
+        localStorage.removeItem('energyCatchPlayedDate');
+
         // 2. 🌟 關鍵新增：同時更改 Firebase 雲端記憶，避免重整時被舊資料覆蓋
         try {
-            const context = liff.getContext();
+            //const context = liff.getContext();
             //const userId = context ? context.userId : null;
             const userId = window.userProfile ? window.userProfile.userId : null;
 

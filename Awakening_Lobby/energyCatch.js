@@ -139,7 +139,7 @@ function updateGameButtonState() {
             }
         };
         //btn.innerHTML = `🔒 獲 ${requiredEnergy} 分解鎖`;
-        btn.innerHTML = `🔒 獲 ${diff} 分解鎖<br><span style="font-size: 12px;">(${todayRealEnergy}/${requiredEnergy} 點)</span>`;
+        btn.innerHTML = `🔒 獲 ${diff} 分解鎖`;
     }
 }
 
