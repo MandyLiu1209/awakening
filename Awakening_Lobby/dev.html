@@ -405,11 +405,17 @@
 
     // 開發者模式開關
     let debug_mode = false;
-    const GAME_VERSION = "v0.4.0_20260516"; // 自動清除舊記憶，套用新裝備系統
+    const GAME_VERSION = "v0.5.0_20260516"; // 自動清除舊記憶，套用新裝備系統
     //v0.2.x：將記錄移到資料庫
     //v0.3.x：加入端午節小遊戲
     //v0.4.x：加入排行榜
     //v0.5.x：加入接金幣小遊戲
+
+    if (localStorage.getItem('gameVersion') !== GAME_VERSION) {
+        console.log("🔄 偵測到全新版本，正在自動洗白舊記憶與殘留分數...");
+        localStorage.clear(); 
+        localStorage.setItem('gameVersion', GAME_VERSION); 
+    }
 
     /*
     if (localStorage.getItem('gameVersion') !== GAME_VERSION) {

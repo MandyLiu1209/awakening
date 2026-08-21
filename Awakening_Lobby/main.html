@@ -161,7 +161,7 @@
 
 <div class="container" id="mainContainer" style="display: none;">
     <!-- 🌟 [修改] 標題區點擊綁定 secretDebugToggle 彩蛋開關 -->
-    <div class="header-banner" onclick="countAdminClick()" style="cursor: pointer;">英雄試煉殿堂 v2 </div>
+    <div class="header-banner" onclick="countAdminClick()" style="cursor: pointer;">英雄試煉殿堂 v3 </div>
 
     <div id="setupSection">
         <div class="input-group">
@@ -410,6 +410,12 @@
     //v0.3.x：加入端午節小遊戲
     //v0.4.x：加入排行榜
     //v0.5.x：加入接金幣小遊戲
+
+    if (localStorage.getItem('gameVersion') !== GAME_VERSION) {
+        console.log("🔄 偵測到全新版本，正在自動洗白舊記憶與殘留分數...");
+        localStorage.clear(); 
+        localStorage.setItem('gameVersion', GAME_VERSION); 
+    }
 
     /*
     if (localStorage.getItem('gameVersion') !== GAME_VERSION) {
