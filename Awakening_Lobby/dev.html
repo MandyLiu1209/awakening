@@ -161,7 +161,7 @@
 
 <div class="container" id="mainContainer" style="display: none;">
     <!-- 🌟 [修改] 標題區點擊綁定 secretDebugToggle 彩蛋開關 -->
-    <div class="header-banner" onclick="countAdminClick()" style="cursor: pointer;">英雄試煉殿堂 v3-4 </div>
+    <div class="header-banner" onclick="countAdminClick()" style="cursor: pointer;">英雄試煉殿堂 v3-5 </div>
 
     <div id="setupSection">
         <div class="input-group">
@@ -631,6 +631,9 @@
         // 🎯 修正點 3：無論第幾次打卡，次數都先 +1 並存回手機
         todayCheckins += 1;
         localStorage.setItem('todayCheckins', todayCheckins);
+        /* 🌟 [新增] 確保手機記住今天打卡的日期與天數，讓按鈕能抓到今日打卡分 */
+        localStorage.setItem('lastCheckinDate', todayStr);
+        localStorage.setItem('lastCheckinDayKey', currentDayKey);
         
         let actualAdd = 0;
 

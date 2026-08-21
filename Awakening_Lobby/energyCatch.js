@@ -66,7 +66,13 @@ function getTodayEnergy() {
     
     // 1. 計算今日打卡分數 (今日打卡次數 * 當天單場分數)
     let lastCheckinDate = localStorage.getItem('lastCheckinDate');
-    let todayCheckins = (lastCheckinDate === todayStr) ? (parseInt(localStorage.getItem('todayCheckins')) || 0) : 0;
+    let todayCheckins = parseInt(localStorage.getItem('todayCheckins')) || 0;
+
+    // 若記錄的日期不是今天，打卡次數才歸零
+    if (lastCheckinDate && lastCheckinDate !== todayStr) {
+        todayCheckins = 0;
+    }
+
     let ptsPerCheckin = (currentDay >= 14) ? 10 : 2; 
     let todayBase = todayCheckins * ptsPerCheckin; // 今日純打卡得分
     //let currentDayKey = "Day_" + currentDay;
