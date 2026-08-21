@@ -80,7 +80,15 @@ function getTodayEnergy() {
     // 2. 讀取雲端記帳分
     let todayBonus = parseInt(localStorage.getItem("bonusPoints_Day_" + currentDay)) || 0;
     
-    // 4. 回傳當天真正的總分 (打卡 + 審核)
+    // 🌟 [新增防呆相容]：若當天撲滿為 0，但總加分 (bonusPoints) 有值，取當前總加分作為保底
+    if (todayBonus === 0) {
+        let totalBonus = parseInt(localStorage.getItem("bonusPoints")) || 0;
+        if (totalBonus > 0 && currentDay === 1) {
+            todayBonus = totalBonus;
+        }
+    }
+
+    // 3. 回傳當天真正的總分 (打卡 + 審核)
     return todayBase + todayBonus; 
 }
 
@@ -133,9 +141,9 @@ function updateGameButtonState() {
             //alert(`🔒 能量不足\n\n還差 ⚡ ${diff} 分即可解鎖今日能量採集！\n快去完成任務與打卡吧！`); 
 
             if (typeof showCustomAlert === "function") {
-                showCustomAlert('🔒', '能量不足', `還差 ⚡ ${diff} 分即可解鎖今日能量採集！\n目前今日能量：${todayRealEnergy} / ${requiredEnergy} 分\n快去完成任務與打卡吧！`);
+                showCustomAlert('🔒', '能量不足', `還差 ⚡ ${diff} 分即可解鎖！\n目前今日能量：${todayRealEnergy} / ${requiredEnergy} 分\n快去完成任務與打卡吧！`);
             } else {
-                alert(`🔒 能量不足\n\n還差 ⚡ ${diff} 分即可解鎖今日能量採集！\n目前今日能量：${todayRealEnergy} / ${requiredEnergy} 分\n快去完成任務與打卡吧！`);
+                alert(`🔒 能量不足\n\n還差 ⚡ ${diff} 分即可解鎖！\n目前今日能量：${todayRealEnergy} / ${requiredEnergy} 分\n快去完成任務與打卡吧！`);
             }
         };
         //btn.innerHTML = `🔒 獲 ${requiredEnergy} 分解鎖`;
