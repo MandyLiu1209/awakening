@@ -572,7 +572,7 @@
     }
 
     /* 🌟 [新增] 小遊戲動態狀態控制 (檢查能量是否達標 13 分，未達標則反灰) */
-    function updateGameButtonState() {
+    /*function updateGameButtonState() {
       const btn = document.getElementById('energyCatchBtn');
       if (!btn) return;
 
@@ -607,7 +607,7 @@
         };
         btn.innerHTML = `🔒 能量不足<br><span style="font-size: 12px;">(${currentEnergy}/${reqEnergy} 點)</span>`;
       }
-    }
+    }*/
 
     // ⚡ 結算能量 (原子級原地加分 - 徹底解決分數覆蓋終極版)
     async function calculateAndAddEnergy() {
