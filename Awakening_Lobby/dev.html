@@ -161,7 +161,7 @@
 
 <div class="container" id="mainContainer" style="display: none;">
     <!-- 🌟 [修改] 標題區點擊綁定 secretDebugToggle 彩蛋開關 -->
-    <div class="header-banner" onclick="countAdminClick()" style="cursor: pointer;">英雄試煉殿堂 v3-8 </div>
+    <div class="header-banner" onclick="countAdminClick()" style="cursor: pointer;">英雄試煉殿堂 v3-9 </div>
 
     <div id="setupSection">
         <div class="input-group">
@@ -1093,13 +1093,14 @@
                         alertMsg = `✅ 紀錄已成功上傳！\n(今日基礎加分已達 ${energyData.limit} 次上限)\n👀 村長審核中：一般任務可獲 +3 分，困難任務「完美達標」+5 分！`;
                     }
 
+                    document.getElementById('questLog').value = ""; 
+                    document.getElementById('questImage').value = ""; 
+
                     /* 🌟 [新增/修改] 打卡完成後，立刻叫 checkMemory 與 updateGameButtonState 刷新按鈕文字與門檻數字！ */
                     checkMemory();
-                    setTimeout(() => {
-                        if (typeof updateGameButtonState === "function") {
-                            updateGameButtonState();
-                        }
-                    }, 100);
+                    if (typeof updateGameButtonState === "function") {
+                        updateGameButtonState();
+                    }
 
                     if (liff.isInClient() && liff.getContext().type !== "none") {
                         try {
@@ -1130,12 +1131,12 @@
                         }
                     }
 
-                    document.getElementById('questLog').value = "";
-                    document.getElementById('questImage').value = "";
+                    //document.getElementById('questLog').value = "";
+                    //document.getElementById('questImage').value = "";
 
-                    if (typeof updateGameButtonState === "function") {
+                    /*if (typeof updateGameButtonState === "function") {
                         updateGameButtonState();
-                    }
+                    }*/
                     showCustomAlert('🎉', '打卡成功！', alertMsg);
                 } else {
                     showCustomAlert('⚠️', '系統繁忙', '後端處理失敗，請稍後再試。');
