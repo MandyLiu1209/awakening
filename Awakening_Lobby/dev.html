@@ -409,7 +409,7 @@
     //v0.2.x：將記錄移到資料庫
     //v0.3.x：加入端午節小遊戲
     //v0.4.x：加入排行榜
-
+    //v0.5.x：加入接金幣小遊戲
 
     /*
     if (localStorage.getItem('gameVersion') !== GAME_VERSION) {
@@ -587,7 +587,11 @@
                 const dateHeader = timeRes.headers.get('Date');
                 if (dateHeader) {
                     trueToday = new Date(dateHeader);
-                    if (Math.abs(Date.now() - trueToday.getTime()) > 60 * 60 * 1000) isTimeCheat = true;
+
+                    // 🕵️ 抓包判定：如果手機系統時間跟真實伺服器時間相差超過 1 小時，判定為作弊
+                    if (Math.abs(Date.now() - trueToday.getTime()) > 60 * 60 * 1000) {
+                        isTimeCheat = true;
+                    }
                 }
             }
         } catch (err) {
@@ -718,7 +722,7 @@
             actualAdd = 0;
         }
 
-        /* 🌟 [新增] 打卡完即時更新小遊戲按鈕狀態 */
+        // [更新按鈕狀態] 打卡完即時更新小遊戲按鈕狀態 (增加安全判定)
         if (typeof updateGameButtonState === "function") {
             updateGameButtonState();
         }
@@ -1561,7 +1565,7 @@
         if (typeof loadUserData === "function") loadUserData();
         if (typeof loadPlayerList === "function") loadPlayerList();
         
-        /* 🌟 [新增] 載入頁面時自動觸發小遊戲按鈕狀態更新 */
+        // 2. 載入頁面時自動觸發小遊戲按鈕狀態更新
         if (typeof updateGameButtonState === "function") {
             updateGameButtonState();
         }
