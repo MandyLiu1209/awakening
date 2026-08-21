@@ -161,7 +161,7 @@
 
 <div class="container" id="mainContainer" style="display: none;">
     <!-- 🌟 [修改] 標題區點擊綁定 secretDebugToggle 彩蛋開關 -->
-    <div class="header-banner" onclick="countAdminClick()" style="cursor: pointer;">英雄試煉殿堂 v3-1 </div>
+    <div class="header-banner" onclick="countAdminClick()" style="cursor: pointer;">英雄試煉殿堂 v3-2 </div>
 
     <div id="setupSection">
         <div class="input-group">
@@ -570,44 +570,6 @@
             }
         }
     }
-
-    /* 🌟 [新增] 小遊戲動態狀態控制 (檢查能量是否達標 13 分，未達標則反灰) */
-    /*function updateGameButtonState() {
-      const btn = document.getElementById('energyCatchBtn');
-      if (!btn) return;
-
-      // 1. 若處於 DEBUG 測試模式，直接強制開鎖
-      if (typeof debug_mode !== 'undefined' && debug_mode) {
-        btn.style.filter = 'grayscale(0%)';
-        btn.style.opacity = '1';
-        btn.onclick = launchMiniGame;
-        btn.innerHTML = '🌾 採集健康能量<br><span style="font-size: 12px;">(測試中)</span>';
-        return;
-      }
-
-      // 2. 計算今日專屬能量與門檻
-      const currentDay = typeof getCalendarDiffDays === 'function' ? getCalendarDiffDays() : 1;
-      const base = parseInt(localStorage.getItem('totalEnergy')) || 0;
-      const bonusToday = parseInt(localStorage.getItem('bonusPoints_Day_' + currentDay)) || 0;
-      const currentEnergy = base + bonusToday;
-      const reqEnergy = 13; // 解鎖門檻
-
-      if (currentEnergy >= reqEnergy) {
-        // 🟢 達標解鎖
-        btn.style.filter = 'grayscale(0%) drop-shadow(0px 0px 8px rgba(76, 175, 80, 0.8))';
-        btn.style.opacity = '1';
-        btn.onclick = launchMiniGame;
-        btn.innerHTML = '🌾 採集健康能量<br><span style="font-size: 12px;">(小遊戲)</span>';
-      } else {
-        // 🔴 未達標反灰鎖定
-        btn.style.filter = 'grayscale(100%)';
-        btn.style.opacity = '0.5';
-        btn.onclick = function() {
-          showCustomAlert('🔒', '門檻未達標', `採集小遊戲需要今日能量達 ${reqEnergy} 點才能解鎖！\n目前能量：⚡ ${currentEnergy} 點，請先完成任務打卡！`);
-        };
-        btn.innerHTML = `🔒 能量不足<br><span style="font-size: 12px;">(${currentEnergy}/${reqEnergy} 點)</span>`;
-      }
-    }*/
 
     // ⚡ 結算能量 (原子級原地加分 - 徹底解決分數覆蓋終極版)
     async function calculateAndAddEnergy() {
